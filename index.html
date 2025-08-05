@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual Interativo UNINTA</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Biblioteca de Ícones (Lucide) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Fontes do Google -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Estilo base com a nova paleta dark */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827; /* Fundo principal azul-escuro */
+            color: #d1d5db; /* Texto principal cinza claro */
+            overflow-x: hidden;
+        }
+        /* Fundo com gradiente sutil e textura */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(circle at top right, rgba(12, 74, 110, 0.5), transparent 40%),
+                              radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.2), transparent 50%);
+            background-repeat: no-repeat;
+            z-index: -1;
+        }
+        .header-title {
+            font-family: 'Poppins', sans-serif;
+        }
+        /* Efeito de arrastar para o modo ADM */
+        .dragging {
+            opacity: 0.4;
+            transform: scale(0.98);
+            border: 2px dashed #3b82f6;
+        }
+        /* Estilo para edição de texto */
+        [contenteditable="true"] {
+            outline: 2px dashed #22c55e;
+            padding: 4px;
+            border-radius: 4px;
+            background-color: rgba(34, 197, 94, 0.1);
+        }
+        /* Scrollbar customizada */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #374151;
+            border-radius: 10px;
+            border: 2px solid transparent;
+            background-clip: content-box;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background-color: #4b5563;
+        }
+        /* Barra de ferramentas de destaque */
+        #highlight-toolbar {
+            position: absolute;
+            display: none;
+            background-color: #1f2937;
+            border-radius: 6px;
+            padding: 4px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            z-index: 1000;
+            border: 1px solid #4b5563;
+        }
+        .color-swatch {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.1s ease-in-out;
+        }
+        .color-swatch:hover {
+            transform: scale(1.2);
+        }
+        /* Estilos para minimizar card */
+        .card-content-wrapper {
+            transition: max-height 0.5s ease-in-out, opacity 0.3s ease-in-out 0.1s;
+            overflow: hidden;
+            max-height: 2000px; /* Altura grande o suficiente */
+            opacity: 1;
+        }
+        .card-content-wrapper.collapsed {
+            max-height: 0;
+            opacity: 0;
+            transition: max-height 0.5s ease-in-out, opacity 0.2s ease-in-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Tela de Carregamento -->
+    <div id="loader" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#111827] transition-opacity duration-500">
+        <div class="text-blue-400 text-2xl font-bold">UNINTA</div>
+        <p class="text-gray-400 mt-2">Carregando manual...</p>
+    </div>
+    <!-- Container principal que gerencia o layout da sidebar -->
+    <div id="app-container" class="opacity-0 transition-opacity duration-500">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen bg-gray-900/80 backdrop-blur-lg border-r border-gray-700/60 transition-transform duration-300 ease-in-out">
+            <div class="flex flex-col h-full p-4">
+                <!-- Cabeçalho da Sidebar -->
+                <div class="flex items-center justify-between mb-6 px-2">
+                    <h2 class="text-xl font-bold text-white">Sumário</h2>
+                    <button id="pin-sidebar-btn" class="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-md" title="Fixar/Ocultar menu">
+                        <i data-lucide="pin"></i>
+                    </button>
+                </div>
+                <!-- Navegação -->
+                <nav id="menu-nav-links" class="flex-1 overflow-y-auto custom-scrollbar"></nav>
+                <!-- Controles de Importar/Exportar -->
+                <div class="mt-4 pt-4 border-t border-gray-700 space-y-2">
+                    <button id="import-btn" class="w-full flex items-center justify-center px-3 py-2 text-sm font-medium text-gray-300 bg-gray-700/50 rounded-md hover:bg-gray-700">
+                        <i data-lucide="upload" class="h-4 w-4 mr-2"></i>
+                        Importar Dados
+                    </button>
+                    <button id="export-btn" class="w-full flex items-center justify-center px-3 py-2 text-sm font-medium text-gray-300 bg-gray-700/50 rounded-md hover:bg-gray-700">
+                        <i data-lucide="download" class="h-4 w-4 mr-2"></i>
+                        Exportar Dados
+                    </button>
+                    <input type="file" id="import-file-input" class="hidden" accept=".json">
+                </div>
+            </div>
+        </aside>
+        <!-- Botão para abrir a sidebar quando ela está oculta -->
+        <button id="open-sidebar-btn" class="fixed top-4 left-4 z-30 p-2 text-gray-300 bg-gray-800/80 backdrop-blur-sm rounded-full shadow-lg hover:bg-gray-700 transition-opacity duration-300 ease-in-out opacity-0 pointer-events-none">
+            <i data-lucide="menu"></i>
+        </button>
+        <!-- Conteúdo Principal -->
+        <main id="main-content" class="transition-all duration-300 ease-in-out">
+            <div class="container mx-auto px-6 py-8">
+                <!-- Cabeçalho da Página -->
+                <header class="mb-10">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h1 class="header-title text-4xl md:text-5xl font-bold text-white">
+                                Manual Administrativo <span class="text-blue-400">UNINTA</span>
+                            </h1>
+                            <p class="mt-2 text-lg text-gray-400">Guia interativo de procedimentos e informações.</p>
+                        </div>
+                        <button id="minimize-all-btn" class="p-2 text-gray-400 bg-gray-800/80 backdrop-blur-sm rounded-full shadow-lg hover:text-white hover:bg-gray-700" title="Minimizar/Expandir Todos">
+                            <i data-lucide="chevrons-up-down"></i>
+                        </button>
+                    </div>
+                </header>
+                <!-- Seção de Tópicos Fixados -->
+                <div id="pinned-container" class="mb-10"></div>
+                
+                <!-- Seção de Conteúdo Principal -->
+                <div id="content-sections" class="space-y-6"></div>
+            </div>
+        </main>
+    </div>
+    <!-- Controles do ADM -->
+    <div id="admin-controls" class="fixed bottom-5 z-20 flex items-center space-x-3 transition-all duration-300 ease-in-out">
+        <button id="admin-toggle-btn" class="p-3 bg-gray-800 rounded-full shadow-lg text-gray-300 hover:bg-gray-700">
+            <i data-lucide="shield"></i>
+        </button>
+        <button id="save-btn" class="hidden items-center px-4 py-2 bg-green-600 text-white font-semibold rounded-full shadow-lg hover:bg-green-700">
+            <i data-lucide="save" class="mr-2 h-5 w-5"></i>
+            Salvar
+        </button>
+    </div>
+    
+    <!-- Botão para Adicionar Novo Card -->
+    <button id="add-card-btn" class="hidden fixed bottom-5 right-5 z-20 p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-transform hover:scale-110">
+        <i data-lucide="plus"></i>
+    </button>
+
+    <!-- Modal de Confirmação para Exclusão -->
+    <div id="confirm-modal" class="fixed inset-0 bg-black/60 z-50 hidden items-center justify-center">
+        <div class="bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-sm">
+            <h3 id="modal-title" class="text-lg font-bold text-white">Confirmar Exclusão</h3>
+            <p id="modal-message" class="text-gray-300 mt-2">Você tem certeza que deseja excluir este card? Esta ação não pode ser desfeita.</p>
+            <div class="mt-6 flex justify-end space-x-4">
+                <button id="modal-cancel-btn" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-500">Cancelar</button>
+                <button id="modal-confirm-btn" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-500">Excluir</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Barra de ferramentas flutuante para destaque de texto -->
+    <div id="highlight-toolbar">
+        <div class="flex space-x-2 items-center">
+            <div class="color-swatch" style="background-color: #FBBF24;" data-color="#FBBF24" title="Amarelo"></div>
+            <div class="color-swatch" style="background-color: #3B82F6;" data-color="#3B82F6" title="Azul"></div>
+            <div class="color-swatch" style="background-color: #EC4899;" data-color="#EC4899" title="Rosa"></div>
+            <div class="color-swatch" style="background-color: #22C55E;" data-color="#22C55E" title="Verde"></div>
+            <div class="h-5 border-l border-gray-600"></div>
+            <button id="remove-color-btn" class="p-1 text-gray-400 hover:text-white" title="Remover Cor">
+                <i data-lucide="remove-formatting" class="h-5 w-5"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Templates -->
+    <template id="section-template">
+        <section class="bg-gray-800/70 backdrop-blur-sm border border-gray-700/80 rounded-xl shadow-lg transition-all duration-300 ease-in-out" draggable="false">
+            <div class="p-6">
+                <div class="flex justify-between items-start">
+                    <div class="prose prose-invert max-w-none w-full text-gray-300">
+                        <h2 class="text-2xl font-bold text-white mb-4" data-editable></h2>
+                        <div class="card-content-wrapper">
+                            <div data-editable></div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-center space-y-2 ml-4 flex-shrink-0">
+                        <button class="pin-btn text-gray-500 hover:text-blue-400 transition-colors p-1" title="Fixar Tópico no Topo">
+                            <i data-lucide="bookmark-plus" class="h-5 w-5"></i>
+                        </button>
+                        <button class="clone-btn hidden text-gray-500 hover:text-green-400 transition-colors p-1" title="Clonar Card">
+                            <i data-lucide="copy" class="h-5 w-5"></i>
+                        </button>
+                        <button class="delete-btn hidden text-gray-500 hover:text-red-400 transition-colors p-1" title="Excluir Card">
+                            <i data-lucide="trash-2" class="h-5 w-5"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </template>
+    <template id="pinned-item-template">
+        <div class="bg-blue-600/80 backdrop-blur-sm border border-blue-500 text-white rounded-lg p-4 shadow-lg flex justify-between items-center">
+            <a href="#" class="font-semibold hover:underline"></a>
+            <button class="unpin-btn text-white/70 hover:text-white" title="Desafixar Tópico">
+                <i data-lucide="bookmark-minus" class="h-5 w-5"></i>
+            </button>
+        </div>
+    </template>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DADOS INICIAIS ---
+            const initialData = [
+                { id: 'info-gerais', title: '1. Informações Gerais', content: `<ul class="list-disc pl-5 space-y-2"><li><strong>Situação Financeira:</strong> Para solicitar trancamento, desistência ou troca de curso, o aluno deve estar com a situação financeira regularizada.</li><li><strong>Documentação na Matrícula:</strong> Uma declaração de conclusão é aceita apenas no ato da matrícula. A partir do segundo semestre, a apresentação do diploma e histórico originais é obrigatória.</li><li><strong>Unidades Curriculares de Extensão (UCE):</strong> Aplicam-se apenas aos cursos de Licenciatura e Bacharelado.</li></ul>`},
+                { id: 'graduacao', title: '2.1. Graduação', content: `<ul class="list-disc pl-5 space-y-2"><li><strong>Requisito:</strong> Ensino médio completo é obrigatório.</li><li><strong>Atividades Complementares:</strong> Todos os cursos exigem o envio de atividades complementares.</li><li><strong>ENADE:</strong> A participação é obrigatória para os cursos de Licenciatura.</li><li><strong>Bacharelado:</strong> Pode ser cursado mesmo por quem já possui um diploma de ensino superior em outra área.</li></ul>`},
+                { id: 'segunda-licenciatura', title: '2.2. Segunda Licenciatura', content: `<ul class="list-disc pl-5 space-y-2"><li><strong>Requisito de Ingresso:</strong> É obrigatório possuir uma primeira Licenciatura completa na mesma área.</li><li><strong>Processo Seletivo:</strong> Ingresso via análise do diploma e histórico superior.</li><li><strong>Aproveitamento de Disciplinas:</strong> Não há, pois o curso tem duração reduzida.</li><li><strong>Atividades Obrigatórias:</strong> Todos os cursos incluem estágios e seminários ou UCE.</li></ul>`},
+                { id: 'pos-graduacao', title: '2.3. Pós-Graduação', content: `<ul class="list-disc pl-5 space-y-2"><li><strong>Requisito:</strong> Ensino superior completo é obrigatório.</li><li><strong>TCC:</strong> Nenhum curso exige, conforme resolução do MEC.</li><li><strong>Estágio:</strong> Não é obrigatório, exceto para <strong>Psicopedagogia Institucional e Clínica</strong>.</li></ul>`},
+                { id: 'troca-curso', title: '3.1. Troca de Curso', content: `<p class="mb-4">O pedido é feito pelo próprio estudante através do Sistema Acadêmico.</p><div class="p-4 bg-red-900/20 border-l-4 border-red-700"><h4 class="font-bold text-red-300">Regras Importantes</h4><ul class="list-disc pl-5 mt-2 space-y-1 text-red-400"><li>Valores pagos não são devolvidos nem aproveitados.</li><li>Bolsas de estudo não são transferidas.</li><li>O aluno pagará a semestralidade integral do novo curso.</li></ul></div>`},
+                { id: 'trancamento', title: '3.2. Trancamento', content: `<ul class="list-disc pl-5 space-y-2"><li><strong>Quando:</strong> A partir do 2º semestre.</li><li><strong>Limite:</strong> Até 4 vezes durante o curso.</li><li><strong>Taxa:</strong> R$ 80,00 por solicitação.</li><li><strong>Abandono:</strong> A não realização dos procedimentos resulta em abandono de curso.</li></ul>`},
+                { id: 'solicitacao-certificado', title: '3.4. Solicitação de Certificado', content: `<h3 class="font-semibold text-lg mb-2">Condições:</h3><ul class="list-disc pl-5 space-y-1 mb-4"><li>Prazo do curso concluído.</li><li>Financeiro quitado.</li><li>Aprovado em todas as disciplinas.</li></ul><div class="mt-2 p-3 bg-gray-700/50 border border-gray-600 rounded-md"><p class="font-bold">📌 Documentação Obrigatória (PDF):</p><ul class="list-disc pl-5 text-sm mt-2"><li>RG, CPF, Comprovante de endereço.</li><li>Diploma e Histórico da graduação.</li></ul></div>`},
+                { id: 'bolsa-cebas', title: '4. Bolsa CEBAS', content: `<h3 class="font-semibold text-lg mb-2">Critérios:</h3><ul class="list-disc pl-5 space-y-1 mb-4"><li>Não possuir diploma superior.</li><li>Renda familiar per capita de até 1,5 salário mínimo.</li><li>Ensino fundamental e médio em escola pública ou como bolsista integral.</li><li>Matrícula ativa.</li></ul><div class="p-3 bg-blue-900/20 border-l-4 border-blue-700"><strong class="text-blue-300">Como Solicitar:</strong> Enviar documentação para <a href="mailto:bolsas@uninta.edu.br" class="font-medium text-blue-400">bolsas@uninta.edu.br</a>.</div>`},
+                { id: 'apresentacao-candidato', title: '5. Modelo de Apresentação', content: `<blockquote class="p-4 my-4 border-l-4 border-gray-600 bg-gray-800/80"><p class="text-md italic leading-relaxed">"Bom dia, meu nome é José e estou aqui para ajudá-lo no polo da Uninta..."</p></blockquote>`}
+            ];
+            // --- ESTADO DA APLICAÇÃO ---
+            let state = { isAdmin: false, content: [], pinnedItems: [], isSidebarPinned: true, areCardsMinimized: false };
+            // --- ELEMENTOS DO DOM ---
+            const appContainer = document.getElementById('app-container');
+            const mainContent = document.getElementById('main-content');
+            const contentSections = document.getElementById('content-sections');
+            const pinnedContainer = document.getElementById('pinned-container');
+            const sectionTemplate = document.getElementById('section-template');
+            const pinnedItemTemplate = document.getElementById('pinned-item-template');
+            const adminControls = document.getElementById('admin-controls');
+            const adminToggleBtn = document.getElementById('admin-toggle-btn');
+            const saveBtn = document.getElementById('save-btn');
+            const addCardBtn = document.getElementById('add-card-btn');
+            
+            const sidebar = document.getElementById('sidebar');
+            const pinSidebarBtn = document.getElementById('pin-sidebar-btn');
+            const openSidebarBtn = document.getElementById('open-sidebar-btn');
+            const menuNavLinks = document.getElementById('menu-nav-links');
+            const confirmModal = document.getElementById('confirm-modal');
+            const modalConfirmBtn = document.getElementById('modal-confirm-btn');
+            const modalCancelBtn = document.getElementById('modal-cancel-btn');
+            const highlightToolbar = document.getElementById('highlight-toolbar');
+            const minimizeAllBtn = document.getElementById('minimize-all-btn');
+            const importBtn = document.getElementById('import-btn');
+            const exportBtn = document.getElementById('export-btn');
+            const importFileInput = document.getElementById('import-file-input');
+            // --- FUNÇÕES ---
+            function updateStateFromDOM() {
+                const currentOrderIds = Array.from(contentSections.children).map(sectionEl => sectionEl.dataset.id);
+                const contentMap = new Map(state.content.map(item => [item.id, item]));
+                const reorderedContent = currentOrderIds.map(id => {
+                    const sectionEl = document.getElementById(id);
+                    const title = sectionEl.querySelector('h2').innerText;
+                    const content = sectionEl.querySelector('div[data-editable]').innerHTML;
+                    const originalItem = contentMap.get(id);
+                    return { ...originalItem, title, content };
+                });
+                state.content.forEach(item => {
+                    if (!reorderedContent.find(rc => rc.id === item.id)) {
+                        reorderedContent.push(item);
+                    }
+                });
+                state.content = reorderedContent;
+            }
+            function saveState() {
+                localStorage.setItem('unintaManualState', JSON.stringify({ content: state.content, pinnedItems: state.pinnedItems }));
+                
+                saveBtn.innerHTML = `<i data-lucide="check-circle" class="mr-2 h-5 w-5"></i> Salvo!`;
+                lucide.createIcons();
+                setTimeout(() => {
+                    saveBtn.innerHTML = `<i data-lucide="save" class="mr-2 h-5 w-5"></i> Salvar`;
+                    lucide.createIcons();
+                }, 2000);
+            }
+            function loadState() {
+                const savedState = localStorage.getItem('unintaManualState');
+                if (savedState) {
+                    const parsedState = JSON.parse(savedState);
+                    state.content = parsedState.content;
+                    state.pinnedItems = parsedState.pinnedItems || [];
+                } else {
+                    state.content = initialData;
+                    state.pinnedItems = [];
+                }
+                
+                const savedSidebarPin = localStorage.getItem('sidebarPinned');
+                state.isSidebarPinned = window.innerWidth < 1024 ? false : (savedSidebarPin === null ? true : JSON.parse(savedSidebarPin));
+                render();
+                // Esconde o loader e mostra o conteúdo
+                const loader = document.getElementById('loader');
+                
+                setTimeout(() => {
+                    loader.classList.add('opacity-0');
+                    appContainer.classList.remove('opacity-0');
+                    // Remove o loader do DOM após a transição
+                    setTimeout(() => loader.style.display = 'none', 500);
+                }, 100); 
+            }
+            function render() {
+                contentSections.innerHTML = '';
+                pinnedContainer.innerHTML = '';
+                menuNavLinks.innerHTML = '';
+                const contentMap = new Map(state.content.map(item => [item.id, item]));
+                if (state.pinnedItems.length > 0) {
+                    const pinnedHeader = document.createElement('h3');
+                    pinnedHeader.className = "text-xl font-bold text-white mb-4 flex items-center";
+                    pinnedHeader.innerHTML = `<i data-lucide="bookmark-check" class="h-5 w-5 mr-2 text-blue-400"></i> Tópicos Fixados`;
+                    pinnedContainer.appendChild(pinnedHeader);
+                    const pinnedGrid = document.createElement('div');
+                    pinnedGrid.className = 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4';
+                    state.pinnedItems.forEach(id => {
+                        const item = contentMap.get(id);
+                        if (!item) return;
+                        const pinnedClone = pinnedItemTemplate.content.cloneNode(true);
+                        const link = pinnedClone.querySelector('a');
+                        link.textContent = item.title;
+                        link.href = `#${item.id}`;
+                        link.onclick = (e) => { e.preventDefault(); document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth' }); };
+                        pinnedClone.querySelector('.unpin-btn').addEventListener('click', (e) => { e.preventDefault(); toggleContentPin(item.id); });
+                        pinnedGrid.appendChild(pinnedClone);
+                    });
+                    pinnedContainer.appendChild(pinnedGrid);
+                }
+                state.content.forEach(item => {
+                    if (!state.pinnedItems.includes(item.id)) {
+                        const sectionClone = sectionTemplate.content.cloneNode(true);
+                        const sectionEl = sectionClone.querySelector('section');
+                        sectionEl.id = item.id;
+                        sectionEl.dataset.id = item.id;
+                        
+                        const titleEl = sectionEl.querySelector('h2');
+                        titleEl.textContent = item.title;
+                        
+                        const contentEl = sectionEl.querySelector('div[data-editable]');
+                        contentEl.innerHTML = item.content;
+                        if (state.areCardsMinimized) {
+                            sectionEl.querySelector('.card-content-wrapper').classList.add('collapsed');
+                        }
+                        sectionEl.querySelector('.pin-btn').addEventListener('click', () => toggleContentPin(item.id));
+                        sectionEl.querySelector('.clone-btn').addEventListener('click', () => cloneCard(item.id));
+                        sectionEl.querySelector('.delete-btn').addEventListener('click', () => showDeleteConfirmation(item.id, item.title));
+                        
+                        // Evento para atualizar o título dinamicamente
+                        titleEl.addEventListener('input', () => {
+                            const newTitle = titleEl.innerText;
+                            // Atualiza o título no estado
+                            const stateItem = state.content.find(i => i.id === item.id);
+                            if (stateItem) {
+                                stateItem.title = newTitle;
+                            }
+                            // Atualiza o link no sumário
+                            const sidebarLink = menuNavLinks.querySelector(`a[href="#${item.id}"]`);
+                            if (sidebarLink) {
+                                sidebarLink.textContent = newTitle;
+                            }
+                        });
+                        contentSections.appendChild(sectionClone);
+                    }
+                    const menuLink = document.createElement('a');
+                    menuLink.href = `#${item.id}`;
+                    menuLink.textContent = item.title;
+                    menuLink.className = 'block py-2 px-3 rounded-md text-gray-300 hover:bg-gray-700 hover:text-white transition-colors';
+                    menuLink.onclick = (e) => {
+                        e.preventDefault();
+                        document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth' });
+                        if (window.innerWidth < 1024) {
+                            sidebar.classList.add('-translate-x-full');
+                        }
+                    };
+                    menuNavLinks.appendChild(menuLink);
+                });
+                updateAdminUI();
+                updateSidebarUI();
+                lucide.createIcons();
+            }
+            
+            function toggleContentPin(id) {
+                const index = state.pinnedItems.indexOf(id);
+                if (index > -1) {
+                    state.pinnedItems.splice(index, 1);
+                } else {
+                    if (state.pinnedItems.length < 5) {
+                        state.pinnedItems.push(id);
+                    } else {
+                        alert('Você pode fixar no máximo 5 tópicos.');
+                        return;
+                    }
+                }
+                saveState();
+                render();
+            }
+            function updateAdminUI() {
+                const editableElements = document.querySelectorAll('[data-editable]');
+                const sections = document.querySelectorAll('#content-sections section');
+                const deleteButtons = document.querySelectorAll('.delete-btn');
+                const cloneButtons = document.querySelectorAll('.clone-btn');
+                if (state.isAdmin) {
+                    saveBtn.classList.remove('hidden');
+                    addCardBtn.classList.remove('hidden');
+                    adminToggleBtn.classList.add('bg-blue-600', 'text-white');
+                    deleteButtons.forEach(btn => btn.classList.remove('hidden'));
+                    cloneButtons.forEach(btn => btn.classList.remove('hidden'));
+                    editableElements.forEach(el => el.setAttribute('contenteditable', 'true'));
+                    sections.forEach(sec => sec.setAttribute('draggable', 'true'));
+                } else {
+                    saveBtn.classList.add('hidden');
+                    addCardBtn.classList.add('hidden');
+                    adminToggleBtn.classList.remove('bg-blue-600', 'text-white');
+                    deleteButtons.forEach(btn => btn.classList.add('hidden'));
+                    cloneButtons.forEach(btn => btn.classList.add('hidden'));
+                    editableElements.forEach(el => el.setAttribute('contenteditable', 'false'));
+                    sections.forEach(sec => sec.setAttribute('draggable', 'false'));
+                }
+            }
+            
+            function toggleAdminMode() {
+                if (!state.isAdmin) {
+                    const password = prompt("Digite a senha de administrador:");
+                    if (password !== "123") { alert("Senha incorreta!"); return; }
+                }
+                state.isAdmin = !state.isAdmin;
+                updateAdminUI();
+            }
+            function updateSidebarUI() {
+                const pinIcon = pinSidebarBtn.querySelector('i');
+                if (state.isSidebarPinned) {
+                    sidebar.classList.remove('-translate-x-full');
+                    mainContent.classList.add('lg:ml-64');
+                    adminControls.classList.add('lg:left-72');
+                    openSidebarBtn.classList.add('opacity-0', 'pointer-events-none');
+                    pinIcon.setAttribute('data-lucide', 'pin-off');
+                    pinSidebarBtn.classList.add('bg-blue-600/30', 'text-blue-300');
+                } else {
+                    sidebar.classList.add('-translate-x-full');
+                    mainContent.classList.remove('lg:ml-64');
+                    adminControls.classList.remove('lg:left-72');
+                    openSidebarBtn.classList.remove('opacity-0', 'pointer-events-none');
+                    pinIcon.setAttribute('data-lucide', 'pin');
+                    pinSidebarBtn.classList.remove('bg-blue-600/30', 'text-blue-300');
+                }
+                lucide.createIcons();
+            }
+            function toggleSidebarPin() {
+                state.isSidebarPinned = !state.isSidebarPinned;
+                localStorage.setItem('sidebarPinned', state.isSidebarPinned);
+                updateSidebarUI();
+            }
+            
+            // --- Novas Funções de Edição ---
+            function addNewCard() {
+                const newId = 'card-' + Date.now();
+                const newCard = {
+                    id: newId,
+                    title: 'Novo Tópico',
+                    content: '<p>Comece a editar este conteúdo...</p>'
+                };
+                state.content.push(newCard);
+                render(); // Re-renderiza a UI com o novo card
+                
+                // Rola a página para o novo card e foca no título para edição
+                const newCardElement = document.getElementById(newId);
+                if (newCardElement) {
+                    newCardElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    setTimeout(() => {
+                        newCardElement.querySelector('h2').focus();
+                    }, 300);
+                }
+            }
+            function cloneCard(id) {
+                const originalCardIndex = state.content.findIndex(item => item.id === id);
+                if (originalCardIndex === -1) return;
+                const originalCard = state.content[originalCardIndex];
+                const newCard = {
+                    ...originalCard, // Copia todo o conteúdo
+                    id: 'card-' + Date.now(),
+                    title: `Cópia de ${originalCard.title}`
+                };
+                state.content.splice(originalCardIndex + 1, 0, newCard);
+                render();
+            }
+            function showDeleteConfirmation(id, title) {
+                // Atualiza o título e mensagem do modal
+                document.getElementById('modal-title').textContent = 'Confirmar Exclusão';
+                document.getElementById('modal-message').textContent = `Você tem certeza que deseja excluir o card "${title}"? Esta ação não pode ser desfeita.`;
+                
+                // Armazena o ID para usar na confirmação
+                modalConfirmBtn.setAttribute('data-delete-id', id);
+                
+                // Exibe o modal
+                confirmModal.classList.remove('hidden');
+                confirmModal.classList.add('flex');
+            }
+            function deleteCard(id) {
+                // Remove o card do estado
+                state.content = state.content.filter(item => item.id !== id);
+                // Remove dos fixados também, se estiver lá
+                state.pinnedItems = state.pinnedItems.filter(pinnedId => pinnedId !== id);
+                
+                // Salva e renderiza novamente
+                saveState();
+                render();
+            }
+            function setupHighlightToolbar() {
+                // Impede que a barra de ferramentas roube o foco, o que desfaz a seleção de texto.
+                highlightToolbar.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                });
+                document.addEventListener('mouseup', () => {
+                    const selection = window.getSelection();
+                    if (!selection.isCollapsed && state.isAdmin) {
+                        const range = selection.getRangeAt(0);
+                        const rect = range.getBoundingClientRect();
+                        
+                        let parent = range.commonAncestorContainer;
+                        if (parent.nodeType !== Node.ELEMENT_NODE) {
+                            parent = parent.parentNode;
+                        }
+                        if (parent.closest('[contenteditable="true"]')) {
+                            highlightToolbar.style.display = 'flex';
+                            highlightToolbar.style.left = `${rect.left + window.scrollX + rect.width / 2 - highlightToolbar.offsetWidth / 2}px`;
+                            highlightToolbar.style.top = `${rect.top + window.scrollY - highlightToolbar.offsetHeight - 8}px`;
+                        } else {
+                           highlightToolbar.style.display = 'none';
+                        }
+                    } else {
+                        highlightToolbar.style.display = 'none';
+                    }
+                });
+                highlightToolbar.addEventListener('click', (e) => {
+                    const swatch = e.target.closest('.color-swatch');
+                    const removeBtn = e.target.closest('#remove-color-btn');
+                    if (swatch) {
+                        const color = swatch.dataset.color;
+                        document.execCommand('foreColor', false, color);
+                    } else if (removeBtn) {
+                        // removeFormat remove toda a formatação (negrito, etc.), mas é o mais confiável para remover a cor.
+                        document.execCommand('removeFormat', false, null);
+                    }
+                    
+                    // Esconde a barra de ferramentas após a ação
+                    if (swatch || removeBtn) {
+                        highlightToolbar.style.display = 'none';
+                    }
+                });
+            }
+            function toggleMinimizeAllCards() {
+                state.areCardsMinimized = !state.areCardsMinimized;
+                const wrappers = document.querySelectorAll('.card-content-wrapper');
+                wrappers.forEach(wrapper => {
+                    wrapper.classList.toggle('collapsed', state.areCardsMinimized);
+                });
+            }
+            function handleExport() {
+                updateStateFromDOM(); // Garante que o estado está atualizado com as últimas edições
+                const dataToExport = {
+                    content: state.content,
+                    pinnedItems: state.pinnedItems
+                };
+                const dataStr = JSON.stringify(dataToExport, null, 2);
+                const dataBlob = new Blob([dataStr], {type: "application/json"});
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'manual-uninta-dados.json';
+                link.click();
+                URL.revokeObjectURL(url);
+            }
+            function handleImport() {
+                importFileInput.click();
+            }
+            function processImportedFile(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const importedData = JSON.parse(e.target.result);
+                        if (importedData.content && Array.isArray(importedData.content)) {
+                            state.content = importedData.content;
+                            state.pinnedItems = importedData.pinnedItems || [];
+                            saveState();
+                            render();
+                            alert('Dados importados com sucesso!');
+                        } else {
+                            alert('Arquivo inválido. O formato dos dados não é o esperado.');
+                        }
+                    } catch (error) {
+                        alert('Erro ao ler o arquivo. Verifique se é um arquivo JSON válido.');
+                        console.error("Erro ao importar:", error);
+                    }
+                };
+                reader.readAsText(file);
+                // Reseta o valor para poder importar o mesmo arquivo novamente
+                importFileInput.value = '';
+            }
+            // --- Drag & Drop ---
+            let draggedItem = null;
+            contentSections.addEventListener('dragstart', (e) => {
+                if (!state.isAdmin) return;
+                draggedItem = e.target.closest('section');
+                if (draggedItem) {
+                    setTimeout(() => { draggedItem.classList.add('dragging'); }, 0);
+                    e.dataTransfer.effectAllowed = 'move';
+                }
+            });
+            contentSections.addEventListener('dragend', () => { if (draggedItem) { draggedItem.classList.remove('dragging'); draggedItem = null; } });
+            contentSections.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                if (!state.isAdmin || !draggedItem) return;
+                const target = e.target.closest('section');
+                if (target && target !== draggedItem) {
+                    const rect = target.getBoundingClientRect();
+                    const next = (e.clientY - rect.top) / (rect.bottom - rect.top) > 0.5;
+                    contentSections.insertBefore(draggedItem, next && target.nextSibling || target);
+                }
+            });
+            contentSections.addEventListener('drop', (e) => { 
+                e.preventDefault(); 
+                if (state.isAdmin) { 
+                    updateStateFromDOM();
+                    saveState(); 
+                    render(); 
+                } 
+            });
+            // --- EVENT LISTENERS ---
+            adminToggleBtn.addEventListener('click', toggleAdminMode);
+            saveBtn.addEventListener('click', () => {
+                updateStateFromDOM();
+                saveState();
+            });
+            addCardBtn.addEventListener('click', addNewCard);
+            pinSidebarBtn.addEventListener('click', toggleSidebarPin);
+            minimizeAllBtn.addEventListener('click', toggleMinimizeAllCards);
+            openSidebarBtn.addEventListener('click', () => {
+                sidebar.classList.remove('-translate-x-full');
+            });
+            document.addEventListener('click', (e) => {
+                if (window.innerWidth < 1024 && !sidebar.contains(e.target) && !openSidebarBtn.contains(e.target)) {
+                    sidebar.classList.add('-translate-x-full');
+                }
+            });
+            
+            // Listeners do Modal de Confirmação
+            modalCancelBtn.addEventListener('click', () => {
+                confirmModal.classList.add('hidden');
+                confirmModal.classList.remove('flex');
+                // Limpa o dataset para evitar problemas
+                modalConfirmBtn.removeAttribute('data-delete-id');
+            });
+            
+            modalConfirmBtn.addEventListener('click', () => {
+                const idToDelete = modalConfirmBtn.getAttribute('data-delete-id');
+                if (idToDelete) {
+                    deleteCard(idToDelete);
+                }
+                confirmModal.classList.add('hidden');
+                confirmModal.classList.remove('flex');
+                // Limpa o dataset
+                modalConfirmBtn.removeAttribute('data-delete-id');
+            });
+            
+            // Listeners de Importar/Exportar
+            importBtn.addEventListener('click', handleImport);
+            exportBtn.addEventListener('click', handleExport);
+            importFileInput.addEventListener('change', processImportedFile);
+            // --- INICIALIZAÇÃO ---
+            loadState();
+            setupHighlightToolbar();
+            lucide.createIcons();
+        });
+    </script>
+</body>
+</html>

@@ -100,6 +100,49 @@
             opacity: 0;
             transition: max-height 0.5s ease-in-out, opacity 0.2s ease-in-out;
         }
+        /* Estilos para subcards */
+        .subcard {
+            margin-left: 1.5rem;
+            border-left: 2px solid #3b82f6;
+            padding-left: 1rem;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        .subcard-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        .subcard-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #93c5fd;
+        }
+        /* Notificação de cópia */
+        .copy-notification {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #10b981;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .copy-notification.show {
+            opacity: 1;
+        }
+        /* Botão minimizar individual */
+        .minimize-btn {
+            transition: transform 0.3s ease;
+        }
+        .minimize-btn.rotated {
+            transform: rotate(180deg);
+        }
     </style>
 </head>
 <body class="min-h-screen">
@@ -152,9 +195,6 @@
                             </h1>
                             <p class="mt-2 text-lg text-gray-400">Guia interativo de procedimentos e informações.</p>
                         </div>
-                        <button id="minimize-all-btn" class="p-2 text-gray-400 bg-gray-800/80 backdrop-blur-sm rounded-full shadow-lg hover:text-white hover:bg-gray-700" title="Minimizar/Expandir Todos">
-                            <i data-lucide="chevrons-up-down"></i>
-                        </button>
                     </div>
                 </header>
                 <!-- Seção de Tópicos Fixados -->
@@ -165,6 +205,11 @@
             </div>
         </main>
     </div>
+    <!-- Botão Minimizar/Expandir Todos Fixo -->
+    <button id="minimize-all-btn" class="p-2 text-gray-400 bg-gray-800/80 backdrop-blur-sm rounded-full shadow-lg hover:text-white hover:bg-gray-700 fixed top-4 right-4 z-30" title="Minimizar/Expandir Todos">
+        <i data-lucide="chevrons-up-down"></i>
+    </button>
+    
     <!-- Controles do ADM -->
     <div id="admin-controls" class="fixed bottom-5 z-20 flex items-center space-x-3 transition-all duration-300 ease-in-out">
         <button id="admin-toggle-btn" class="p-3 bg-gray-800 rounded-full shadow-lg text-gray-300 hover:bg-gray-700">
@@ -174,13 +219,16 @@
             <i data-lucide="save" class="mr-2 h-5 w-5"></i>
             Salvar
         </button>
+        <button id="reset-btn" class="hidden items-center px-4 py-2 bg-red-600 text-white font-semibold rounded-full shadow-lg hover:bg-red-700">
+            <i data-lucide="rotate-ccw" class="mr-2 h-5 w-5"></i>
+            Resetar
+        </button>
     </div>
     
     <!-- Botão para Adicionar Novo Card -->
     <button id="add-card-btn" class="hidden fixed bottom-5 right-5 z-20 p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-transform hover:scale-110">
         <i data-lucide="plus"></i>
     </button>
-
     <!-- Modal de Confirmação para Exclusão -->
     <div id="confirm-modal" class="fixed inset-0 bg-black/60 z-50 hidden items-center justify-center">
         <div class="bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-sm">
@@ -206,21 +254,39 @@
             </button>
         </div>
     </div>
-
+    
+    <!-- Notificação de cópia -->
+    <div id="copy-notification" class="copy-notification">
+        <i data-lucide="check" class="inline mr-2"></i>
+        Conteúdo copiado para a área de transferência!
+    </div>
+    
     <!-- Templates -->
     <template id="section-template">
-        <section class="bg-gray-800/70 backdrop-blur-sm border border-gray-700/80 rounded-xl shadow-lg transition-all duration-300 ease-in-out" draggable="false">
+        <section class="bg-gray-900/90 backdrop-blur-sm border border-gray-700/90 rounded-xl shadow-lg transition-all duration-300 ease-in-out" draggable="false">
             <div class="p-6">
                 <div class="flex justify-between items-start">
                     <div class="prose prose-invert max-w-none w-full text-gray-300">
-                        <h2 class="text-2xl font-bold text-white mb-4" data-editable></h2>
+                        <div class="flex items-center justify-between mb-2">
+                            <h2 class="text-2xl font-bold text-white" data-editable></h2>
+                            <button class="minimize-btn text-gray-500 hover:text-blue-400 transition-colors p-1" title="Minimizar/Expandir">
+                                <i data-lucide="chevron-down" class="h-5 w-5"></i>
+                            </button>
+                        </div>
                         <div class="card-content-wrapper">
                             <div data-editable></div>
+                            <div class="subcards-container mt-4"></div>
                         </div>
                     </div>
                     <div class="flex flex-col items-center space-y-2 ml-4 flex-shrink-0">
                         <button class="pin-btn text-gray-500 hover:text-blue-400 transition-colors p-1" title="Fixar Tópico no Topo">
                             <i data-lucide="bookmark-plus" class="h-5 w-5"></i>
+                        </button>
+                        <button class="add-subcard-btn hidden text-gray-500 hover:text-purple-400 transition-colors p-1" title="Adicionar Subcard">
+                            <i data-lucide="folder-plus" class="h-5 w-5"></i>
+                        </button>
+                        <button class="copy-btn text-gray-500 hover:text-yellow-400 transition-colors p-1" title="Copiar Texto">
+                            <i data-lucide="copy" class="h-5 w-5"></i>
                         </button>
                         <button class="clone-btn hidden text-gray-500 hover:text-green-400 transition-colors p-1" title="Clonar Card">
                             <i data-lucide="copy" class="h-5 w-5"></i>
@@ -233,6 +299,36 @@
             </div>
         </section>
     </template>
+    
+    <template id="subcard-template">
+        <div class="subcard bg-gray-800/80 backdrop-blur-sm border border-gray-700/80 rounded-lg p-4 shadow-md">
+            <div class="flex justify-between items-start">
+                <div class="w-full">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="subcard-title" data-editable></h3>
+                        <button class="subcard-minimize-btn text-gray-500 hover:text-blue-400 transition-colors p-1" title="Minimizar/Expandir">
+                            <i data-lucide="chevron-down" class="h-4 w-4"></i>
+                        </button>
+                    </div>
+                    <div class="subcard-content-wrapper">
+                        <div data-editable></div>
+                    </div>
+                </div>
+                <div class="flex flex-col items-center space-y-2 ml-4 flex-shrink-0">
+                    <button class="subcard-copy-btn text-gray-500 hover:text-yellow-400 transition-colors p-1" title="Copiar Texto">
+                        <i data-lucide="copy" class="h-4 w-4"></i>
+                    </button>
+                    <button class="subcard-clone-btn hidden text-gray-500 hover:text-green-400 transition-colors p-1" title="Clonar Subcard">
+                        <i data-lucide="copy" class="h-4 w-4"></i>
+                    </button>
+                    <button class="subcard-delete-btn hidden text-gray-500 hover:text-red-400 transition-colors p-1" title="Excluir Subcard">
+                        <i data-lucide="trash-2" class="h-4 w-4"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
+    
     <template id="pinned-item-template">
         <div class="bg-blue-600/80 backdrop-blur-sm border border-blue-500 text-white rounded-lg p-4 shadow-lg flex justify-between items-center">
             <a href="#" class="font-semibold hover:underline"></a>
@@ -245,29 +341,94 @@
         document.addEventListener('DOMContentLoaded', () => {
             // --- DADOS INICIAIS ---
             const initialData = [
-                { id: 'info-gerais', title: '1. Informações Gerais', content: `<ul class="list-disc pl-5 space-y-2"><li><strong>Situação Financeira:</strong> Para solicitar trancamento, desistência ou troca de curso, o aluno deve estar com a situação financeira regularizada.</li><li><strong>Documentação na Matrícula:</strong> Uma declaração de conclusão é aceita apenas no ato da matrícula. A partir do segundo semestre, a apresentação do diploma e histórico originais é obrigatória.</li><li><strong>Unidades Curriculares de Extensão (UCE):</strong> Aplicam-se apenas aos cursos de Licenciatura e Bacharelado.</li></ul>`},
-                { id: 'graduacao', title: '2.1. Graduação', content: `<ul class="list-disc pl-5 space-y-2"><li><strong>Requisito:</strong> Ensino médio completo é obrigatório.</li><li><strong>Atividades Complementares:</strong> Todos os cursos exigem o envio de atividades complementares.</li><li><strong>ENADE:</strong> A participação é obrigatória para os cursos de Licenciatura.</li><li><strong>Bacharelado:</strong> Pode ser cursado mesmo por quem já possui um diploma de ensino superior em outra área.</li></ul>`},
-                { id: 'segunda-licenciatura', title: '2.2. Segunda Licenciatura', content: `<ul class="list-disc pl-5 space-y-2"><li><strong>Requisito de Ingresso:</strong> É obrigatório possuir uma primeira Licenciatura completa na mesma área.</li><li><strong>Processo Seletivo:</strong> Ingresso via análise do diploma e histórico superior.</li><li><strong>Aproveitamento de Disciplinas:</strong> Não há, pois o curso tem duração reduzida.</li><li><strong>Atividades Obrigatórias:</strong> Todos os cursos incluem estágios e seminários ou UCE.</li></ul>`},
-                { id: 'pos-graduacao', title: '2.3. Pós-Graduação', content: `<ul class="list-disc pl-5 space-y-2"><li><strong>Requisito:</strong> Ensino superior completo é obrigatório.</li><li><strong>TCC:</strong> Nenhum curso exige, conforme resolução do MEC.</li><li><strong>Estágio:</strong> Não é obrigatório, exceto para <strong>Psicopedagogia Institucional e Clínica</strong>.</li></ul>`},
-                { id: 'troca-curso', title: '3.1. Troca de Curso', content: `<p class="mb-4">O pedido é feito pelo próprio estudante através do Sistema Acadêmico.</p><div class="p-4 bg-red-900/20 border-l-4 border-red-700"><h4 class="font-bold text-red-300">Regras Importantes</h4><ul class="list-disc pl-5 mt-2 space-y-1 text-red-400"><li>Valores pagos não são devolvidos nem aproveitados.</li><li>Bolsas de estudo não são transferidas.</li><li>O aluno pagará a semestralidade integral do novo curso.</li></ul></div>`},
-                { id: 'trancamento', title: '3.2. Trancamento', content: `<ul class="list-disc pl-5 space-y-2"><li><strong>Quando:</strong> A partir do 2º semestre.</li><li><strong>Limite:</strong> Até 4 vezes durante o curso.</li><li><strong>Taxa:</strong> R$ 80,00 por solicitação.</li><li><strong>Abandono:</strong> A não realização dos procedimentos resulta em abandono de curso.</li></ul>`},
-                { id: 'solicitacao-certificado', title: '3.4. Solicitação de Certificado', content: `<h3 class="font-semibold text-lg mb-2">Condições:</h3><ul class="list-disc pl-5 space-y-1 mb-4"><li>Prazo do curso concluído.</li><li>Financeiro quitado.</li><li>Aprovado em todas as disciplinas.</li></ul><div class="mt-2 p-3 bg-gray-700/50 border border-gray-600 rounded-md"><p class="font-bold">📌 Documentação Obrigatória (PDF):</p><ul class="list-disc pl-5 text-sm mt-2"><li>RG, CPF, Comprovante de endereço.</li><li>Diploma e Histórico da graduação.</li></ul></div>`},
-                { id: 'bolsa-cebas', title: '4. Bolsa CEBAS', content: `<h3 class="font-semibold text-lg mb-2">Critérios:</h3><ul class="list-disc pl-5 space-y-1 mb-4"><li>Não possuir diploma superior.</li><li>Renda familiar per capita de até 1,5 salário mínimo.</li><li>Ensino fundamental e médio em escola pública ou como bolsista integral.</li><li>Matrícula ativa.</li></ul><div class="p-3 bg-blue-900/20 border-l-4 border-blue-700"><strong class="text-blue-300">Como Solicitar:</strong> Enviar documentação para <a href="mailto:bolsas@uninta.edu.br" class="font-medium text-blue-400">bolsas@uninta.edu.br</a>.</div>`},
-                { id: 'apresentacao-candidato', title: '5. Modelo de Apresentação', content: `<blockquote class="p-4 my-4 border-l-4 border-gray-600 bg-gray-800/80"><p class="text-md italic leading-relaxed">"Bom dia, meu nome é José e estou aqui para ajudá-lo no polo da Uninta..."</p></blockquote>`}
+                { 
+                    id: 'info-gerais', 
+                    title: '1. Informações Gerais', 
+                    content: `<ul class="list-disc pl-5 space-y-2"><li><strong>Situação Financeira:</strong> Para solicitar trancamento, desistência ou troca de curso, o aluno deve estar com a situação financeira regularizada.</li><li><strong>Documentação na Matrícula:</strong> Uma declaração de conclusão é aceita apenas no ato da matrícula. A partir do segundo semestre, a apresentação do diploma e histórico originais é obrigatória.</li><li><strong>Unidades Curriculares de Extensão (UCE):</strong> Aplicam-se apenas aos cursos de Licenciatura e Bacharelado.</li></ul>`,
+                    minimized: false,
+                    subcards: []
+                },
+                { 
+                    id: 'graduacao', 
+                    title: '2.1. Graduação', 
+                    content: `<ul class="list-disc pl-5 space-y-2"><li><strong>Requisito:</strong> Ensino médio completo é obrigatório.</li><li><strong>Atividades Complementares:</strong> Todos os cursos exigem o envio de atividades complementares.</li><li><strong>ENADE:</strong> A participação é obrigatória para os cursos de Licenciatura.</li><li><strong>Bacharelado:</strong> Pode ser cursado mesmo por quem já possui um diploma de ensino superior em outra área.</li></ul>`,
+                    minimized: false,
+                    subcards: []
+                },
+                { 
+                    id: 'segunda-licenciatura', 
+                    title: '2.2. Segunda Licenciatura', 
+                    content: `<ul class="list-disc pl-5 space-y-2"><li><strong>Requisito de Ingresso:</strong> É obrigatório possuir uma primeira Licenciatura completa na mesma área.</li><li><strong>Processo Seletivo:</strong> Ingresso via análise do diploma e histórico superior.</li><li><strong>Aproveitamento de Disciplinas:</strong> Não há, pois o curso tem duração reduzida.</li><li><strong>Atividades Obrigatórias:</strong> Todos os cursos incluem estágios e seminários ou UCE.</li></ul>`,
+                    minimized: false,
+                    subcards: []
+                },
+                { 
+                    id: 'pos-graduacao', 
+                    title: '2.3. Pós-Graduação', 
+                    content: `<ul class="list-disc pl-5 space-y-2"><li><strong>Requisito:</strong> Ensino superior completo é obrigatório.</li><li><strong>TCC:</strong> Nenhum curso exige, conforme resolução do MEC.</li><li><strong>Estágio:</strong> Não é obrigatório, exceto para <strong>Psicopedagogia Institucional e Clínica</strong>.</li></ul>`,
+                    minimized: false,
+                    subcards: []
+                },
+                { 
+                    id: 'troca-curso', 
+                    title: '3.1. Troca de Curso', 
+                    content: `<p class="mb-4">O pedido é feito pelo próprio estudante através do Sistema Acadêmico.</p><div class="p-4 bg-red-900/20 border-l-4 border-red-700"><h4 class="font-bold text-red-300">Regras Importantes</h4><ul class="list-disc pl-5 mt-2 space-y-1 text-red-400"><li>Valores pagos não são devolvidos nem aproveitados.</li><li>Bolsas de estudo não são transferidas.</li><li>O aluno pagará a semestralidade integral do novo curso.</li></ul></div>`,
+                    minimized: false,
+                    subcards: []
+                },
+                { 
+                    id: 'trancamento', 
+                    title: '3.2. Trancamento', 
+                    content: `<ul class="list-disc pl-5 space-y-2"><li><strong>Quando:</strong> A partir do 2º semestre.</li><li><strong>Limite:</strong> Até 4 vezes durante o curso.</li><li><strong>Taxa:</strong> R$ 80,00 por solicitação.</li><li><strong>Abandono:</strong> A não realização dos procedimentos resulta em abandono de curso.</li></ul>`,
+                    minimized: false,
+                    subcards: []
+                },
+                { 
+                    id: 'solicitacao-certificado', 
+                    title: '3.4. Solicitação de Certificado', 
+                    content: `<h3 class="font-semibold text-lg mb-2">Condições:</h3><ul class="list-disc pl-5 space-y-1 mb-4"><li>Prazo do curso concluído.</li><li>Financeiro quitado.</li><li>Aprovado em todas as disciplinas.</li></ul><div class="mt-2 p-3 bg-gray-700/50 border border-gray-600 rounded-md"><p class="font-bold">📌 Documentação Obrigatória (PDF):</p><ul class="list-disc pl-5 text-sm mt-2"><li>RG, CPF, Comprovante de endereço.</li><li>Diploma e Histórico da graduação.</li></ul></div>`,
+                    minimized: false,
+                    subcards: []
+                },
+                { 
+                    id: 'bolsa-cebas', 
+                    title: '4. Bolsa CEBAS', 
+                    content: `<h3 class="font-semibold text-lg mb-2">Critérios:</h3><ul class="list-disc pl-5 space-y-1 mb-4"><li>Não possuir diploma superior.</li><li>Renda familiar per capita de até 1,5 salário mínimo.</li><li>Ensino fundamental e médio em escola pública ou como bolsista integral.</li><li>Matrícula ativa.</li></ul><div class="p-3 bg-blue-900/20 border-l-4 border-blue-700"><strong class="text-blue-300">Como Solicitar:</strong> Enviar documentação para <a href="mailto:bolsas@uninta.edu.br" class="font-medium text-blue-400">bolsas@uninta.edu.br</a>.</div>`,
+                    minimized: false,
+                    subcards: []
+                },
+                { 
+                    id: 'apresentacao-candidato', 
+                    title: '5. Modelo de Apresentação', 
+                    content: `<blockquote class="p-4 my-4 border-l-4 border-gray-600 bg-gray-800/80"><p class="text-md italic leading-relaxed">"Bom dia, meu nome é José e estou aqui para ajudá-lo no polo da Uninta..."</p></blockquote>`,
+                    minimized: false,
+                    subcards: []
+                }
             ];
             // --- ESTADO DA APLICAÇÃO ---
-            let state = { isAdmin: false, content: [], pinnedItems: [], isSidebarPinned: true, areCardsMinimized: false };
+            let state = { 
+                isAdmin: false, 
+                content: [], 
+                pinnedItems: [], 
+                isSidebarPinned: true, 
+                areCardsMinimized: false 
+            };
+            let cardToDelete = null; // Variável para armazenar o ID do card a ser excluído
+            let subcardToDelete = null; // Variável para armazenar o ID do subcard a ser excluído
             // --- ELEMENTOS DO DOM ---
             const appContainer = document.getElementById('app-container');
             const mainContent = document.getElementById('main-content');
             const contentSections = document.getElementById('content-sections');
             const pinnedContainer = document.getElementById('pinned-container');
             const sectionTemplate = document.getElementById('section-template');
+            const subcardTemplate = document.getElementById('subcard-template');
             const pinnedItemTemplate = document.getElementById('pinned-item-template');
             const adminControls = document.getElementById('admin-controls');
             const adminToggleBtn = document.getElementById('admin-toggle-btn');
             const saveBtn = document.getElementById('save-btn');
             const addCardBtn = document.getElementById('add-card-btn');
+            const resetBtn = document.getElementById('reset-btn');
+            const copyNotification = document.getElementById('copy-notification');
             
             const sidebar = document.getElementById('sidebar');
             const pinSidebarBtn = document.getElementById('pin-sidebar-btn');
@@ -290,7 +451,32 @@
                     const title = sectionEl.querySelector('h2').innerText;
                     const content = sectionEl.querySelector('div[data-editable]').innerHTML;
                     const originalItem = contentMap.get(id);
-                    return { ...originalItem, title, content };
+                    
+                    // Coleta subcards do DOM
+                    const subcardsContainer = sectionEl.querySelector('.subcards-container');
+                    const subcards = [];
+                    if (subcardsContainer) {
+                        Array.from(subcardsContainer.children).forEach(subcardEl => {
+                            const subcardId = subcardEl.dataset.id;
+                            const subcardTitle = subcardEl.querySelector('.subcard-title').innerText;
+                            const subcardContent = subcardEl.querySelector('.subcard-content-wrapper div[data-editable]').innerHTML;
+                            const minimized = subcardEl.querySelector('.subcard-content-wrapper').classList.contains('collapsed');
+                            subcards.push({
+                                id: subcardId,
+                                title: subcardTitle,
+                                content: subcardContent,
+                                minimized: minimized
+                            });
+                        });
+                    }
+                    
+                    return { 
+                        ...originalItem, 
+                        title, 
+                        content,
+                        minimized: sectionEl.querySelector('.card-content-wrapper').classList.contains('collapsed'),
+                        subcards: subcards
+                    };
                 });
                 state.content.forEach(item => {
                     if (!reorderedContent.find(rc => rc.id === item.id)) {
@@ -300,7 +486,10 @@
                 state.content = reorderedContent;
             }
             function saveState() {
-                localStorage.setItem('unintaManualState', JSON.stringify({ content: state.content, pinnedItems: state.pinnedItems }));
+                localStorage.setItem('unintaManualState', JSON.stringify({ 
+                    content: state.content, 
+                    pinnedItems: state.pinnedItems 
+                }));
                 
                 saveBtn.innerHTML = `<i data-lucide="check-circle" class="mr-2 h-5 w-5"></i> Salvo!`;
                 lucide.createIcons();
@@ -370,12 +559,136 @@
                         
                         const contentEl = sectionEl.querySelector('div[data-editable]');
                         contentEl.innerHTML = item.content;
-                        if (state.areCardsMinimized) {
-                            sectionEl.querySelector('.card-content-wrapper').classList.add('collapsed');
+                        
+                        // Configura o estado de minimização do card
+                        const cardContentWrapper = sectionEl.querySelector('.card-content-wrapper');
+                        const minimizeBtn = sectionEl.querySelector('.minimize-btn');
+                        const minimizeIcon = minimizeBtn.querySelector('i');
+                        
+                        if (item.minimized) {
+                            cardContentWrapper.classList.add('collapsed');
+                            minimizeIcon.classList.add('rotated');
                         }
+                        
+                        // Container para subcards
+                        const subcardsContainer = sectionEl.querySelector('.subcards-container');
+                        
+                        // Renderiza subcards
+                        if (item.subcards && item.subcards.length > 0) {
+                            item.subcards.forEach(subcard => {
+                                const subcardClone = subcardTemplate.content.cloneNode(true);
+                                const subcardEl = subcardClone.querySelector('.subcard');
+                                subcardEl.dataset.id = subcard.id;
+                                subcardEl.dataset.parentId = item.id;
+                                
+                                const subcardTitleEl = subcardEl.querySelector('.subcard-title');
+                                subcardTitleEl.textContent = subcard.title;
+                                
+                                const subcardContentEl = subcardEl.querySelector('.subcard-content-wrapper div[data-editable]');
+                                subcardContentEl.innerHTML = subcard.content;
+                                
+                                // Configura o estado de minimização do subcard
+                                const subcardContentWrapper = subcardEl.querySelector('.subcard-content-wrapper');
+                                const subcardMinimizeBtn = subcardEl.querySelector('.subcard-minimize-btn');
+                                const subcardMinimizeIcon = subcardMinimizeBtn.querySelector('i');
+                                
+                                if (subcard.minimized) {
+                                    subcardContentWrapper.classList.add('collapsed');
+                                    subcardMinimizeIcon.classList.add('rotated');
+                                }
+                                
+                                // Configuração dos botões do subcard
+                                const subcardCopyBtn = subcardEl.querySelector('.subcard-copy-btn');
+                                subcardCopyBtn.setAttribute('data-card-id', item.id);
+                                subcardCopyBtn.setAttribute('data-subcard-id', subcard.id);
+                                subcardCopyBtn.addEventListener('click', (e) => {
+                                    e.stopPropagation();
+                                    const cardId = e.currentTarget.getAttribute('data-card-id');
+                                    const subcardId = e.currentTarget.getAttribute('data-subcard-id');
+                                    copySubcardContent(cardId, subcardId);
+                                });
+                                
+                                const subcardCloneBtn = subcardEl.querySelector('.subcard-clone-btn');
+                                subcardCloneBtn.setAttribute('data-card-id', item.id);
+                                subcardCloneBtn.setAttribute('data-subcard-id', subcard.id);
+                                subcardCloneBtn.addEventListener('click', (e) => {
+                                    e.stopPropagation();
+                                    const cardId = e.currentTarget.getAttribute('data-card-id');
+                                    const subcardId = e.currentTarget.getAttribute('data-subcard-id');
+                                    cloneSubcard(cardId, subcardId);
+                                });
+                                
+                                const subcardDeleteBtn = subcardEl.querySelector('.subcard-delete-btn');
+                                subcardDeleteBtn.setAttribute('data-card-id', item.id);
+                                subcardDeleteBtn.setAttribute('data-subcard-id', subcard.id);
+                                subcardDeleteBtn.addEventListener('click', (e) => {
+                                    e.stopPropagation();
+                                    const cardId = e.currentTarget.getAttribute('data-card-id');
+                                    const subcardId = e.currentTarget.getAttribute('data-subcard-id');
+                                    showDeleteSubcardConfirmation(cardId, subcardId);
+                                });
+                                
+                                // Configuração do botão de minimizar do subcard
+                                subcardMinimizeBtn.addEventListener('click', (e) => {
+                                    e.stopPropagation();
+                                    const subcardId = subcardEl.dataset.id;
+                                    toggleSubcardMinimize(item.id, subcardId);
+                                });
+                                
+                                // Evento para atualizar o título dinamicamente
+                                subcardTitleEl.addEventListener('input', () => {
+                                    const newTitle = subcardTitleEl.innerText;
+                                    // Atualiza o título no estado
+                                    const stateItem = state.content.find(i => i.id === item.id);
+                                    if (stateItem && stateItem.subcards) {
+                                        const subcardItem = stateItem.subcards.find(sc => sc.id === subcard.id);
+                                        if (subcardItem) {
+                                            subcardItem.title = newTitle;
+                                        }
+                                    }
+                                });
+                                
+                                subcardsContainer.appendChild(subcardEl);
+                            });
+                        }
+                        
+                        // Configuração dos botões do card
                         sectionEl.querySelector('.pin-btn').addEventListener('click', () => toggleContentPin(item.id));
+                        
+                        // Configuração do botão de adicionar subcard
+                        const addSubcardBtn = sectionEl.querySelector('.add-subcard-btn');
+                        addSubcardBtn.setAttribute('data-card-id', item.id);
+                        addSubcardBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            const cardId = e.currentTarget.getAttribute('data-card-id');
+                            addSubCard(cardId);
+                        });
+                        
+                        // Configuração do botão de cópia
+                        const copyBtn = sectionEl.querySelector('.copy-btn');
+                        copyBtn.setAttribute('data-card-id', item.id);
+                        copyBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            const cardId = e.currentTarget.getAttribute('data-card-id');
+                            copyCardContent(cardId);
+                        });
+                        
                         sectionEl.querySelector('.clone-btn').addEventListener('click', () => cloneCard(item.id));
-                        sectionEl.querySelector('.delete-btn').addEventListener('click', () => showDeleteConfirmation(item.id, item.title));
+                        
+                        // Configuração do botão de exclusão
+                        const deleteBtn = sectionEl.querySelector('.delete-btn');
+                        deleteBtn.setAttribute('data-card-id', item.id);
+                        deleteBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            const cardId = e.currentTarget.getAttribute('data-card-id');
+                            showDeleteConfirmation(cardId, item.title);
+                        });
+                        
+                        // Configuração do botão de minimizar do card
+                        minimizeBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            toggleCardMinimize(item.id);
+                        });
                         
                         // Evento para atualizar o título dinamicamente
                         titleEl.addEventListener('input', () => {
@@ -391,6 +704,7 @@
                                 sidebarLink.textContent = newTitle;
                             }
                         });
+                        
                         contentSections.appendChild(sectionClone);
                     }
                     const menuLink = document.createElement('a');
@@ -431,20 +745,32 @@
                 const sections = document.querySelectorAll('#content-sections section');
                 const deleteButtons = document.querySelectorAll('.delete-btn');
                 const cloneButtons = document.querySelectorAll('.clone-btn');
+                const addSubcardButtons = document.querySelectorAll('.add-subcard-btn');
+                const subcardDeleteButtons = document.querySelectorAll('.subcard-delete-btn');
+                const subcardCloneButtons = document.querySelectorAll('.subcard-clone-btn');
+                
                 if (state.isAdmin) {
                     saveBtn.classList.remove('hidden');
                     addCardBtn.classList.remove('hidden');
+                    resetBtn.classList.remove('hidden');
                     adminToggleBtn.classList.add('bg-blue-600', 'text-white');
                     deleteButtons.forEach(btn => btn.classList.remove('hidden'));
                     cloneButtons.forEach(btn => btn.classList.remove('hidden'));
+                    addSubcardButtons.forEach(btn => btn.classList.remove('hidden'));
+                    subcardDeleteButtons.forEach(btn => btn.classList.remove('hidden'));
+                    subcardCloneButtons.forEach(btn => btn.classList.remove('hidden'));
                     editableElements.forEach(el => el.setAttribute('contenteditable', 'true'));
                     sections.forEach(sec => sec.setAttribute('draggable', 'true'));
                 } else {
                     saveBtn.classList.add('hidden');
                     addCardBtn.classList.add('hidden');
+                    resetBtn.classList.add('hidden');
                     adminToggleBtn.classList.remove('bg-blue-600', 'text-white');
                     deleteButtons.forEach(btn => btn.classList.add('hidden'));
                     cloneButtons.forEach(btn => btn.classList.add('hidden'));
+                    addSubcardButtons.forEach(btn => btn.classList.add('hidden'));
+                    subcardDeleteButtons.forEach(btn => btn.classList.add('hidden'));
+                    subcardCloneButtons.forEach(btn => btn.classList.add('hidden'));
                     editableElements.forEach(el => el.setAttribute('contenteditable', 'false'));
                     sections.forEach(sec => sec.setAttribute('draggable', 'false'));
                 }
@@ -489,7 +815,9 @@
                 const newCard = {
                     id: newId,
                     title: 'Novo Tópico',
-                    content: '<p>Comece a editar este conteúdo...</p>'
+                    content: '<p>Comece a editar este conteúdo...</p>',
+                    minimized: false,
+                    subcards: []
                 };
                 state.content.push(newCard);
                 render(); // Re-renderiza a UI com o novo card
@@ -503,6 +831,37 @@
                     }, 300);
                 }
             }
+            
+            function addSubCard(parentId) {
+                const parentCard = state.content.find(item => item.id === parentId);
+                if (!parentCard) return;
+                
+                // Inicializa o array de subcards se não existir
+                if (!parentCard.subcards) {
+                    parentCard.subcards = [];
+                }
+                
+                const newSubcardId = 'subcard-' + Date.now();
+                const newSubcard = {
+                    id: newSubcardId,
+                    title: 'Novo Subcard',
+                    content: '<p>Comece a editar este conteúdo...</p>',
+                    minimized: false
+                };
+                
+                parentCard.subcards.push(newSubcard);
+                render();
+                
+                // Rola a página para o novo subcard e foca no título para edição
+                const newSubcardElement = document.querySelector(`[data-id="${newSubcardId}"]`);
+                if (newSubcardElement) {
+                    newSubcardElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    setTimeout(() => {
+                        newSubcardElement.querySelector('.subcard-title').focus();
+                    }, 300);
+                }
+            }
+            
             function cloneCard(id) {
                 const originalCardIndex = state.content.findIndex(item => item.id === id);
                 if (originalCardIndex === -1) return;
@@ -510,32 +869,364 @@
                 const newCard = {
                     ...originalCard, // Copia todo o conteúdo
                     id: 'card-' + Date.now(),
-                    title: `Cópia de ${originalCard.title}`
+                    title: `Cópia de ${originalCard.title}`,
+                    subcards: originalCard.subcards ? originalCard.subcards.map(subcard => ({
+                        ...subcard,
+                        id: 'subcard-' + Date.now() + Math.random()
+                    })) : []
                 };
                 state.content.splice(originalCardIndex + 1, 0, newCard);
                 render();
             }
+            
+            function cloneSubcard(parentId, subcardId) {
+                const parentCard = state.content.find(item => item.id === parentId);
+                if (!parentCard || !parentCard.subcards) return;
+                
+                const originalSubcardIndex = parentCard.subcards.findIndex(subcard => subcard.id === subcardId);
+                if (originalSubcardIndex === -1) return;
+                
+                const originalSubcard = parentCard.subcards[originalSubcardIndex];
+                const newSubcard = {
+                    ...originalSubcard,
+                    id: 'subcard-' + Date.now(),
+                    title: `Cópia de ${originalSubcard.title}`
+                };
+                
+                parentCard.subcards.splice(originalSubcardIndex + 1, 0, newSubcard);
+                render();
+            }
+            
+            function toggleCardMinimize(cardId) {
+                const card = state.content.find(item => item.id === cardId);
+                if (!card) return;
+                
+                // Alterna o estado de minimização
+                card.minimized = !card.minimized;
+                
+                // Atualiza a UI
+                const cardElement = document.getElementById(cardId);
+                if (cardElement) {
+                    const cardContentWrapper = cardElement.querySelector('.card-content-wrapper');
+                    const minimizeBtn = cardElement.querySelector('.minimize-btn');
+                    const minimizeIcon = minimizeBtn.querySelector('i');
+                    
+                    if (card.minimized) {
+                        cardContentWrapper.classList.add('collapsed');
+                        minimizeIcon.classList.add('rotated');
+                    } else {
+                        cardContentWrapper.classList.remove('collapsed');
+                        minimizeIcon.classList.remove('rotated');
+                    }
+                }
+                
+                // Salva o estado
+                saveState();
+            }
+            
+            function toggleSubcardMinimize(parentId, subcardId) {
+                const parentCard = state.content.find(item => item.id === parentId);
+                if (!parentCard || !parentCard.subcards) return;
+                
+                const subcard = parentCard.subcards.find(subcard => subcard.id === subcardId);
+                if (!subcard) return;
+                
+                // Alterna o estado de minimização
+                subcard.minimized = !subcard.minimized;
+                
+                // Atualiza a UI
+                const subcardElement = document.querySelector(`[data-id="${subcardId}"]`);
+                if (subcardElement) {
+                    const subcardContentWrapper = subcardElement.querySelector('.subcard-content-wrapper');
+                    const subcardMinimizeBtn = subcardElement.querySelector('.subcard-minimize-btn');
+                    const subcardMinimizeIcon = subcardMinimizeBtn.querySelector('i');
+                    
+                    if (subcard.minimized) {
+                        subcardContentWrapper.classList.add('collapsed');
+                        subcardMinimizeIcon.classList.add('rotated');
+                    } else {
+                        subcardContentWrapper.classList.remove('collapsed');
+                        subcardMinimizeIcon.classList.remove('rotated');
+                    }
+                }
+                
+                // Salva o estado
+                saveState();
+            }
+            
             function showDeleteConfirmation(id, title) {
+                // Armazena o ID do card a ser excluído na variável global
+                cardToDelete = id;
+                
                 // Atualiza o título e mensagem do modal
                 document.getElementById('modal-title').textContent = 'Confirmar Exclusão';
                 document.getElementById('modal-message').textContent = `Você tem certeza que deseja excluir o card "${title}"? Esta ação não pode ser desfeita.`;
-                
-                // Armazena o ID para usar na confirmação
-                modalConfirmBtn.setAttribute('data-delete-id', id);
                 
                 // Exibe o modal
                 confirmModal.classList.remove('hidden');
                 confirmModal.classList.add('flex');
             }
-            function deleteCard(id) {
+            
+            function showDeleteSubcardConfirmation(parentId, subcardId) {
+                // Armazena os IDs do card e subcard a serem excluídos
+                subcardToDelete = { parentId, subcardId };
+                
+                // Atualiza o título e mensagem do modal
+                document.getElementById('modal-title').textContent = 'Confirmar Exclusão';
+                document.getElementById('modal-message').textContent = `Você tem certeza que deseja excluir este subcard? Esta ação não pode ser desfeita.`;
+                
+                // Exibe o modal
+                confirmModal.classList.remove('hidden');
+                confirmModal.classList.add('flex');
+            }
+            
+            function deleteCard() {
+                if (!cardToDelete) return;
+                
                 // Remove o card do estado
-                state.content = state.content.filter(item => item.id !== id);
+                state.content = state.content.filter(item => item.id !== cardToDelete);
                 // Remove dos fixados também, se estiver lá
-                state.pinnedItems = state.pinnedItems.filter(pinnedId => pinnedId !== id);
+                state.pinnedItems = state.pinnedItems.filter(pinnedId => pinnedId !== cardToDelete);
+                
+                // Remove o elemento do DOM
+                const cardElement = document.getElementById(cardToDelete);
+                if (cardElement) {
+                    cardElement.remove();
+                }
+                
+                // Limpa a variável global
+                cardToDelete = null;
                 
                 // Salva e renderiza novamente
                 saveState();
                 render();
+            }
+            
+            function deleteSubcard() {
+                if (!subcardToDelete) return;
+                
+                const { parentId, subcardId } = subcardToDelete;
+                
+                // Encontra o card pai
+                const parentCard = state.content.find(item => item.id === parentId);
+                if (!parentCard || !parentCard.subcards) return;
+                
+                // Remove o subcard do estado
+                parentCard.subcards = parentCard.subcards.filter(subcard => subcard.id !== subcardId);
+                
+                // Remove o elemento do DOM
+                const subcardElement = document.querySelector(`[data-id="${subcardId}"]`);
+                if (subcardElement) {
+                    subcardElement.remove();
+                }
+                
+                // Limpa a variável global
+                subcardToDelete = null;
+                
+                // Salva e renderiza novamente
+                saveState();
+                render();
+            }
+            
+            // Função para converter HTML para Markdown
+            function htmlToMarkdown(html) {
+                // Cria um elemento temporário para manipular o HTML
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = html;
+                
+                let markdown = '';
+                
+                // Processa cada nó filho
+                Array.from(tempDiv.childNodes).forEach(node => {
+                    markdown += processNode(node);
+                });
+                
+                return markdown.trim();
+            }
+            
+            // Função recursiva para processar nós
+            function processNode(node, depth = 0) {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    return node.textContent;
+                }
+                
+                if (node.nodeType !== Node.ELEMENT_NODE) {
+                    return '';
+                }
+                
+                const tagName = node.tagName.toLowerCase();
+                let result = '';
+                
+                switch (tagName) {
+                    case 'h1':
+                        result = `# ${node.textContent}\n\n`;
+                        break;
+                    case 'h2':
+                        result = `## ${node.textContent}\n\n`;
+                        break;
+                    case 'h3':
+                        result = `### ${node.textContent}\n\n`;
+                        break;
+                    case 'h4':
+                        result = `#### ${node.textContent}\n\n`;
+                        break;
+                    case 'h5':
+                        result = `##### ${node.textContent}\n\n`;
+                        break;
+                    case 'h6':
+                        result = `###### ${node.textContent}\n\n`;
+                        break;
+                    case 'p':
+                        result = `${processChildNodes(node)}\n\n`;
+                        break;
+                    case 'strong':
+                    case 'b':
+                        result = `**${processChildNodes(node)}**`;
+                        break;
+                    case 'em':
+                    case 'i':
+                        result = `*${processChildNodes(node)}*`;
+                        break;
+                    case 'ul':
+                        result = processList(node, false) + '\n';
+                        break;
+                    case 'ol':
+                        result = processList(node, true) + '\n';
+                        break;
+                    case 'li':
+                        result = `- ${processChildNodes(node)}\n`;
+                        break;
+                    case 'blockquote':
+                        result = `> ${processChildNodes(node).trim()}\n\n`;
+                        break;
+                    case 'a':
+                        const href = node.getAttribute('href') || '';
+                        const text = processChildNodes(node);
+                        result = `[${text}](${href})`;
+                        break;
+                    case 'div':
+                        // Processa divs com classes especiais
+                        if (node.classList.contains('bg-red-900/20') || 
+                            node.classList.contains('bg-blue-900/20') || 
+                            node.classList.contains('bg-gray-700/50')) {
+                            result = `\n${processChildNodes(node)}\n`;
+                        } else {
+                            result = processChildNodes(node);
+                        }
+                        break;
+                    default:
+                        // Para outros elementos, apenas processa os filhos
+                        result = processChildNodes(node);
+                }
+                
+                return result;
+            }
+            
+            // Função para processar nós filhos
+            function processChildNodes(node) {
+                let result = '';
+                Array.from(node.childNodes).forEach(child => {
+                    result += processNode(child);
+                });
+                return result;
+            }
+            
+            // Função para processar listas
+            function processList(listNode, isOrdered) {
+                let result = '';
+                const items = listNode.querySelectorAll('li');
+                
+                items.forEach((item, index) => {
+                    const prefix = isOrdered ? `${index + 1}.` : '-';
+                    result += `${prefix} ${processChildNodes(item).trim()}\n`;
+                });
+                
+                return result;
+            }
+            
+            function copyCardContent(cardId) {
+                const card = state.content.find(item => item.id === cardId);
+                if (!card) return;
+                
+                // Extrai o título
+                const titleText = card.title;
+                
+                // Converte o conteúdo HTML para Markdown
+                const contentMarkdown = htmlToMarkdown(card.content);
+                
+                // Combina título e conteúdo
+                const fullText = `# ${titleText}\n\n${contentMarkdown}`;
+                
+                // Copia para a área de transferência
+                navigator.clipboard.writeText(fullText).then(() => {
+                    // Exibe notificação de sucesso
+                    copyNotification.classList.add('show');
+                    setTimeout(() => {
+                        copyNotification.classList.remove('show');
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Erro ao copiar texto: ', err);
+                    alert('Não foi possível copiar o texto. Tente novamente.');
+                });
+            }
+            
+            function copySubcardContent(parentId, subcardId) {
+                const parentCard = state.content.find(item => item.id === parentId);
+                if (!parentCard || !parentCard.subcards) return;
+                
+                const subcard = parentCard.subcards.find(subcard => subcard.id === subcardId);
+                if (!subcard) return;
+                
+                // Extrai o título do card pai e do subcard
+                const parentTitleText = parentCard.title;
+                const subcardTitleText = subcard.title;
+                
+                // Converte o conteúdo HTML para Markdown
+                const contentMarkdown = htmlToMarkdown(subcard.content);
+                
+                // Combina título e conteúdo
+                const fullText = `# ${parentTitleText}\n\n## ${subcardTitleText}\n\n${contentMarkdown}`;
+                
+                // Copia para a área de transferência
+                navigator.clipboard.writeText(fullText).then(() => {
+                    // Exibe notificação de sucesso
+                    copyNotification.classList.add('show');
+                    setTimeout(() => {
+                        copyNotification.classList.remove('show');
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Erro ao copiar texto: ', err);
+                    alert('Não foi possível copiar o texto. Tente novamente.');
+                });
+            }
+            
+            function resetAllData() {
+                const password = prompt("Digite a senha de administrador para resetar todos os dados:");
+                if (password !== "123") {
+                    alert("Senha incorreta! Ação cancelada.");
+                    return;
+                }
+                
+                if (confirm("Tem certeza que deseja resetar todos os dados? Esta ação não pode ser desfeita.")) {
+                    // Limpa o localStorage
+                    localStorage.removeItem('unintaManualState');
+                    localStorage.removeItem('sidebarPinned');
+                    
+                    // Reseta o estado para os dados iniciais
+                    state.content = [...initialData];
+                    state.pinnedItems = [];
+                    state.isAdmin = false;
+                    state.isSidebarPinned = true;
+                    state.areCardsMinimized = false;
+                    
+                    // Salva o estado inicial
+                    saveState();
+                    
+                    // Renderiza novamente
+                    render();
+                    
+                    alert("Dados resetados com sucesso!");
+                }
             }
             function setupHighlightToolbar() {
                 // Impede que a barra de ferramentas roube o foco, o que desfaz a seleção de texto.
@@ -554,8 +1245,8 @@
                         }
                         if (parent.closest('[contenteditable="true"]')) {
                             highlightToolbar.style.display = 'flex';
-                            highlightToolbar.style.left = `${rect.left + window.scrollX + rect.width / 2 - highlightToolbar.offsetWidth / 2}px`;
-                            highlightToolbar.style.top = `${rect.top + window.scrollY - highlightToolbar.offsetHeight - 8}px`;
+                            highlightToolbar.style.left = `${rect.left + window.scrollX + rect.width / 2 - highlight-toolbar.offsetWidth / 2}px`;
+                            highlight-toolbar.style.top = `${rect.top + window.scrollY - highlight-toolbar.offsetHeight - 8}px`;
                         } else {
                            highlightToolbar.style.display = 'none';
                         }
@@ -585,6 +1276,16 @@
                 const wrappers = document.querySelectorAll('.card-content-wrapper');
                 wrappers.forEach(wrapper => {
                     wrapper.classList.toggle('collapsed', state.areCardsMinimized);
+                });
+                
+                // Atualiza os ícones de minimização
+                const minimizeBtns = document.querySelectorAll('.minimize-btn i');
+                minimizeBtns.forEach(icon => {
+                    if (state.areCardsMinimized) {
+                        icon.classList.add('rotated');
+                    } else {
+                        icon.classList.remove('rotated');
+                    }
                 });
             }
             function handleExport() {
@@ -666,6 +1367,7 @@
                 saveState();
             });
             addCardBtn.addEventListener('click', addNewCard);
+            resetBtn.addEventListener('click', resetAllData);
             pinSidebarBtn.addEventListener('click', toggleSidebarPin);
             minimizeAllBtn.addEventListener('click', toggleMinimizeAllCards);
             openSidebarBtn.addEventListener('click', () => {
@@ -681,19 +1383,19 @@
             modalCancelBtn.addEventListener('click', () => {
                 confirmModal.classList.add('hidden');
                 confirmModal.classList.remove('flex');
-                // Limpa o dataset para evitar problemas
-                modalConfirmBtn.removeAttribute('data-delete-id');
+                // Limpa as variáveis globais
+                cardToDelete = null;
+                subcardToDelete = null;
             });
             
             modalConfirmBtn.addEventListener('click', () => {
-                const idToDelete = modalConfirmBtn.getAttribute('data-delete-id');
-                if (idToDelete) {
-                    deleteCard(idToDelete);
+                if (cardToDelete) {
+                    deleteCard();
+                } else if (subcardToDelete) {
+                    deleteSubcard();
                 }
                 confirmModal.classList.add('hidden');
                 confirmModal.classList.remove('flex');
-                // Limpa o dataset
-                modalConfirmBtn.removeAttribute('data-delete-id');
             });
             
             // Listeners de Importar/Exportar

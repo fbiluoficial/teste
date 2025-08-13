@@ -612,7 +612,8 @@
             <div class="dropdown">
                 <button class="menu-button dropdown-toggle">⚙️</button>
                 <div class="dropdown-content">
-                    <button id="setApiKeyBtn" class="dropdown-item">Definir Chave de API do Google</button>
+                    <button id="setApiKeyBtn" class="dropdown-item">Definir Chave de API</button>
+                    <button id="autoBackupBtn" class="dropdown-item">Backup Automático...</button>
                 </div>
             </div>
         </div>
@@ -698,6 +699,8 @@
 
             let tickets = [];
             let googleApiKey = '';
+            let editCount = 0;
+            let autoBackupCount = 5; // Default
             const statuses = ['Aberto', 'Andamento', 'Aguardando', 'Finalizado'];
             const statusColors = {
                 Aberto: 'var(--status-aberto)', Andamento: 'var(--status-andamento)',
@@ -709,8 +712,10 @@
 
             // --- FUNÇÕES DE LÓGICA DE DADOS ---
             const loadData = () => {
-                const data = localStorage.getItem('todo-adm-tickets-v8'); // Version bump for data structure change
+                const data = localStorage.getItem('todo-adm-tickets-v8');
                 googleApiKey = localStorage.getItem('todo-adm-google-api-key') || '';
+                autoBackupCount = parseInt(localStorage.getItem('todo-adm-autobackup-count') || '5', 10);
+                editCount = parseInt(localStorage.getItem('todo-adm-edit-count') || '0', 10);
                 tickets = data ? JSON.parse(data) : [];
                 migrateTagsDataStructure();
                 renderNotifications();
@@ -730,13 +735,23 @@
                     }
                 });
                 if (needsSave) {
-                    saveData();
+                    saveData(false); // Save without incrementing edit count
                 }
             };
 
-            const saveData = () => {
+            const saveData = (trackEdit = true) => {
                 localStorage.setItem('todo-adm-tickets-v8', JSON.stringify(tickets));
                 renderNotifications();
+
+                if (trackEdit && autoBackupCount > 0) {
+                    editCount++;
+                    localStorage.setItem('todo-adm-edit-count', editCount.toString());
+                    if (editCount >= autoBackupCount) {
+                        handleAutoBackup();
+                        editCount = 0; 
+                        localStorage.setItem('todo-adm-edit-count', '0');
+                    }
+                }
             };
             
             const addLogEntry = (ticket, action, user = "Usuário") => {
@@ -1250,7 +1265,7 @@
                 }
             };
 
-            // --- DRAG & DROP, IMPORT/EXPORT ---
+            // --- DRAG & DROP, IMPORT/EXPORT, BACKUP ---
             const setupDragAndDrop = () => {
                 if (kanbanBoard.classList.contains('list-view')) {
                     return; // Desabilita drag-and-drop na visualização em lista
@@ -1358,6 +1373,44 @@
                 reader.readAsText(file);
             };
 
+            const handleAutoBackup = () => {
+                if (tickets.length === 0) return; 
+
+                const now = new Date();
+                const hours = now.getHours().toString().padStart(2, '0');
+                const minutes = now.getMinutes().toString().padStart(2, '0');
+                const filename = `Backup-${hours}${minutes}.json`;
+
+                const content = JSON.stringify(tickets, null, 2);
+                const mimeType = 'application/json';
+
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(new Blob([content], { type: mimeType }));
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(a.href);
+            };
+
+            const handleAutoBackupSettings = () => {
+                const currentSetting = autoBackupCount > 0 ? autoBackupCount : 'desativado';
+                const newCountStr = prompt(`A cada quantas edições o backup automático deve ser feito?\n(Atual: ${currentSetting}).\nDigite um número (ex: 5) ou 0 para desativar.`, autoBackupCount);
+
+                if (newCountStr !== null) {
+                    const newCount = parseInt(newCountStr, 10);
+                    if (!isNaN(newCount) && newCount >= 0) {
+                        autoBackupCount = newCount;
+                        localStorage.setItem('todo-adm-autobackup-count', autoBackupCount.toString());
+                        editCount = 0;
+                        localStorage.setItem('todo-adm-edit-count', '0');
+                        alert(autoBackupCount > 0 ? `Backup automático configurado para cada ${autoBackupCount} edições.` : 'Backup automático desativado.');
+                    } else {
+                        alert('Por favor, insira um número válido.');
+                    }
+                }
+            };
+
             // --- INICIALIZAÇÃO E LISTENERS ---
             addTicketFab.addEventListener('click', () => openModal('ticketModal'));
             document.querySelector('#ticketModal .close-button').addEventListener('click', () => closeModal('ticketModal'));
@@ -1365,6 +1418,8 @@
             ticketForm.addEventListener('submit', handleFormSubmit);
             document.getElementById('deleteTicketBtn').addEventListener('click', handleDeleteTicket);
             document.getElementById('setApiKeyBtn').addEventListener('click', handleSetApiKey);
+            document.getElementById('autoBackupBtn').addEventListener('click', handleAutoBackupSettings);
+
 
             document.querySelectorAll('.dropdown-toggle').forEach(btn => {
                 btn.addEventListener('click', e => {

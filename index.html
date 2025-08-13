@@ -220,7 +220,7 @@
             transform: translateX(20px);
         }
 
-        /* --- PAINEL PRINCIPAL (KANBAN) --- */
+        /* --- PAINEL PRINCIPAL (KANBAN & LIST) --- */
         main {
             display: flex;
             gap: 15px;
@@ -386,18 +386,25 @@
             flex-wrap: wrap;
             gap: 5px;
             margin-top: 8px;
-            max-height: 50px;
+            max-height: 50px; /* Altura inicial para 2 linhas de tags */
             overflow: hidden;
             transition: max-height 0.3s ease-in-out;
         }
         .ticket-requirements .tags-container.expanded {
-            max-height: 500px;
+            max-height: 500px; /* Altura máxima expandida */
         }
         .req-tag {
             background-color: var(--border-color);
             padding: 3px 8px;
             border-radius: 4px;
             font-size: 0.85em;
+            cursor: pointer;
+            transition: background-color 0.2s, text-decoration 0.2s;
+        }
+        .req-tag.completed {
+            text-decoration: line-through;
+            background-color: #444;
+            opacity: 0.7;
         }
         .toggle-reqs {
             background: none;
@@ -407,6 +414,56 @@
             font-size: 0.8em;
             margin-top: 5px;
             padding: 0;
+            display: block;
+            width: 100%;
+            text-align: left;
+        }
+
+        /* --- ESTILOS PARA VISUALIZAÇÃO EM LISTA --- */
+        main.list-view {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        main.list-view .status-column {
+            display: none;
+        }
+        .ticket-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: var(--surface-hover-color);
+            padding: 12px 20px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            border-left: 5px solid;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.2s;
+            animation: fadeIn 0.5s ease;
+        }
+        .ticket-row:hover {
+            background-color: var(--surface-color);
+            transform: translateY(-1px);
+        }
+        .ticket-row-main {
+            flex-grow: 1;
+            margin: 0 20px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .ticket-row-main strong {
+            font-size: 1.1em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+        }
+        .ticket-row-end {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-shrink: 0;
         }
 
         /* --- MODAL --- */
@@ -652,14 +709,33 @@
 
             // --- FUNÇÕES DE LÓGICA DE DADOS ---
             const loadData = () => {
-                const data = localStorage.getItem('todo-adm-tickets-v7');
+                const data = localStorage.getItem('todo-adm-tickets-v8'); // Version bump for data structure change
                 googleApiKey = localStorage.getItem('todo-adm-google-api-key') || '';
                 tickets = data ? JSON.parse(data) : [];
+                migrateTagsDataStructure();
                 renderNotifications();
             };
 
+            const migrateTagsDataStructure = () => {
+                let needsSave = false;
+                tickets.forEach(ticket => {
+                    if (ticket.requirements && typeof ticket.requirements === 'string') {
+                        needsSave = true;
+                        ticket.requirements = ticket.requirements.split(',')
+                            .map(name => name.trim())
+                            .filter(name => name)
+                            .map(name => ({ name: name, completed: false }));
+                    } else if (!ticket.requirements) {
+                        ticket.requirements = [];
+                    }
+                });
+                if (needsSave) {
+                    saveData();
+                }
+            };
+
             const saveData = () => {
-                localStorage.setItem('todo-adm-tickets-v7', JSON.stringify(tickets));
+                localStorage.setItem('todo-adm-tickets-v8', JSON.stringify(tickets));
                 renderNotifications();
             };
             
@@ -671,46 +747,85 @@
 
             // --- RENDERIZAÇÃO DA UI ---
             const renderBoard = async () => {
-                kanbanBoard.innerHTML = '<p style="padding: 20px; color: #aaa;">Carregando tickets...</p>';
                 const filteredTickets = await getFilteredTickets();
-                kanbanBoard.innerHTML = '';
+                const statusFilter = filterStatus.value;
+                kanbanBoard.innerHTML = ''; // Limpa o painel primeiro
 
-                if (filteredTickets.length === 0 && tickets.length > 0) {
-                     kanbanBoard.innerHTML = '<p style="padding: 20px; color: #aaa;">Nenhum ticket encontrado com os filtros atuais.</p>';
-                }
-
-                statuses.forEach(status => {
-                    if (!showCompletedCheckbox.checked && status === 'Finalizado') return;
-                    
-                    const column = document.createElement('div');
-                    column.className = 'status-column';
-                    column.id = `column-${status.replace(/\s+/g, '')}`;
-                    column.dataset.status = status;
-                    column.style.borderColor = statusColors[status];
-
-                    const ticketsInColumn = filteredTickets.filter(t => t.status === status);
-
+                if (statusFilter && statusFilter !== '') {
+                    // --- MODO DE VISUALIZAÇÃO EM LISTA ---
+                    kanbanBoard.classList.add('list-view');
+                    if (filteredTickets.length === 0) {
+                        kanbanBoard.innerHTML = '<p style="padding: 20px; color: #aaa;">Nenhum ticket encontrado com o status selecionado.</p>';
+                        return;
+                    }
                     if (prioritySortToggle.checked) {
                         const priorityOrder = { 'Alta': 0, 'Media': 1, 'Baixa': 2 };
-                        ticketsInColumn.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+                        filteredTickets.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
                     }
-
-                    column.innerHTML = `
-                        <div class="column-header">
-                            <span>${status}</span>
-                            <span class="ticket-count">${ticketsInColumn.length}</span>
-                        </div>
-                        <div class="tickets-container"></div>
-                    `;
-                    kanbanBoard.appendChild(column);
-                    
-                    const ticketsContainer = column.querySelector('.tickets-container');
-                    ticketsInColumn.forEach(ticket => {
-                        const ticketCard = createTicketCard(ticket);
-                        ticketsContainer.appendChild(ticketCard);
+                    filteredTickets.forEach(ticket => {
+                        const ticketRow = createTicketRow(ticket);
+                        kanbanBoard.appendChild(ticketRow);
                     });
-                });
+                } else {
+                    // --- MODO DE VISUALIZAÇÃO KANBAN (COLUNAS) ---
+                    kanbanBoard.classList.remove('list-view');
+                    if (filteredTickets.length === 0 && tickets.length > 0) {
+                        kanbanBoard.innerHTML = '<p style="padding: 20px; color: #aaa;">Nenhum ticket encontrado com os filtros atuais.</p>';
+                    }
+                    
+                    statuses.forEach(status => {
+                        if (!showCompletedCheckbox.checked && status === 'Finalizado') return;
+                        
+                        const column = document.createElement('div');
+                        column.className = 'status-column';
+                        column.id = `column-${status.replace(/\s+/g, '')}`;
+                        column.dataset.status = status;
+                        column.style.borderColor = statusColors[status];
+
+                        const ticketsInColumn = filteredTickets.filter(t => t.status === status);
+
+                        if (prioritySortToggle.checked) {
+                            const priorityOrder = { 'Alta': 0, 'Media': 1, 'Baixa': 2 };
+                            ticketsInColumn.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+                        }
+
+                        column.innerHTML = `
+                            <div class="column-header">
+                                <span>${status}</span>
+                                <span class="ticket-count">${ticketsInColumn.length}</span>
+                            </div>
+                            <div class="tickets-container"></div>
+                        `;
+                        kanbanBoard.appendChild(column);
+                        
+                        const ticketsContainer = column.querySelector('.tickets-container');
+                        ticketsInColumn.forEach(ticket => {
+                            const ticketCard = createTicketCard(ticket);
+                            ticketsContainer.appendChild(ticketCard);
+                        });
+                    });
+                }
                 setupDragAndDrop();
+            };
+
+            const createRequirementsHTML = (requirements, tagLimit = 3) => {
+                if (!requirements || requirements.length === 0) return '';
+
+                // Sort tags: completed ones go to the end
+                const sortedReqs = [...requirements].sort((a, b) => a.completed - b.completed);
+
+                const tagsHTML = sortedReqs.map(req => 
+                    `<span class="req-tag ${req.completed ? 'completed' : ''}" data-tag-name="${req.name}">${req.name}</span>`
+                ).join('');
+
+                return `
+                    <div class="ticket-requirements">
+                        <div class="tags-container">
+                            ${tagsHTML}
+                        </div>
+                        ${sortedReqs.length > tagLimit ? '<button class="toggle-reqs">Mostrar mais...</button>' : ''}
+                    </div>
+                `;
             };
             
             const createTicketCard = (ticket) => {
@@ -725,21 +840,6 @@
                 const isOverdue = deadline < now && ticket.status !== 'Finalizado';
                 const nearingDeadline = !isOverdue && (deadline - now) / (1000 * 3600) <= 24 && ticket.status !== 'Finalizado';
                 
-                let requirementsHTML = '';
-                if (ticket.requirements) {
-                    const tags = ticket.requirements.split(',').map(tag => tag.trim()).filter(tag => tag);
-                    if (tags.length > 0) {
-                        requirementsHTML = `
-                            <div class="ticket-requirements">
-                                <div class="tags-container">
-                                    ${tags.map(tag => `<span class="req-tag">${tag}</span>`).join('')}
-                                </div>
-                                ${tags.length > 2 ? '<button class="toggle-reqs">Mostrar mais...</button>' : ''}
-                            </div>
-                        `;
-                    }
-                }
-
                 let communicationHTML = '';
                 if (ticket.aviseiRegiana || ticket.comuniqueiAluno || ticket.aguardandoRetorno) {
                     communicationHTML += '<div class="communication-status">';
@@ -761,7 +861,7 @@
                     </div>
                     <div class="ticket-content">
                         <strong>${ticket.title}</strong>
-                        ${requirementsHTML}
+                        ${createRequirementsHTML(ticket.requirements, 2)}
                     </div>
                     <div class="ticket-footer">
                         <div class="footer-left">
@@ -775,19 +875,80 @@
                 
                 card.querySelector('.card-status-select').addEventListener('click', (e) => e.stopPropagation());
                 card.querySelector('.card-status-select').addEventListener('change', handleQuickStatusChange);
-                
-                const toggleBtn = card.querySelector('.toggle-reqs');
-                if (toggleBtn) {
-                    toggleBtn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        const container = e.target.previousElementSibling;
-                        container.classList.toggle('expanded');
-                        e.target.textContent = container.classList.contains('expanded') ? 'Mostrar menos' : 'Mostrar mais...';
-                    });
-                }
 
-                card.addEventListener('click', () => openModal('ticketModal', ticket.id));
+                card.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('toggle-reqs')) {
+                         e.stopPropagation();
+                         const container = e.target.previousElementSibling;
+                         container.classList.toggle('expanded');
+                         e.target.textContent = container.classList.contains('expanded') ? 'Mostrar menos' : 'Mostrar mais...';
+                    } else if (e.target.classList.contains('req-tag')) {
+                        e.stopPropagation();
+                        handleTagClick(ticket.id, e.target.dataset.tagName);
+                    } else {
+                        openModal('ticketModal', ticket.id);
+                    }
+                });
+
                 return card;
+            };
+
+            const createTicketRow = (ticket) => {
+                const row = document.createElement('div');
+                row.className = 'ticket-row';
+                row.dataset.id = ticket.id;
+                row.style.borderColor = statusColors[ticket.status];
+
+                const now = new Date();
+                const deadline = new Date(ticket.deadline);
+                const isOverdue = deadline < now && ticket.status !== 'Finalizado';
+                
+                let communicationHTML = '';
+                if (ticket.aviseiRegiana || ticket.comuniqueiAluno || ticket.aguardandoRetorno) {
+                    communicationHTML += '<div class="communication-status">';
+                    if (ticket.aviseiRegiana) communicationHTML += '<span class="comm-icon" title="Regiana foi avisada">R</span>';
+                    if (ticket.comuniqueiAluno) communicationHTML += '<span class="comm-icon" title="Aluno comunicado">A</span>';
+                    if (ticket.aguardandoRetorno) communicationHTML += '<span class="comm-icon" title="Aguardando retorno do aluno">⏳</span>';
+                    communicationHTML += '</div>';
+                }
+                
+                row.innerHTML = `
+                    <span class="ticket-id">#${ticket.id.toString().substring(0, 6)}</span>
+                    <div class="ticket-row-main">
+                        <strong>${ticket.title}</strong>
+                        ${createRequirementsHTML(ticket.requirements, 3)}
+                    </div>
+                    <div class="ticket-row-end">
+                        ${communicationHTML}
+                        <span class="ticket-priority" style="background-color: ${priorityColors[ticket.priority]}">${ticket.priority}</span>
+                        <div class="deadline-wrapper ${isOverdue ? 'alert' : ''}">
+                            <span>Prazo: ${new Date(ticket.deadline).toLocaleDateString()}</span>
+                        </div>
+                        <select data-id="${ticket.id}" class="card-status-select">
+                            ${statuses.map(s => `<option value="${s}" ${s === ticket.status ? 'selected' : ''}>${s}</option>`).join('')}
+                        </select>
+                    </div>
+                `;
+                
+                row.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('toggle-reqs')) {
+                         e.stopPropagation();
+                         const container = e.target.previousElementSibling;
+                         container.classList.toggle('expanded');
+                         e.target.textContent = container.classList.contains('expanded') ? 'Mostrar menos' : 'Mostrar mais...';
+                    } else if (e.target.classList.contains('req-tag')) {
+                        e.stopPropagation();
+                        handleTagClick(ticket.id, e.target.dataset.tagName);
+                    } else if (e.target.tagName.toLowerCase() !== 'select') {
+                        openModal('ticketModal', ticket.id);
+                    }
+                });
+                
+                const statusSelect = row.querySelector('.card-status-select');
+                statusSelect.addEventListener('change', handleQuickStatusChange);
+                statusSelect.addEventListener('click', (e) => e.stopPropagation());
+
+                return row;
             };
 
             const getFilteredTickets = async () => {
@@ -806,7 +967,7 @@
                         alert(`Erro na busca com IA: ${error.message}`);
                         baseTickets = tickets.filter(ticket => 
                             (ticket.title && ticket.title.toLowerCase().includes(searchTerm)) ||
-                            (ticket.requirements && ticket.requirements.toLowerCase().includes(searchTerm))
+                            (ticket.requirements && ticket.requirements.some(r => r.name.toLowerCase().includes(searchTerm)))
                         );
                     } finally {
                         searchInput.disabled = false;
@@ -815,7 +976,7 @@
                 } else if (searchTerm) {
                     baseTickets = tickets.filter(ticket => 
                         (ticket.title && ticket.title.toLowerCase().includes(searchTerm)) ||
-                        (ticket.requirements && ticket.requirements.toLowerCase().includes(searchTerm))
+                        (ticket.requirements && ticket.requirements.some(r => r.name.toLowerCase().includes(searchTerm)))
                     );
                 }
 
@@ -833,7 +994,13 @@
                 const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${googleApiKey}`;
                 
                 let ticketsToSearch = showCompletedCheckbox.checked ? tickets : tickets.filter(t => t.status !== 'Finalizado');
-                const simplifiedTickets = ticketsToSearch.map(({ id, title, requirements, priority, deadline }) => ({ id, title, requirements, priority, deadline }));
+                const simplifiedTickets = ticketsToSearch.map(({ id, title, requirements, priority, deadline }) => ({ 
+                    id, 
+                    title, 
+                    requirements: requirements.map(r => r.name).join(', '), 
+                    priority, 
+                    deadline 
+                }));
 
                 const prompt = `Você é um assistente de kanban. Analise as tarefas JSON. A data atual é ${new Date().toLocaleDateString()}. Pesquisa do usuário: "${query}". Retorne um array JSON com os IDs das tarefas mais relevantes. Lista: ${JSON.stringify(simplifiedTickets)}. Responda apenas com o array de IDs.`;
 
@@ -939,17 +1106,28 @@
                 if (ticketId) {
                     const ticket = tickets.find(t => t.id === ticketId);
                     document.getElementById('modalTitle').textContent = 'Editar Ticket';
-                    Object.keys(ticket).forEach(key => {
-                        const el = document.getElementById(`ticket${key.charAt(0).toUpperCase() + key.slice(1)}`);
-                        if (el) {
-                           if (el.type === 'checkbox') {
-                               el.checked = ticket[key];
-                           } else {
-                               el.value = ticket[key];
-                           }
-                        }
-                    });
+                    
                     document.getElementById('ticketId').value = ticket.id;
+                    document.getElementById('ticketTitle').value = ticket.title;
+                    document.getElementById('ticketStatus').value = ticket.status;
+                    document.getElementById('ticketPriority').value = ticket.priority;
+                    document.getElementById('ticketStartDate').value = ticket.startDate;
+                    document.getElementById('ticketDeadline').value = ticket.deadline;
+                    document.getElementById('ticketAviseiRegiana').checked = ticket.aviseiRegiana;
+                    document.getElementById('ticketComuniqueiAluno').checked = ticket.comuniqueiAluno;
+                    document.getElementById('ticketAguardandoRetorno').checked = ticket.aguardandoRetorno;
+                    
+                    // FIX: Handle both old (string) and new (array of objects) data structures for requirements
+                    let reqValue = '';
+                    if (Array.isArray(ticket.requirements)) {
+                        // New format: array of objects
+                        reqValue = ticket.requirements.map(r => r.name).join(', ');
+                    } else if (typeof ticket.requirements === 'string') {
+                        // Old format: comma-separated string. This handles data from older versions.
+                        reqValue = ticket.requirements;
+                    }
+                    document.getElementById('ticketRequirements').value = reqValue;
+
                     if (ticket.history?.length > 0) renderHistoryInModal(ticket.history);
                     document.getElementById('deleteTicketBtn').style.display = 'inline-block';
                 } else {
@@ -974,6 +1152,14 @@
                 const id = document.getElementById('ticketId').value;
                 const originalTicket = id ? { ...tickets.find(t => t.id === id) } : null;
                 
+                const newReqsString = document.getElementById('ticketRequirements').value.trim();
+                const newReqsNames = newReqsString.split(',').map(name => name.trim()).filter(name => name);
+                
+                const newRequirements = newReqsNames.map(name => {
+                    const existingReq = originalTicket?.requirements.find(r => r.name === name);
+                    return { name: name, completed: existingReq ? existingReq.completed : false };
+                });
+
                 const ticketData = {
                     id: id || Date.now().toString(),
                     title: document.getElementById('ticketTitle').value.trim(),
@@ -981,7 +1167,7 @@
                     startDate: document.getElementById('ticketStartDate').value,
                     deadline: document.getElementById('ticketDeadline').value,
                     priority: document.getElementById('ticketPriority').value,
-                    requirements: document.getElementById('ticketRequirements').value.trim(),
+                    requirements: newRequirements,
                     aviseiRegiana: document.getElementById('ticketAviseiRegiana').checked,
                     comuniqueiAluno: document.getElementById('ticketComuniqueiAluno').checked,
                     aguardandoRetorno: document.getElementById('ticketAguardandoRetorno').checked,
@@ -1037,8 +1223,38 @@
                 }
             };
 
+            const handleTagClick = (ticketId, tagName) => {
+                const ticket = tickets.find(t => t.id === ticketId);
+                if (!ticket) return;
+
+                const tag = ticket.requirements.find(r => r.name === tagName);
+                if (!tag) return;
+
+                tag.completed = !tag.completed;
+                addLogEntry(ticket, `Tag "${tagName}" marcada como ${tag.completed ? 'concluída' : 'pendente'}.`);
+                saveData();
+
+                // FIX: Update only the specific card/row instead of the whole board
+                const currentElement = document.querySelector(`.ticket-card[data-id="${ticketId}"], .ticket-row[data-id="${ticketId}"]`);
+                if (currentElement) {
+                    let newElement;
+                    if (currentElement.classList.contains('ticket-card')) {
+                        newElement = createTicketCard(ticket);
+                    } else {
+                        newElement = createTicketRow(ticket);
+                    }
+                    currentElement.replaceWith(newElement);
+                } else {
+                    // Fallback in case the element isn't visible (e.g., filtered out)
+                    renderBoard();
+                }
+            };
+
             // --- DRAG & DROP, IMPORT/EXPORT ---
             const setupDragAndDrop = () => {
+                if (kanbanBoard.classList.contains('list-view')) {
+                    return; // Desabilita drag-and-drop na visualização em lista
+                }
                 document.querySelectorAll('.ticket-card').forEach(card => {
                     card.addEventListener('dragstart', e => e.target.classList.add('dragging'));
                     card.addEventListener('dragend', e => e.target.classList.remove('dragging'));
@@ -1111,6 +1327,18 @@
                         const importedTickets = JSON.parse(e.target.result);
                         if (!Array.isArray(importedTickets)) throw new Error('O arquivo JSON não contém um array de tickets válido.');
                         
+                        // FIX: Migrate imported tickets to the new data structure before merging/replacing
+                        importedTickets.forEach(ticket => {
+                            if (ticket.requirements && typeof ticket.requirements === 'string') {
+                                ticket.requirements = ticket.requirements.split(',')
+                                    .map(name => name.trim())
+                                    .filter(name => name)
+                                    .map(name => ({ name: name, completed: false }));
+                            } else if (!ticket.requirements) {
+                                ticket.requirements = [];
+                            }
+                        });
+
                         const merge = confirm('Deseja mesclar com os tickets existentes? "Cancelar" irá substituir.');
                         if (merge) {
                             const existingIds = new Set(tickets.map(t => t.id));

@@ -3,1409 +3,1192 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manual Interativo UNINTA</title>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Biblioteca de Ícones (Lucide) -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Fontes do Google -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+    <title>To-do-ADM com IA</title>
     <style>
-        /* Estilo base com a nova paleta dark */
+        /* --- GERAL E TEMA --- */
+        :root {
+            --bg-color: #121212;
+            --surface-color: #1e1e1e;
+            --surface-hover-color: #2a2a2a;
+            --font-color: #e0e0e0;
+            --border-color: #333;
+            --primary-accent: #0d6efd;
+            --primary-accent-hover: #0b5ed7;
+            
+            --status-aberto: #ffc107;
+            --status-andamento: #0d6efd;
+            --status-finalizado: #198754;
+            --status-aguardando: #6f42c1;
+
+            --priority-alta: #dc3545;
+            --priority-media: #ffc107;
+            --priority-baixa: #198754;
+
+            --google-blue: #4285F4;
+            --google-red: #DB4437;
+            --google-yellow: #F4B400;
+            --google-green: #0F9D58;
+        }
+
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #111827; /* Fundo principal azul-escuro */
-            color: #d1d5db; /* Texto principal cinza claro */
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--font-color);
+            margin: 0;
+            padding-top: 60px; /* Espaço para o cabeçalho fixo */
             overflow-x: hidden;
         }
-        /* Fundo com gradiente sutil e textura */
-        body::before {
-            content: '';
+
+        /* --- CABEÇALHO E MENU SUPERIOR --- */
+        header {
+            background-color: var(--surface-color);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 20px;
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: radial-gradient(circle at top right, rgba(12, 74, 110, 0.5), transparent 40%),
-                              radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.2), transparent 50%);
-            background-repeat: no-repeat;
-            z-index: -1;
-        }
-        .header-title {
-            font-family: 'Poppins', sans-serif;
-        }
-        /* Efeito de arrastar para o modo ADM */
-        .dragging {
-            opacity: 0.4;
-            transform: scale(0.98);
-            border: 2px dashed #3b82f6;
-        }
-        /* Estilo para edição de texto */
-        [contenteditable="true"] {
-            outline: 2px dashed #22c55e;
-            padding: 4px;
-            border-radius: 4px;
-            background-color: rgba(34, 197, 94, 0.1);
-        }
-        /* Scrollbar customizada */
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 8px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background-color: rgba(255, 255, 255, 0.05);
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background-color: #374151;
-            border-radius: 10px;
-            border: 2px solid transparent;
-            background-clip: content-box;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background-color: #4b5563;
-        }
-        /* Barra de ferramentas de destaque */
-        #highlight-toolbar {
-            position: absolute;
-            display: none;
-            background-color: #1f2937;
-            border-radius: 6px;
-            padding: 4px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-            z-index: 1000;
-            border: 1px solid #4b5563;
-        }
-        .color-swatch {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            cursor: pointer;
-            transition: transform 0.1s ease-in-out;
-        }
-        .color-swatch:hover {
-            transform: scale(1.2);
-        }
-        /* Estilos para minimizar card */
-        .card-content-wrapper {
-            transition: max-height 0.5s ease-in-out, opacity 0.3s ease-in-out 0.1s;
-            overflow: hidden;
-            max-height: 2000px; /* Altura grande o suficiente */
-            opacity: 1;
-        }
-        .card-content-wrapper.collapsed {
-            max-height: 0;
-            opacity: 0;
-            transition: max-height 0.5s ease-in-out, opacity 0.2s ease-in-out;
-        }
-        /* Estilos para subcards */
-        .subcard {
-            margin-left: 1.5rem;
-            border-left: 2px solid #3b82f6;
-            padding-left: 1rem;
-            margin-top: 1rem;
-            margin-bottom: 0.5rem;
-        }
-        .subcard-header {
+            right: 0;
+            height: 60px;
             display: flex;
             align-items: center;
-            margin-bottom: 0.5rem;
-        }
-        .subcard-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #93c5fd;
-        }
-        /* Notificação de cópia */
-        .copy-notification {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #10b981;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            justify-content: space-between;
             z-index: 1000;
-            opacity: 0;
-            transition: opacity 0.3s ease-in-out;
+            gap: 15px;
         }
-        .copy-notification.show {
-            opacity: 1;
+
+        .header-left, .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
-        /* Botão minimizar individual */
-        .minimize-btn {
-            transition: transform 0.3s ease;
+
+        .logo {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: var(--primary-accent);
         }
-        .minimize-btn.rotated {
-            transform: rotate(180deg);
+
+        .menu-button, .menu-item select, .menu-item input[type="text"] {
+            background-color: var(--surface-color);
+            color: var(--font-color);
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
+            font-size: 14px;
         }
+        .menu-button:hover, .menu-item select:hover { 
+            background-color: var(--surface-hover-color);
+            border-color: var(--primary-accent);
+        }
+        
+        /* --- Dropdown Menu --- */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: var(--surface-color);
+            min-width: 180px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            right: 0; /* Alinha o dropdown de configurações à direita */
+        }
+        .dropdown-content .dropdown-item {
+            color: var(--font-color);
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            background: none;
+            border: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+        }
+        .dropdown-content .dropdown-item:hover { background-color: var(--surface-hover-color); }
+        .show { display: block; }
+
+        /* Notificações */
+        #notificationBtn {
+            position: relative;
+        }
+        #notification-count {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: var(--priority-alta);
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 10px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--surface-color);
+        }
+        #notification-list {
+            max-height: 400px;
+            overflow-y: auto;
+            min-width: 300px;
+        }
+        .notification-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+        }
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+        .notification-item:hover {
+            background-color: var(--surface-hover-color);
+        }
+        .notification-info {
+            flex-grow: 1;
+            margin-right: 10px;
+        }
+        .notification-item p {
+            margin: 0 0 2px 0;
+            font-size: 0.9em;
+        }
+        .notification-item small {
+            color: #aaa;
+        }
+        
+        /* --- Pesquisa com IA --- */
+        .search-container {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        #searchInput.ai-active {
+            border-color: transparent;
+            background-image: linear-gradient(var(--surface-color), var(--surface-color)), 
+                              radial-gradient(circle at top left, var(--google-blue), var(--google-green), var(--google-yellow), var(--google-red));
+            background-origin: border-box;
+            background-clip: padding-box, border-box;
+            animation: bg-spin 3s linear infinite;
+        }
+        #searchMode {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 40px;
+            height: 20px;
+            background-color: var(--border-color);
+            border-radius: 10px;
+            position: relative;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        #searchMode::before {
+            content: 'IA';
+            color: #000;
+            font-size: 10px;
+            font-weight: bold;
+            position: absolute;
+            left: 20px;
+            top: 2px;
+        }
+        #searchMode::after {
+            content: '';
+            width: 16px;
+            height: 16px;
+            background-color: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+        }
+        #searchMode:checked {
+            background-color: var(--google-blue);
+        }
+        #searchMode:checked::before {
+            content: '';
+        }
+        #searchMode:checked::after {
+            transform: translateX(20px);
+        }
+
+        /* --- PAINEL PRINCIPAL (KANBAN) --- */
+        main {
+            display: flex;
+            gap: 15px;
+            padding: 20px;
+            overflow-x: auto;
+            min-height: calc(100vh - 60px);
+            align-items: flex-start;
+        }
+
+        .status-column {
+            flex: 0 0 320px;
+            background-color: var(--surface-color);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            max-height: calc(100vh - 100px);
+            border-top: 4px solid;
+            transition: box-shadow 0.3s;
+        }
+        .status-column:hover {
+            box-shadow: 0 0 20px -5px var(--border-color);
+        }
+
+        .column-header {
+            padding: 10px 15px;
+            font-weight: bold;
+            font-size: 1.1em;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ticket-count {
+            background-color: var(--surface-hover-color);
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+        
+        #column-Aberto { border-color: var(--status-aberto); }
+        #column-Andamento { border-color: var(--status-andamento); }
+        #column-Finalizado { border-color: var(--status-finalizado); }
+        #column-Aguardando { border-color: var(--status-aguardando); }
+
+        .tickets-container {
+            overflow-y: auto;
+            flex-grow: 1;
+            padding: 10px;
+        }
+        
+        /* --- CARTÃO DE TICKET --- */
+        .ticket-card {
+            background-color: var(--surface-hover-color);
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 5px solid;
+            cursor: grab;
+            transition: transform 0.2s, box-shadow 0.2s;
+            animation: fadeIn 0.5s ease;
+        }
+        .ticket-card.dragging {
+            opacity: 0.5;
+            transform: rotate(3deg);
+        }
+        .ticket-card:hover {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transform: translateY(-2px);
+        }
+        
+        .ticket-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .ticket-header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-status-select {
+            background-color: var(--surface-color);
+            color: var(--font-color);
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            padding: 2px 5px;
+            font-size: 0.8em;
+            cursor: pointer;
+        }
+        .card-status-select:hover {
+            border-color: var(--primary-accent);
+        }
+
+        .ticket-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            font-size: 0.8em;
+            color: #aaa;
+        }
+        
+        .footer-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .communication-status {
+            display: flex;
+            gap: 8px;
+        }
+
+        .comm-icon {
+            background-color: var(--surface-hover-color);
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: help;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            transition: transform 0.2s;
+        }
+        .comm-icon:hover {
+            transform: scale(1.1);
+        }
+        
+        .ticket-id { font-size: 0.8em; color: #aaa; }
+        .ticket-priority { padding: 3px 8px; border-radius: 10px; font-size: 0.8em; color: white; font-weight: bold; }
+        .ticket-content { margin-bottom: 10px; }
+        .ticket-content strong { font-size: 1.1em; }
+        
+        .deadline-wrapper {
+            border: 2px solid transparent;
+            padding: 2px 5px;
+            border-radius: 4px;
+            transition: border-color 0.3s;
+        }
+        .deadline-wrapper.alert {
+            animation: pulse-border-red 1.5s infinite;
+        }
+        .deadline-wrapper.alert span {
+            color: var(--priority-alta);
+            font-weight: bold;
+        }
+
+        .ticket-requirements .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 8px;
+            max-height: 50px;
+            overflow: hidden;
+            transition: max-height 0.3s ease-in-out;
+        }
+        .ticket-requirements .tags-container.expanded {
+            max-height: 500px;
+        }
+        .req-tag {
+            background-color: var(--border-color);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+        }
+        .toggle-reqs {
+            background: none;
+            border: none;
+            color: var(--primary-accent);
+            cursor: pointer;
+            font-size: 0.8em;
+            margin-top: 5px;
+            padding: 0;
+        }
+
+        /* --- MODAL --- */
+        .modal {
+            display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%;
+            overflow: auto; background-color: rgba(0,0,0,0.8); animation: fadeIn 0.3s;
+        }
+        .modal-content {
+            background-color: var(--surface-color); margin: 5% auto; padding: 25px; border: 1px solid var(--border-color);
+            width: 90%; max-width: 700px; border-radius: 8px; position: relative; box-shadow: 0 5px 25px rgba(0,0,0,0.5);
+        }
+        .close-button {
+            color: #aaa; position: absolute; top: 15px; right: 25px; font-size: 28px; font-weight: bold; cursor: pointer; transition: color 0.2s;
+        }
+        .close-button:hover { color: white; }
+        .modal-content h2 { margin-top: 0; border-bottom: 1px solid var(--border-color); padding-bottom: 15px;}
+        
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .form-field { display: flex; flex-direction: column; }
+        .form-field.full-width { grid-column: 1 / -1; }
+        .form-field label { margin-bottom: 8px; font-size: 0.9em; color: #ccc; }
+        .form-field input, .form-field select, .form-field textarea {
+            width: 100%; padding: 10px; background-color: var(--bg-color); border: 1px solid var(--border-color);
+            color: var(--font-color); border-radius: 4px; box-sizing: border-box; transition: border-color 0.2s;
+        }
+        .form-field input:focus, .form-field select:focus, .form-field textarea:focus { outline: none; border-color: var(--primary-accent); }
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background-color: var(--bg-color);
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        .checkbox-group input {
+            width: auto;
+            margin-right: 10px;
+        }
+        .form-buttons { margin-top: 25px; display: flex; justify-content: flex-end; gap: 10px; }
+        .form-buttons button { padding: 10px 20px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; }
+        .btn-save { background-color: var(--primary-accent); color: white; }
+        .btn-delete { background-color: var(--priority-alta); color: white; }
+        .btn-cancel { background-color: var(--surface-hover-color); color: var(--font-color); }
+        
+        /* Histórico no Modal */
+        .modal-extra-section {
+            margin-top: 20px; max-height: 150px; overflow-y: auto; padding: 15px; background: var(--bg-color);
+            border-radius: 4px; border: 1px solid var(--border-color);
+        }
+        .modal-extra-section h4 { margin: 0 0 10px 0; }
+        .modal-extra-section ul { list-style: none; padding: 0; margin: 0; }
+        .modal-extra-section li { font-size: 0.8em; color: #ccc; padding: 5px 0; border-bottom: 1px solid var(--border-color); }
+        .modal-extra-section li:last-child { border-bottom: none; }
+
+        /* Botão Adicionar Flutuante (FAB) */
+        .fab {
+            position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px;
+            background-color: var(--primary-accent); color: white; border: none; border-radius: 50%;
+            font-size: 30px; line-height: 60px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            cursor: pointer; z-index: 1001; transition: background-color 0.2s, transform 0.2s;
+        }
+        .fab:hover { background-color: var(--primary-accent-hover); transform: scale(1.05); }
+
+        /* --- ANIMAÇÕES E RESPONSIVIDADE --- */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse-border-red { 0% { border-color: var(--priority-alta); } 50% { border-color: transparent; } 100% { border-color: var(--priority-alta); } }
+        @keyframes bg-spin { to { --border-angle: 360deg; } }
+        @keyframes flash {
+            0% { background-color: var(--primary-accent); }
+            100% { background-color: var(--surface-hover-color); }
+        }
+        .flash {
+            animation: flash 1s ease-out;
+        }
+        
+        @property --border-angle { syntax: "<angle>"; inherits: true; initial-value: 0deg; }
+
+        @media (max-width: 900px) {
+            header { height: auto; padding: 10px; flex-wrap: wrap; justify-content: center; }
+            .header-left, .header-right { width: 100%; justify-content: center; }
+            body { padding-top: 120px; }
+            main { flex-direction: column; }
+            .status-column { flex: 1 1 auto; max-height: none; }
+        }
+
     </style>
 </head>
-<body class="min-h-screen">
-    <!-- Tela de Carregamento -->
-    <div id="loader" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#111827] transition-opacity duration-500">
-        <div class="text-blue-400 text-2xl font-bold">UNINTA</div>
-        <p class="text-gray-400 mt-2">Carregando manual...</p>
-    </div>
-    <!-- Container principal que gerencia o layout da sidebar -->
-    <div id="app-container" class="opacity-0 transition-opacity duration-500">
-        <!-- Sidebar -->
-        <aside id="sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen bg-gray-900/80 backdrop-blur-lg border-r border-gray-700/60 transition-transform duration-300 ease-in-out">
-            <div class="flex flex-col h-full p-4">
-                <!-- Cabeçalho da Sidebar -->
-                <div class="flex items-center justify-between mb-6 px-2">
-                    <h2 class="text-xl font-bold text-white">Sumário</h2>
-                    <button id="pin-sidebar-btn" class="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-md" title="Fixar/Ocultar menu">
-                        <i data-lucide="pin"></i>
-                    </button>
-                </div>
-                <!-- Navegação -->
-                <nav id="menu-nav-links" class="flex-1 overflow-y-auto custom-scrollbar"></nav>
-                <!-- Controles de Importar/Exportar -->
-                <div class="mt-4 pt-4 border-t border-gray-700 space-y-2">
-                    <button id="import-btn" class="w-full flex items-center justify-center px-3 py-2 text-sm font-medium text-gray-300 bg-gray-700/50 rounded-md hover:bg-gray-700">
-                        <i data-lucide="upload" class="h-4 w-4 mr-2"></i>
-                        Importar Dados
-                    </button>
-                    <button id="export-btn" class="w-full flex items-center justify-center px-3 py-2 text-sm font-medium text-gray-300 bg-gray-700/50 rounded-md hover:bg-gray-700">
-                        <i data-lucide="download" class="h-4 w-4 mr-2"></i>
-                        Exportar Dados
-                    </button>
-                    <input type="file" id="import-file-input" class="hidden" accept=".json">
+<body>
+
+    <!-- CABEÇALHO FIXO -->
+    <header>
+        <div class="header-left">
+            <div class="logo">To-do-ADM</div>
+            <div class="dropdown">
+                <button class="menu-button dropdown-toggle">Arquivo ▾</button>
+                <div class="dropdown-content">
+                    <input type="file" id="importFile" accept=".json" style="display: none;">
+                    <button id="importBtn" class="dropdown-item">Importar JSON...</button>
+                    <select id="exportSelect" class="dropdown-item">
+                        <option value="" disabled selected>Exportar como...</option>
+                        <option value="json">JSON</option>
+                        <option value="csv">CSV</option>
+                    </select>
                 </div>
             </div>
-        </aside>
-        <!-- Botão para abrir a sidebar quando ela está oculta -->
-        <button id="open-sidebar-btn" class="fixed top-4 left-4 z-30 p-2 text-gray-300 bg-gray-800/80 backdrop-blur-sm rounded-full shadow-lg hover:bg-gray-700 transition-opacity duration-300 ease-in-out opacity-0 pointer-events-none">
-            <i data-lucide="menu"></i>
-        </button>
-        <!-- Conteúdo Principal -->
-        <main id="main-content" class="transition-all duration-300 ease-in-out">
-            <div class="container mx-auto px-6 py-8">
-                <!-- Cabeçalho da Página -->
-                <header class="mb-10">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <h1 class="header-title text-4xl md:text-5xl font-bold text-white">
-                                Manual Administrativo <span class="text-blue-400">UNINTA</span>
-                            </h1>
-                            <p class="mt-2 text-lg text-gray-400">Guia interativo de procedimentos e informações.</p>
+        </div>
+        <div class="header-right">
+            <div class="menu-item">
+                <label title="Ordenar por Prioridade" style="font-size: 1.5em; cursor: pointer; display: flex; align-items: center;">
+                    <input type="checkbox" id="prioritySortToggle" style="display: none;"> ⇅
+                </label>
+            </div>
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Buscar...">
+                <input type="checkbox" id="searchMode" title="Ativar busca por IA">
+            </div>
+            <div class="menu-item">
+                <select id="filterStatus">
+                    <option value="">Todos Status</option>
+                    <option value="Aberto">Aberto</option>
+                    <option value="Andamento">Em Andamento</option>
+                    <option value="Finalizado">Finalizado</option>
+                    <option value="Aguardando">Aguardando</option>
+                </select>
+            </div>
+            <div class="menu-item">
+                <label style="font-size: 0.8em; margin-right: 5px; display: flex; align-items: center; cursor: pointer;">
+                    <input type="checkbox" id="showCompleted" checked> Mostrar Finalizados
+                </label>
+            </div>
+            <div class="dropdown">
+                <button id="notificationBtn" class="menu-button dropdown-toggle">
+                    🔔
+                    <span id="notification-count" style="display: none;">0</span>
+                </button>
+                <div id="notification-list" class="dropdown-content">
+                    <!-- Notificações serão inseridas aqui -->
+                </div>
+            </div>
+            <div class="dropdown">
+                <button class="menu-button dropdown-toggle">⚙️</button>
+                <div class="dropdown-content">
+                    <button id="setApiKeyBtn" class="dropdown-item">Definir Chave de API do Google</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- PAINEL KANBAN -->
+    <main id="kanbanBoard"></main>
+
+    <!-- BOTÃO ADICIONAR FLUTUANTE -->
+    <button id="addTicketFab" class="fab">+</button>
+
+    <!-- MODAL PARA NOVO/EDITAR TICKET -->
+    <div id="ticketModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2 id="modalTitle">Novo Ticket</h2>
+            <form id="ticketForm">
+                <input type="hidden" id="ticketId">
+                <div class="form-grid">
+                    <div class="form-field full-width">
+                        <label for="ticketTitle">Título do Ticket</label>
+                        <input type="text" id="ticketTitle" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="ticketStatus">Status</label>
+                        <select id="ticketStatus" required></select>
+                    </div>
+                     <div class="form-field">
+                        <label for="ticketPriority">Prioridade</label>
+                        <select id="ticketPriority" required>
+                            <option value="Baixa">Baixa</option>
+                            <option value="Media">Média</option>
+                            <option value="Alta">Alta</option>
+                        </select>
+                    </div>
+                     <div class="form-field">
+                        <label for="ticketStartDate">Data de Início</label>
+                        <input type="date" id="ticketStartDate" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="ticketDeadline">Prazo Final</label>
+                        <input type="date" id="ticketDeadline" required>
+                    </div>
+                    <div class="form-field full-width">
+                        <label for="ticketRequirements">Requerimento (tags separadas por vírgula)</label>
+                        <textarea id="ticketRequirements" rows="3"></textarea>
+                    </div>
+                    <div class="form-field full-width">
+                        <label>Status de Comunicação</label>
+                        <div class="checkbox-group">
+                            <label><input type="checkbox" id="ticketAviseiRegiana"> Avisei a Regiana</label>
+                            <label><input type="checkbox" id="ticketComuniqueiAluno"> Comuniquei o aluno</label>
+                            <label><input type="checkbox" id="ticketAguardandoRetorno"> Aguardando retorno do aluno</label>
                         </div>
                     </div>
-                </header>
-                <!-- Seção de Tópicos Fixados -->
-                <div id="pinned-container" class="mb-10"></div>
-                
-                <!-- Seção de Conteúdo Principal -->
-                <div id="content-sections" class="space-y-6"></div>
-            </div>
-        </main>
-    </div>
-    <!-- Botão Minimizar/Expandir Todos Fixo -->
-    <button id="minimize-all-btn" class="p-2 text-gray-400 bg-gray-800/80 backdrop-blur-sm rounded-full shadow-lg hover:text-white hover:bg-gray-700 fixed top-4 right-4 z-30" title="Minimizar/Expandir Todos">
-        <i data-lucide="chevrons-up-down"></i>
-    </button>
-    
-    <!-- Controles do ADM -->
-    <div id="admin-controls" class="fixed bottom-5 z-20 flex items-center space-x-3 transition-all duration-300 ease-in-out">
-        <button id="admin-toggle-btn" class="p-3 bg-gray-800 rounded-full shadow-lg text-gray-300 hover:bg-gray-700">
-            <i data-lucide="shield"></i>
-        </button>
-        <button id="save-btn" class="hidden items-center px-4 py-2 bg-green-600 text-white font-semibold rounded-full shadow-lg hover:bg-green-700">
-            <i data-lucide="save" class="mr-2 h-5 w-5"></i>
-            Salvar
-        </button>
-        <button id="reset-btn" class="hidden items-center px-4 py-2 bg-red-600 text-white font-semibold rounded-full shadow-lg hover:bg-red-700">
-            <i data-lucide="rotate-ccw" class="mr-2 h-5 w-5"></i>
-            Resetar
-        </button>
-    </div>
-    
-    <!-- Botão para Adicionar Novo Card -->
-    <button id="add-card-btn" class="hidden fixed bottom-5 right-5 z-20 p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-transform hover:scale-110">
-        <i data-lucide="plus"></i>
-    </button>
-    <!-- Modal de Confirmação para Exclusão -->
-    <div id="confirm-modal" class="fixed inset-0 bg-black/60 z-50 hidden items-center justify-center">
-        <div class="bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-sm">
-            <h3 id="modal-title" class="text-lg font-bold text-white">Confirmar Exclusão</h3>
-            <p id="modal-message" class="text-gray-300 mt-2">Você tem certeza que deseja excluir este card? Esta ação não pode ser desfeita.</p>
-            <div class="mt-6 flex justify-end space-x-4">
-                <button id="modal-cancel-btn" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-500">Cancelar</button>
-                <button id="modal-confirm-btn" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-500">Excluir</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Barra de ferramentas flutuante para destaque de texto -->
-    <div id="highlight-toolbar">
-        <div class="flex space-x-2 items-center">
-            <div class="color-swatch" style="background-color: #FBBF24;" data-color="#FBBF24" title="Amarelo"></div>
-            <div class="color-swatch" style="background-color: #3B82F6;" data-color="#3B82F6" title="Azul"></div>
-            <div class="color-swatch" style="background-color: #EC4899;" data-color="#EC4899" title="Rosa"></div>
-            <div class="color-swatch" style="background-color: #22C55E;" data-color="#22C55E" title="Verde"></div>
-            <div class="h-5 border-l border-gray-600"></div>
-            <button id="remove-color-btn" class="p-1 text-gray-400 hover:text-white" title="Remover Cor">
-                <i data-lucide="remove-formatting" class="h-5 w-5"></i>
-            </button>
-        </div>
-    </div>
-    
-    <!-- Notificação de cópia -->
-    <div id="copy-notification" class="copy-notification">
-        <i data-lucide="check" class="inline mr-2"></i>
-        Conteúdo copiado para a área de transferência!
-    </div>
-    
-    <!-- Templates -->
-    <template id="section-template">
-        <section class="bg-gray-900/90 backdrop-blur-sm border border-gray-700/90 rounded-xl shadow-lg transition-all duration-300 ease-in-out" draggable="false">
-            <div class="p-6">
-                <div class="flex justify-between items-start">
-                    <div class="prose prose-invert max-w-none w-full text-gray-300">
-                        <div class="flex items-center justify-between mb-2">
-                            <h2 class="text-2xl font-bold text-white" data-editable></h2>
-                            <button class="minimize-btn text-gray-500 hover:text-blue-400 transition-colors p-1" title="Minimizar/Expandir">
-                                <i data-lucide="chevron-down" class="h-5 w-5"></i>
-                            </button>
-                        </div>
-                        <div class="card-content-wrapper">
-                            <div data-editable></div>
-                            <div class="subcards-container mt-4"></div>
-                        </div>
-                    </div>
-                    <div class="flex flex-col items-center space-y-2 ml-4 flex-shrink-0">
-                        <button class="pin-btn text-gray-500 hover:text-blue-400 transition-colors p-1" title="Fixar Tópico no Topo">
-                            <i data-lucide="bookmark-plus" class="h-5 w-5"></i>
-                        </button>
-                        <button class="add-subcard-btn hidden text-gray-500 hover:text-purple-400 transition-colors p-1" title="Adicionar Subcard">
-                            <i data-lucide="folder-plus" class="h-5 w-5"></i>
-                        </button>
-                        <button class="copy-btn text-gray-500 hover:text-yellow-400 transition-colors p-1" title="Copiar Texto">
-                            <i data-lucide="copy" class="h-5 w-5"></i>
-                        </button>
-                        <button class="clone-btn hidden text-gray-500 hover:text-green-400 transition-colors p-1" title="Clonar Card">
-                            <i data-lucide="copy" class="h-5 w-5"></i>
-                        </button>
-                        <button class="delete-btn hidden text-gray-500 hover:text-red-400 transition-colors p-1" title="Excluir Card">
-                            <i data-lucide="trash-2" class="h-5 w-5"></i>
-                        </button>
-                    </div>
                 </div>
-            </div>
-        </section>
-    </template>
-    
-    <template id="subcard-template">
-        <div class="subcard bg-gray-800/80 backdrop-blur-sm border border-gray-700/80 rounded-lg p-4 shadow-md">
-            <div class="flex justify-between items-start">
-                <div class="w-full">
-                    <div class="flex items-center justify-between mb-2">
-                        <h3 class="subcard-title" data-editable></h3>
-                        <button class="subcard-minimize-btn text-gray-500 hover:text-blue-400 transition-colors p-1" title="Minimizar/Expandir">
-                            <i data-lucide="chevron-down" class="h-4 w-4"></i>
-                        </button>
-                    </div>
-                    <div class="subcard-content-wrapper">
-                        <div data-editable></div>
-                    </div>
+                <div class="form-buttons">
+                    <button type="button" id="deleteTicketBtn" class="btn-delete" style="display:none;">Excluir</button>
+                    <button type="button" class="btn-cancel">Cancelar</button>
+                    <button type="submit" class="btn-save">Salvar</button>
                 </div>
-                <div class="flex flex-col items-center space-y-2 ml-4 flex-shrink-0">
-                    <button class="subcard-copy-btn text-gray-500 hover:text-yellow-400 transition-colors p-1" title="Copiar Texto">
-                        <i data-lucide="copy" class="h-4 w-4"></i>
-                    </button>
-                    <button class="subcard-clone-btn hidden text-gray-500 hover:text-green-400 transition-colors p-1" title="Clonar Subcard">
-                        <i data-lucide="copy" class="h-4 w-4"></i>
-                    </button>
-                    <button class="subcard-delete-btn hidden text-gray-500 hover:text-red-400 transition-colors p-1" title="Excluir Subcard">
-                        <i data-lucide="trash-2" class="h-4 w-4"></i>
-                    </button>
-                </div>
+            </form>
+            <div id="ticket-history" class="modal-extra-section" style="display:none;">
+                <h4>Histórico de Alterações</h4>
+                <ul id="history-list"></ul>
             </div>
         </div>
-    </template>
-    
-    <template id="pinned-item-template">
-        <div class="bg-blue-600/80 backdrop-blur-sm border border-blue-500 text-white rounded-lg p-4 shadow-lg flex justify-between items-center">
-            <a href="#" class="font-semibold hover:underline"></a>
-            <button class="unpin-btn text-white/70 hover:text-white" title="Desafixar Tópico">
-                <i data-lucide="bookmark-minus" class="h-5 w-5"></i>
-            </button>
-        </div>
-    </template>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // --- DADOS INICIAIS ---
-            const initialData = [
-                { 
-                    id: 'info-gerais', 
-                    title: '1. Informações Gerais', 
-                    content: `<ul class="list-disc pl-5 space-y-2"><li><strong>Situação Financeira:</strong> Para solicitar trancamento, desistência ou troca de curso, o aluno deve estar com a situação financeira regularizada.</li><li><strong>Documentação na Matrícula:</strong> Uma declaração de conclusão é aceita apenas no ato da matrícula. A partir do segundo semestre, a apresentação do diploma e histórico originais é obrigatória.</li><li><strong>Unidades Curriculares de Extensão (UCE):</strong> Aplicam-se apenas aos cursos de Licenciatura e Bacharelado.</li></ul>`,
-                    minimized: false,
-                    subcards: []
-                },
-                { 
-                    id: 'graduacao', 
-                    title: '2.1. Graduação', 
-                    content: `<ul class="list-disc pl-5 space-y-2"><li><strong>Requisito:</strong> Ensino médio completo é obrigatório.</li><li><strong>Atividades Complementares:</strong> Todos os cursos exigem o envio de atividades complementares.</li><li><strong>ENADE:</strong> A participação é obrigatória para os cursos de Licenciatura.</li><li><strong>Bacharelado:</strong> Pode ser cursado mesmo por quem já possui um diploma de ensino superior em outra área.</li></ul>`,
-                    minimized: false,
-                    subcards: []
-                },
-                { 
-                    id: 'segunda-licenciatura', 
-                    title: '2.2. Segunda Licenciatura', 
-                    content: `<ul class="list-disc pl-5 space-y-2"><li><strong>Requisito de Ingresso:</strong> É obrigatório possuir uma primeira Licenciatura completa na mesma área.</li><li><strong>Processo Seletivo:</strong> Ingresso via análise do diploma e histórico superior.</li><li><strong>Aproveitamento de Disciplinas:</strong> Não há, pois o curso tem duração reduzida.</li><li><strong>Atividades Obrigatórias:</strong> Todos os cursos incluem estágios e seminários ou UCE.</li></ul>`,
-                    minimized: false,
-                    subcards: []
-                },
-                { 
-                    id: 'pos-graduacao', 
-                    title: '2.3. Pós-Graduação', 
-                    content: `<ul class="list-disc pl-5 space-y-2"><li><strong>Requisito:</strong> Ensino superior completo é obrigatório.</li><li><strong>TCC:</strong> Nenhum curso exige, conforme resolução do MEC.</li><li><strong>Estágio:</strong> Não é obrigatório, exceto para <strong>Psicopedagogia Institucional e Clínica</strong>.</li></ul>`,
-                    minimized: false,
-                    subcards: []
-                },
-                { 
-                    id: 'troca-curso', 
-                    title: '3.1. Troca de Curso', 
-                    content: `<p class="mb-4">O pedido é feito pelo próprio estudante através do Sistema Acadêmico.</p><div class="p-4 bg-red-900/20 border-l-4 border-red-700"><h4 class="font-bold text-red-300">Regras Importantes</h4><ul class="list-disc pl-5 mt-2 space-y-1 text-red-400"><li>Valores pagos não são devolvidos nem aproveitados.</li><li>Bolsas de estudo não são transferidas.</li><li>O aluno pagará a semestralidade integral do novo curso.</li></ul></div>`,
-                    minimized: false,
-                    subcards: []
-                },
-                { 
-                    id: 'trancamento', 
-                    title: '3.2. Trancamento', 
-                    content: `<ul class="list-disc pl-5 space-y-2"><li><strong>Quando:</strong> A partir do 2º semestre.</li><li><strong>Limite:</strong> Até 4 vezes durante o curso.</li><li><strong>Taxa:</strong> R$ 80,00 por solicitação.</li><li><strong>Abandono:</strong> A não realização dos procedimentos resulta em abandono de curso.</li></ul>`,
-                    minimized: false,
-                    subcards: []
-                },
-                { 
-                    id: 'solicitacao-certificado', 
-                    title: '3.4. Solicitação de Certificado', 
-                    content: `<h3 class="font-semibold text-lg mb-2">Condições:</h3><ul class="list-disc pl-5 space-y-1 mb-4"><li>Prazo do curso concluído.</li><li>Financeiro quitado.</li><li>Aprovado em todas as disciplinas.</li></ul><div class="mt-2 p-3 bg-gray-700/50 border border-gray-600 rounded-md"><p class="font-bold">📌 Documentação Obrigatória (PDF):</p><ul class="list-disc pl-5 text-sm mt-2"><li>RG, CPF, Comprovante de endereço.</li><li>Diploma e Histórico da graduação.</li></ul></div>`,
-                    minimized: false,
-                    subcards: []
-                },
-                { 
-                    id: 'bolsa-cebas', 
-                    title: '4. Bolsa CEBAS', 
-                    content: `<h3 class="font-semibold text-lg mb-2">Critérios:</h3><ul class="list-disc pl-5 space-y-1 mb-4"><li>Não possuir diploma superior.</li><li>Renda familiar per capita de até 1,5 salário mínimo.</li><li>Ensino fundamental e médio em escola pública ou como bolsista integral.</li><li>Matrícula ativa.</li></ul><div class="p-3 bg-blue-900/20 border-l-4 border-blue-700"><strong class="text-blue-300">Como Solicitar:</strong> Enviar documentação para <a href="mailto:bolsas@uninta.edu.br" class="font-medium text-blue-400">bolsas@uninta.edu.br</a>.</div>`,
-                    minimized: false,
-                    subcards: []
-                },
-                { 
-                    id: 'apresentacao-candidato', 
-                    title: '5. Modelo de Apresentação', 
-                    content: `<blockquote class="p-4 my-4 border-l-4 border-gray-600 bg-gray-800/80"><p class="text-md italic leading-relaxed">"Bom dia, meu nome é José e estou aqui para ajudá-lo no polo da Uninta..."</p></blockquote>`,
-                    minimized: false,
-                    subcards: []
-                }
-            ];
-            // --- ESTADO DA APLICAÇÃO ---
-            let state = { 
-                isAdmin: false, 
-                content: [], 
-                pinnedItems: [], 
-                isSidebarPinned: true, 
-                areCardsMinimized: false 
+            // --- VARIÁVEIS E CONSTANTES GLOBAIS ---
+            const kanbanBoard = document.getElementById('kanbanBoard');
+            const ticketForm = document.getElementById('ticketForm');
+            const searchInput = document.getElementById('searchInput');
+            const searchMode = document.getElementById('searchMode');
+            const filterStatus = document.getElementById('filterStatus');
+            const addTicketFab = document.getElementById('addTicketFab');
+            const showCompletedCheckbox = document.getElementById('showCompleted');
+            const notificationList = document.getElementById('notification-list');
+            const notificationCount = document.getElementById('notification-count');
+            const prioritySortToggle = document.getElementById('prioritySortToggle');
+
+            let tickets = [];
+            let googleApiKey = '';
+            const statuses = ['Aberto', 'Andamento', 'Aguardando', 'Finalizado'];
+            const statusColors = {
+                Aberto: 'var(--status-aberto)', Andamento: 'var(--status-andamento)',
+                Finalizado: 'var(--status-finalizado)', Aguardando: 'var(--status-aguardando)',
             };
-            let cardToDelete = null; // Variável para armazenar o ID do card a ser excluído
-            let subcardToDelete = null; // Variável para armazenar o ID do subcard a ser excluído
-            // --- ELEMENTOS DO DOM ---
-            const appContainer = document.getElementById('app-container');
-            const mainContent = document.getElementById('main-content');
-            const contentSections = document.getElementById('content-sections');
-            const pinnedContainer = document.getElementById('pinned-container');
-            const sectionTemplate = document.getElementById('section-template');
-            const subcardTemplate = document.getElementById('subcard-template');
-            const pinnedItemTemplate = document.getElementById('pinned-item-template');
-            const adminControls = document.getElementById('admin-controls');
-            const adminToggleBtn = document.getElementById('admin-toggle-btn');
-            const saveBtn = document.getElementById('save-btn');
-            const addCardBtn = document.getElementById('add-card-btn');
-            const resetBtn = document.getElementById('reset-btn');
-            const copyNotification = document.getElementById('copy-notification');
+            const priorityColors = {
+                Alta: 'var(--priority-alta)', Media: 'var(--priority-media)', Baixa: 'var(--priority-baixa)',
+            };
+
+            // --- FUNÇÕES DE LÓGICA DE DADOS ---
+            const loadData = () => {
+                const data = localStorage.getItem('todo-adm-tickets-v7');
+                googleApiKey = localStorage.getItem('todo-adm-google-api-key') || '';
+                tickets = data ? JSON.parse(data) : [];
+                renderNotifications();
+            };
+
+            const saveData = () => {
+                localStorage.setItem('todo-adm-tickets-v7', JSON.stringify(tickets));
+                renderNotifications();
+            };
             
-            const sidebar = document.getElementById('sidebar');
-            const pinSidebarBtn = document.getElementById('pin-sidebar-btn');
-            const openSidebarBtn = document.getElementById('open-sidebar-btn');
-            const menuNavLinks = document.getElementById('menu-nav-links');
-            const confirmModal = document.getElementById('confirm-modal');
-            const modalConfirmBtn = document.getElementById('modal-confirm-btn');
-            const modalCancelBtn = document.getElementById('modal-cancel-btn');
-            const highlightToolbar = document.getElementById('highlight-toolbar');
-            const minimizeAllBtn = document.getElementById('minimize-all-btn');
-            const importBtn = document.getElementById('import-btn');
-            const exportBtn = document.getElementById('export-btn');
-            const importFileInput = document.getElementById('import-file-input');
-            // --- FUNÇÕES ---
-            function updateStateFromDOM() {
-                const currentOrderIds = Array.from(contentSections.children).map(sectionEl => sectionEl.dataset.id);
-                const contentMap = new Map(state.content.map(item => [item.id, item]));
-                const reorderedContent = currentOrderIds.map(id => {
-                    const sectionEl = document.getElementById(id);
-                    const title = sectionEl.querySelector('h2').innerText;
-                    const content = sectionEl.querySelector('div[data-editable]').innerHTML;
-                    const originalItem = contentMap.get(id);
-                    
-                    // Coleta subcards do DOM
-                    const subcardsContainer = sectionEl.querySelector('.subcards-container');
-                    const subcards = [];
-                    if (subcardsContainer) {
-                        Array.from(subcardsContainer.children).forEach(subcardEl => {
-                            const subcardId = subcardEl.dataset.id;
-                            const subcardTitle = subcardEl.querySelector('.subcard-title').innerText;
-                            const subcardContent = subcardEl.querySelector('.subcard-content-wrapper div[data-editable]').innerHTML;
-                            const minimized = subcardEl.querySelector('.subcard-content-wrapper').classList.contains('collapsed');
-                            subcards.push({
-                                id: subcardId,
-                                title: subcardTitle,
-                                content: subcardContent,
-                                minimized: minimized
-                            });
-                        });
-                    }
-                    
-                    return { 
-                        ...originalItem, 
-                        title, 
-                        content,
-                        minimized: sectionEl.querySelector('.card-content-wrapper').classList.contains('collapsed'),
-                        subcards: subcards
-                    };
-                });
-                state.content.forEach(item => {
-                    if (!reorderedContent.find(rc => rc.id === item.id)) {
-                        reorderedContent.push(item);
-                    }
-                });
-                state.content = reorderedContent;
-            }
-            function saveState() {
-                localStorage.setItem('unintaManualState', JSON.stringify({ 
-                    content: state.content, 
-                    pinnedItems: state.pinnedItems 
-                }));
-                
-                saveBtn.innerHTML = `<i data-lucide="check-circle" class="mr-2 h-5 w-5"></i> Salvo!`;
-                lucide.createIcons();
-                setTimeout(() => {
-                    saveBtn.innerHTML = `<i data-lucide="save" class="mr-2 h-5 w-5"></i> Salvar`;
-                    lucide.createIcons();
-                }, 2000);
-            }
-            function loadState() {
-                const savedState = localStorage.getItem('unintaManualState');
-                if (savedState) {
-                    const parsedState = JSON.parse(savedState);
-                    state.content = parsedState.content;
-                    state.pinnedItems = parsedState.pinnedItems || [];
-                } else {
-                    state.content = initialData;
-                    state.pinnedItems = [];
+            const addLogEntry = (ticket, action, user = "Usuário") => {
+                if (!ticket.history) ticket.history = [];
+                ticket.history.unshift({ action, user, timestamp: new Date().toISOString() });
+                if (ticket.history.length > 20) ticket.history.pop();
+            };
+
+            // --- RENDERIZAÇÃO DA UI ---
+            const renderBoard = async () => {
+                kanbanBoard.innerHTML = '<p style="padding: 20px; color: #aaa;">Carregando tickets...</p>';
+                const filteredTickets = await getFilteredTickets();
+                kanbanBoard.innerHTML = '';
+
+                if (filteredTickets.length === 0 && tickets.length > 0) {
+                     kanbanBoard.innerHTML = '<p style="padding: 20px; color: #aaa;">Nenhum ticket encontrado com os filtros atuais.</p>';
                 }
-                
-                const savedSidebarPin = localStorage.getItem('sidebarPinned');
-                state.isSidebarPinned = window.innerWidth < 1024 ? false : (savedSidebarPin === null ? true : JSON.parse(savedSidebarPin));
-                render();
-                // Esconde o loader e mostra o conteúdo
-                const loader = document.getElementById('loader');
-                
-                setTimeout(() => {
-                    loader.classList.add('opacity-0');
-                    appContainer.classList.remove('opacity-0');
-                    // Remove o loader do DOM após a transição
-                    setTimeout(() => loader.style.display = 'none', 500);
-                }, 100); 
-            }
-            function render() {
-                contentSections.innerHTML = '';
-                pinnedContainer.innerHTML = '';
-                menuNavLinks.innerHTML = '';
-                const contentMap = new Map(state.content.map(item => [item.id, item]));
-                if (state.pinnedItems.length > 0) {
-                    const pinnedHeader = document.createElement('h3');
-                    pinnedHeader.className = "text-xl font-bold text-white mb-4 flex items-center";
-                    pinnedHeader.innerHTML = `<i data-lucide="bookmark-check" class="h-5 w-5 mr-2 text-blue-400"></i> Tópicos Fixados`;
-                    pinnedContainer.appendChild(pinnedHeader);
-                    const pinnedGrid = document.createElement('div');
-                    pinnedGrid.className = 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4';
-                    state.pinnedItems.forEach(id => {
-                        const item = contentMap.get(id);
-                        if (!item) return;
-                        const pinnedClone = pinnedItemTemplate.content.cloneNode(true);
-                        const link = pinnedClone.querySelector('a');
-                        link.textContent = item.title;
-                        link.href = `#${item.id}`;
-                        link.onclick = (e) => { e.preventDefault(); document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth' }); };
-                        pinnedClone.querySelector('.unpin-btn').addEventListener('click', (e) => { e.preventDefault(); toggleContentPin(item.id); });
-                        pinnedGrid.appendChild(pinnedClone);
+
+                statuses.forEach(status => {
+                    if (!showCompletedCheckbox.checked && status === 'Finalizado') return;
+                    
+                    const column = document.createElement('div');
+                    column.className = 'status-column';
+                    column.id = `column-${status.replace(/\s+/g, '')}`;
+                    column.dataset.status = status;
+                    column.style.borderColor = statusColors[status];
+
+                    const ticketsInColumn = filteredTickets.filter(t => t.status === status);
+
+                    if (prioritySortToggle.checked) {
+                        const priorityOrder = { 'Alta': 0, 'Media': 1, 'Baixa': 2 };
+                        ticketsInColumn.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+                    }
+
+                    column.innerHTML = `
+                        <div class="column-header">
+                            <span>${status}</span>
+                            <span class="ticket-count">${ticketsInColumn.length}</span>
+                        </div>
+                        <div class="tickets-container"></div>
+                    `;
+                    kanbanBoard.appendChild(column);
+                    
+                    const ticketsContainer = column.querySelector('.tickets-container');
+                    ticketsInColumn.forEach(ticket => {
+                        const ticketCard = createTicketCard(ticket);
+                        ticketsContainer.appendChild(ticketCard);
                     });
-                    pinnedContainer.appendChild(pinnedGrid);
-                }
-                state.content.forEach(item => {
-                    if (!state.pinnedItems.includes(item.id)) {
-                        const sectionClone = sectionTemplate.content.cloneNode(true);
-                        const sectionEl = sectionClone.querySelector('section');
-                        sectionEl.id = item.id;
-                        sectionEl.dataset.id = item.id;
-                        
-                        const titleEl = sectionEl.querySelector('h2');
-                        titleEl.textContent = item.title;
-                        
-                        const contentEl = sectionEl.querySelector('div[data-editable]');
-                        contentEl.innerHTML = item.content;
-                        
-                        // Configura o estado de minimização do card
-                        const cardContentWrapper = sectionEl.querySelector('.card-content-wrapper');
-                        const minimizeBtn = sectionEl.querySelector('.minimize-btn');
-                        const minimizeIcon = minimizeBtn.querySelector('i');
-                        
-                        if (item.minimized) {
-                            cardContentWrapper.classList.add('collapsed');
-                            minimizeIcon.classList.add('rotated');
-                        }
-                        
-                        // Container para subcards
-                        const subcardsContainer = sectionEl.querySelector('.subcards-container');
-                        
-                        // Renderiza subcards
-                        if (item.subcards && item.subcards.length > 0) {
-                            item.subcards.forEach(subcard => {
-                                const subcardClone = subcardTemplate.content.cloneNode(true);
-                                const subcardEl = subcardClone.querySelector('.subcard');
-                                subcardEl.dataset.id = subcard.id;
-                                subcardEl.dataset.parentId = item.id;
-                                
-                                const subcardTitleEl = subcardEl.querySelector('.subcard-title');
-                                subcardTitleEl.textContent = subcard.title;
-                                
-                                const subcardContentEl = subcardEl.querySelector('.subcard-content-wrapper div[data-editable]');
-                                subcardContentEl.innerHTML = subcard.content;
-                                
-                                // Configura o estado de minimização do subcard
-                                const subcardContentWrapper = subcardEl.querySelector('.subcard-content-wrapper');
-                                const subcardMinimizeBtn = subcardEl.querySelector('.subcard-minimize-btn');
-                                const subcardMinimizeIcon = subcardMinimizeBtn.querySelector('i');
-                                
-                                if (subcard.minimized) {
-                                    subcardContentWrapper.classList.add('collapsed');
-                                    subcardMinimizeIcon.classList.add('rotated');
-                                }
-                                
-                                // Configuração dos botões do subcard
-                                const subcardCopyBtn = subcardEl.querySelector('.subcard-copy-btn');
-                                subcardCopyBtn.setAttribute('data-card-id', item.id);
-                                subcardCopyBtn.setAttribute('data-subcard-id', subcard.id);
-                                subcardCopyBtn.addEventListener('click', (e) => {
-                                    e.stopPropagation();
-                                    const cardId = e.currentTarget.getAttribute('data-card-id');
-                                    const subcardId = e.currentTarget.getAttribute('data-subcard-id');
-                                    copySubcardContent(cardId, subcardId);
-                                });
-                                
-                                const subcardCloneBtn = subcardEl.querySelector('.subcard-clone-btn');
-                                subcardCloneBtn.setAttribute('data-card-id', item.id);
-                                subcardCloneBtn.setAttribute('data-subcard-id', subcard.id);
-                                subcardCloneBtn.addEventListener('click', (e) => {
-                                    e.stopPropagation();
-                                    const cardId = e.currentTarget.getAttribute('data-card-id');
-                                    const subcardId = e.currentTarget.getAttribute('data-subcard-id');
-                                    cloneSubcard(cardId, subcardId);
-                                });
-                                
-                                const subcardDeleteBtn = subcardEl.querySelector('.subcard-delete-btn');
-                                subcardDeleteBtn.setAttribute('data-card-id', item.id);
-                                subcardDeleteBtn.setAttribute('data-subcard-id', subcard.id);
-                                subcardDeleteBtn.addEventListener('click', (e) => {
-                                    e.stopPropagation();
-                                    const cardId = e.currentTarget.getAttribute('data-card-id');
-                                    const subcardId = e.currentTarget.getAttribute('data-subcard-id');
-                                    showDeleteSubcardConfirmation(cardId, subcardId);
-                                });
-                                
-                                // Configuração do botão de minimizar do subcard
-                                subcardMinimizeBtn.addEventListener('click', (e) => {
-                                    e.stopPropagation();
-                                    const subcardId = subcardEl.dataset.id;
-                                    toggleSubcardMinimize(item.id, subcardId);
-                                });
-                                
-                                // Evento para atualizar o título dinamicamente
-                                subcardTitleEl.addEventListener('input', () => {
-                                    const newTitle = subcardTitleEl.innerText;
-                                    // Atualiza o título no estado
-                                    const stateItem = state.content.find(i => i.id === item.id);
-                                    if (stateItem && stateItem.subcards) {
-                                        const subcardItem = stateItem.subcards.find(sc => sc.id === subcard.id);
-                                        if (subcardItem) {
-                                            subcardItem.title = newTitle;
-                                        }
-                                    }
-                                });
-                                
-                                subcardsContainer.appendChild(subcardEl);
-                            });
-                        }
-                        
-                        // Configuração dos botões do card
-                        sectionEl.querySelector('.pin-btn').addEventListener('click', () => toggleContentPin(item.id));
-                        
-                        // Configuração do botão de adicionar subcard
-                        const addSubcardBtn = sectionEl.querySelector('.add-subcard-btn');
-                        addSubcardBtn.setAttribute('data-card-id', item.id);
-                        addSubcardBtn.addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            const cardId = e.currentTarget.getAttribute('data-card-id');
-                            addSubCard(cardId);
-                        });
-                        
-                        // Configuração do botão de cópia
-                        const copyBtn = sectionEl.querySelector('.copy-btn');
-                        copyBtn.setAttribute('data-card-id', item.id);
-                        copyBtn.addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            const cardId = e.currentTarget.getAttribute('data-card-id');
-                            copyCardContent(cardId);
-                        });
-                        
-                        sectionEl.querySelector('.clone-btn').addEventListener('click', () => cloneCard(item.id));
-                        
-                        // Configuração do botão de exclusão
-                        const deleteBtn = sectionEl.querySelector('.delete-btn');
-                        deleteBtn.setAttribute('data-card-id', item.id);
-                        deleteBtn.addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            const cardId = e.currentTarget.getAttribute('data-card-id');
-                            showDeleteConfirmation(cardId, item.title);
-                        });
-                        
-                        // Configuração do botão de minimizar do card
-                        minimizeBtn.addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            toggleCardMinimize(item.id);
-                        });
-                        
-                        // Evento para atualizar o título dinamicamente
-                        titleEl.addEventListener('input', () => {
-                            const newTitle = titleEl.innerText;
-                            // Atualiza o título no estado
-                            const stateItem = state.content.find(i => i.id === item.id);
-                            if (stateItem) {
-                                stateItem.title = newTitle;
-                            }
-                            // Atualiza o link no sumário
-                            const sidebarLink = menuNavLinks.querySelector(`a[href="#${item.id}"]`);
-                            if (sidebarLink) {
-                                sidebarLink.textContent = newTitle;
-                            }
-                        });
-                        
-                        contentSections.appendChild(sectionClone);
-                    }
-                    const menuLink = document.createElement('a');
-                    menuLink.href = `#${item.id}`;
-                    menuLink.textContent = item.title;
-                    menuLink.className = 'block py-2 px-3 rounded-md text-gray-300 hover:bg-gray-700 hover:text-white transition-colors';
-                    menuLink.onclick = (e) => {
-                        e.preventDefault();
-                        document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth' });
-                        if (window.innerWidth < 1024) {
-                            sidebar.classList.add('-translate-x-full');
-                        }
-                    };
-                    menuNavLinks.appendChild(menuLink);
                 });
-                updateAdminUI();
-                updateSidebarUI();
-                lucide.createIcons();
-            }
+                setupDragAndDrop();
+            };
             
-            function toggleContentPin(id) {
-                const index = state.pinnedItems.indexOf(id);
-                if (index > -1) {
-                    state.pinnedItems.splice(index, 1);
-                } else {
-                    if (state.pinnedItems.length < 5) {
-                        state.pinnedItems.push(id);
-                    } else {
-                        alert('Você pode fixar no máximo 5 tópicos.');
-                        return;
+            const createTicketCard = (ticket) => {
+                const card = document.createElement('div');
+                card.className = 'ticket-card';
+                card.draggable = true;
+                card.dataset.id = ticket.id;
+                card.style.borderColor = statusColors[ticket.status];
+
+                const now = new Date();
+                const deadline = new Date(ticket.deadline);
+                const isOverdue = deadline < now && ticket.status !== 'Finalizado';
+                const nearingDeadline = !isOverdue && (deadline - now) / (1000 * 3600) <= 24 && ticket.status !== 'Finalizado';
+                
+                let requirementsHTML = '';
+                if (ticket.requirements) {
+                    const tags = ticket.requirements.split(',').map(tag => tag.trim()).filter(tag => tag);
+                    if (tags.length > 0) {
+                        requirementsHTML = `
+                            <div class="ticket-requirements">
+                                <div class="tags-container">
+                                    ${tags.map(tag => `<span class="req-tag">${tag}</span>`).join('')}
+                                </div>
+                                ${tags.length > 2 ? '<button class="toggle-reqs">Mostrar mais...</button>' : ''}
+                            </div>
+                        `;
                     }
                 }
-                saveState();
-                render();
-            }
-            function updateAdminUI() {
-                const editableElements = document.querySelectorAll('[data-editable]');
-                const sections = document.querySelectorAll('#content-sections section');
-                const deleteButtons = document.querySelectorAll('.delete-btn');
-                const cloneButtons = document.querySelectorAll('.clone-btn');
-                const addSubcardButtons = document.querySelectorAll('.add-subcard-btn');
-                const subcardDeleteButtons = document.querySelectorAll('.subcard-delete-btn');
-                const subcardCloneButtons = document.querySelectorAll('.subcard-clone-btn');
-                
-                if (state.isAdmin) {
-                    saveBtn.classList.remove('hidden');
-                    addCardBtn.classList.remove('hidden');
-                    resetBtn.classList.remove('hidden');
-                    adminToggleBtn.classList.add('bg-blue-600', 'text-white');
-                    deleteButtons.forEach(btn => btn.classList.remove('hidden'));
-                    cloneButtons.forEach(btn => btn.classList.remove('hidden'));
-                    addSubcardButtons.forEach(btn => btn.classList.remove('hidden'));
-                    subcardDeleteButtons.forEach(btn => btn.classList.remove('hidden'));
-                    subcardCloneButtons.forEach(btn => btn.classList.remove('hidden'));
-                    editableElements.forEach(el => el.setAttribute('contenteditable', 'true'));
-                    sections.forEach(sec => sec.setAttribute('draggable', 'true'));
-                } else {
-                    saveBtn.classList.add('hidden');
-                    addCardBtn.classList.add('hidden');
-                    resetBtn.classList.add('hidden');
-                    adminToggleBtn.classList.remove('bg-blue-600', 'text-white');
-                    deleteButtons.forEach(btn => btn.classList.add('hidden'));
-                    cloneButtons.forEach(btn => btn.classList.add('hidden'));
-                    addSubcardButtons.forEach(btn => btn.classList.add('hidden'));
-                    subcardDeleteButtons.forEach(btn => btn.classList.add('hidden'));
-                    subcardCloneButtons.forEach(btn => btn.classList.add('hidden'));
-                    editableElements.forEach(el => el.setAttribute('contenteditable', 'false'));
-                    sections.forEach(sec => sec.setAttribute('draggable', 'false'));
+
+                let communicationHTML = '';
+                if (ticket.aviseiRegiana || ticket.comuniqueiAluno || ticket.aguardandoRetorno) {
+                    communicationHTML += '<div class="communication-status">';
+                    if (ticket.aviseiRegiana) communicationHTML += '<span class="comm-icon" title="Regiana foi avisada">R</span>';
+                    if (ticket.comuniqueiAluno) communicationHTML += '<span class="comm-icon" title="Aluno comunicado">A</span>';
+                    if (ticket.aguardandoRetorno) communicationHTML += '<span class="comm-icon" title="Aguardando retorno do aluno">⏳</span>';
+                    communicationHTML += '</div>';
                 }
-            }
-            
-            function toggleAdminMode() {
-                if (!state.isAdmin) {
-                    const password = prompt("Digite a senha de administrador:");
-                    if (password !== "123") { alert("Senha incorreta!"); return; }
+
+                card.innerHTML = `
+                    <div class="ticket-header">
+                        <span class="ticket-id">#${ticket.id.toString().substring(0, 6)}</span>
+                        <div class="ticket-header-right">
+                            <select data-id="${ticket.id}" class="card-status-select">
+                                ${statuses.map(s => `<option value="${s}" ${s === ticket.status ? 'selected' : ''}>${s}</option>`).join('')}
+                            </select>
+                            <span class="ticket-priority" style="background-color: ${priorityColors[ticket.priority]}">${ticket.priority}</span>
+                        </div>
+                    </div>
+                    <div class="ticket-content">
+                        <strong>${ticket.title}</strong>
+                        ${requirementsHTML}
+                    </div>
+                    <div class="ticket-footer">
+                        <div class="footer-left">
+                           ${communicationHTML}
+                        </div>
+                        <div class="deadline-wrapper ${isOverdue || nearingDeadline ? 'alert' : ''}">
+                            <span>Prazo: ${new Date(ticket.deadline).toLocaleDateString()}</span>
+                        </div>
+                    </div>
+                `;
+                
+                card.querySelector('.card-status-select').addEventListener('click', (e) => e.stopPropagation());
+                card.querySelector('.card-status-select').addEventListener('change', handleQuickStatusChange);
+                
+                const toggleBtn = card.querySelector('.toggle-reqs');
+                if (toggleBtn) {
+                    toggleBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const container = e.target.previousElementSibling;
+                        container.classList.toggle('expanded');
+                        e.target.textContent = container.classList.contains('expanded') ? 'Mostrar menos' : 'Mostrar mais...';
+                    });
                 }
-                state.isAdmin = !state.isAdmin;
-                updateAdminUI();
-            }
-            function updateSidebarUI() {
-                const pinIcon = pinSidebarBtn.querySelector('i');
-                if (state.isSidebarPinned) {
-                    sidebar.classList.remove('-translate-x-full');
-                    mainContent.classList.add('lg:ml-64');
-                    adminControls.classList.add('lg:left-72');
-                    openSidebarBtn.classList.add('opacity-0', 'pointer-events-none');
-                    pinIcon.setAttribute('data-lucide', 'pin-off');
-                    pinSidebarBtn.classList.add('bg-blue-600/30', 'text-blue-300');
-                } else {
-                    sidebar.classList.add('-translate-x-full');
-                    mainContent.classList.remove('lg:ml-64');
-                    adminControls.classList.remove('lg:left-72');
-                    openSidebarBtn.classList.remove('opacity-0', 'pointer-events-none');
-                    pinIcon.setAttribute('data-lucide', 'pin');
-                    pinSidebarBtn.classList.remove('bg-blue-600/30', 'text-blue-300');
-                }
-                lucide.createIcons();
-            }
-            function toggleSidebarPin() {
-                state.isSidebarPinned = !state.isSidebarPinned;
-                localStorage.setItem('sidebarPinned', state.isSidebarPinned);
-                updateSidebarUI();
-            }
-            
-            // --- Novas Funções de Edição ---
-            function addNewCard() {
-                const newId = 'card-' + Date.now();
-                const newCard = {
-                    id: newId,
-                    title: 'Novo Tópico',
-                    content: '<p>Comece a editar este conteúdo...</p>',
-                    minimized: false,
-                    subcards: []
-                };
-                state.content.push(newCard);
-                render(); // Re-renderiza a UI com o novo card
+
+                card.addEventListener('click', () => openModal('ticketModal', ticket.id));
+                return card;
+            };
+
+            const getFilteredTickets = async () => {
+                const searchTerm = searchInput.value.toLowerCase();
+                const statusFilter = filterStatus.value;
                 
-                // Rola a página para o novo card e foca no título para edição
-                const newCardElement = document.getElementById(newId);
-                if (newCardElement) {
-                    newCardElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    setTimeout(() => {
-                        newCardElement.querySelector('h2').focus();
-                    }, 300);
-                }
-            }
-            
-            function addSubCard(parentId) {
-                const parentCard = state.content.find(item => item.id === parentId);
-                if (!parentCard) return;
-                
-                // Inicializa o array de subcards se não existir
-                if (!parentCard.subcards) {
-                    parentCard.subcards = [];
-                }
-                
-                const newSubcardId = 'subcard-' + Date.now();
-                const newSubcard = {
-                    id: newSubcardId,
-                    title: 'Novo Subcard',
-                    content: '<p>Comece a editar este conteúdo...</p>',
-                    minimized: false
-                };
-                
-                parentCard.subcards.push(newSubcard);
-                render();
-                
-                // Rola a página para o novo subcard e foca no título para edição
-                const newSubcardElement = document.querySelector(`[data-id="${newSubcardId}"]`);
-                if (newSubcardElement) {
-                    newSubcardElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    setTimeout(() => {
-                        newSubcardElement.querySelector('.subcard-title').focus();
-                    }, 300);
-                }
-            }
-            
-            function cloneCard(id) {
-                const originalCardIndex = state.content.findIndex(item => item.id === id);
-                if (originalCardIndex === -1) return;
-                const originalCard = state.content[originalCardIndex];
-                const newCard = {
-                    ...originalCard, // Copia todo o conteúdo
-                    id: 'card-' + Date.now(),
-                    title: `Cópia de ${originalCard.title}`,
-                    subcards: originalCard.subcards ? originalCard.subcards.map(subcard => ({
-                        ...subcard,
-                        id: 'subcard-' + Date.now() + Math.random()
-                    })) : []
-                };
-                state.content.splice(originalCardIndex + 1, 0, newCard);
-                render();
-            }
-            
-            function cloneSubcard(parentId, subcardId) {
-                const parentCard = state.content.find(item => item.id === parentId);
-                if (!parentCard || !parentCard.subcards) return;
-                
-                const originalSubcardIndex = parentCard.subcards.findIndex(subcard => subcard.id === subcardId);
-                if (originalSubcardIndex === -1) return;
-                
-                const originalSubcard = parentCard.subcards[originalSubcardIndex];
-                const newSubcard = {
-                    ...originalSubcard,
-                    id: 'subcard-' + Date.now(),
-                    title: `Cópia de ${originalSubcard.title}`
-                };
-                
-                parentCard.subcards.splice(originalSubcardIndex + 1, 0, newSubcard);
-                render();
-            }
-            
-            function toggleCardMinimize(cardId) {
-                const card = state.content.find(item => item.id === cardId);
-                if (!card) return;
-                
-                // Alterna o estado de minimização
-                card.minimized = !card.minimized;
-                
-                // Atualiza a UI
-                const cardElement = document.getElementById(cardId);
-                if (cardElement) {
-                    const cardContentWrapper = cardElement.querySelector('.card-content-wrapper');
-                    const minimizeBtn = cardElement.querySelector('.minimize-btn');
-                    const minimizeIcon = minimizeBtn.querySelector('i');
-                    
-                    if (card.minimized) {
-                        cardContentWrapper.classList.add('collapsed');
-                        minimizeIcon.classList.add('rotated');
-                    } else {
-                        cardContentWrapper.classList.remove('collapsed');
-                        minimizeIcon.classList.remove('rotated');
+                let baseTickets = tickets;
+
+                if (searchMode.checked && searchTerm) {
+                    searchInput.disabled = true;
+                    searchInput.placeholder = 'Pesquisando com IA...';
+                    try {
+                        const aiFilteredIds = await performAISearch(searchTerm);
+                        baseTickets = tickets.filter(t => aiFilteredIds.includes(t.id));
+                    } catch (error) {
+                        alert(`Erro na busca com IA: ${error.message}`);
+                        baseTickets = tickets.filter(ticket => 
+                            (ticket.title && ticket.title.toLowerCase().includes(searchTerm)) ||
+                            (ticket.requirements && ticket.requirements.toLowerCase().includes(searchTerm))
+                        );
+                    } finally {
+                        searchInput.disabled = false;
+                        searchInput.placeholder = 'Buscar...';
                     }
+                } else if (searchTerm) {
+                    baseTickets = tickets.filter(ticket => 
+                        (ticket.title && ticket.title.toLowerCase().includes(searchTerm)) ||
+                        (ticket.requirements && ticket.requirements.toLowerCase().includes(searchTerm))
+                    );
                 }
-                
-                // Salva o estado
-                saveState();
-            }
-            
-            function toggleSubcardMinimize(parentId, subcardId) {
-                const parentCard = state.content.find(item => item.id === parentId);
-                if (!parentCard || !parentCard.subcards) return;
-                
-                const subcard = parentCard.subcards.find(subcard => subcard.id === subcardId);
-                if (!subcard) return;
-                
-                // Alterna o estado de minimização
-                subcard.minimized = !subcard.minimized;
-                
-                // Atualiza a UI
-                const subcardElement = document.querySelector(`[data-id="${subcardId}"]`);
-                if (subcardElement) {
-                    const subcardContentWrapper = subcardElement.querySelector('.subcard-content-wrapper');
-                    const subcardMinimizeBtn = subcardElement.querySelector('.subcard-minimize-btn');
-                    const subcardMinimizeIcon = subcardMinimizeBtn.querySelector('i');
-                    
-                    if (subcard.minimized) {
-                        subcardContentWrapper.classList.add('collapsed');
-                        subcardMinimizeIcon.classList.add('rotated');
-                    } else {
-                        subcardContentWrapper.classList.remove('collapsed');
-                        subcardMinimizeIcon.classList.remove('rotated');
-                    }
-                }
-                
-                // Salva o estado
-                saveState();
-            }
-            
-            function showDeleteConfirmation(id, title) {
-                // Armazena o ID do card a ser excluído na variável global
-                cardToDelete = id;
-                
-                // Atualiza o título e mensagem do modal
-                document.getElementById('modal-title').textContent = 'Confirmar Exclusão';
-                document.getElementById('modal-message').textContent = `Você tem certeza que deseja excluir o card "${title}"? Esta ação não pode ser desfeita.`;
-                
-                // Exibe o modal
-                confirmModal.classList.remove('hidden');
-                confirmModal.classList.add('flex');
-            }
-            
-            function showDeleteSubcardConfirmation(parentId, subcardId) {
-                // Armazena os IDs do card e subcard a serem excluídos
-                subcardToDelete = { parentId, subcardId };
-                
-                // Atualiza o título e mensagem do modal
-                document.getElementById('modal-title').textContent = 'Confirmar Exclusão';
-                document.getElementById('modal-message').textContent = `Você tem certeza que deseja excluir este subcard? Esta ação não pode ser desfeita.`;
-                
-                // Exibe o modal
-                confirmModal.classList.remove('hidden');
-                confirmModal.classList.add('flex');
-            }
-            
-            function deleteCard() {
-                if (!cardToDelete) return;
-                
-                // Remove o card do estado
-                state.content = state.content.filter(item => item.id !== cardToDelete);
-                // Remove dos fixados também, se estiver lá
-                state.pinnedItems = state.pinnedItems.filter(pinnedId => pinnedId !== cardToDelete);
-                
-                // Remove o elemento do DOM
-                const cardElement = document.getElementById(cardToDelete);
-                if (cardElement) {
-                    cardElement.remove();
-                }
-                
-                // Limpa a variável global
-                cardToDelete = null;
-                
-                // Salva e renderiza novamente
-                saveState();
-                render();
-            }
-            
-            function deleteSubcard() {
-                if (!subcardToDelete) return;
-                
-                const { parentId, subcardId } = subcardToDelete;
-                
-                // Encontra o card pai
-                const parentCard = state.content.find(item => item.id === parentId);
-                if (!parentCard || !parentCard.subcards) return;
-                
-                // Remove o subcard do estado
-                parentCard.subcards = parentCard.subcards.filter(subcard => subcard.id !== subcardId);
-                
-                // Remove o elemento do DOM
-                const subcardElement = document.querySelector(`[data-id="${subcardId}"]`);
-                if (subcardElement) {
-                    subcardElement.remove();
-                }
-                
-                // Limpa a variável global
-                subcardToDelete = null;
-                
-                // Salva e renderiza novamente
-                saveState();
-                render();
-            }
-            
-            // Função para converter HTML para Markdown
-            function htmlToMarkdown(html) {
-                // Cria um elemento temporário para manipular o HTML
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = html;
-                
-                let markdown = '';
-                
-                // Processa cada nó filho
-                Array.from(tempDiv.childNodes).forEach(node => {
-                    markdown += processNode(node);
+
+                return baseTickets.filter(ticket => {
+                    const matchesStatus = statusFilter === '' || ticket.status === statusFilter;
+                    const matchesCompleted = showCompletedCheckbox.checked || ticket.status !== 'Finalizado';
+                    return matchesStatus && matchesCompleted;
                 });
+            };
+
+            // --- LÓGICA DE IA ---
+            const performAISearch = async (query) => {
+                if (!googleApiKey) throw new Error("Chave de API do Google não definida. Por favor, defina nas configurações.");
                 
-                return markdown.trim();
-            }
-            
-            // Função recursiva para processar nós
-            function processNode(node, depth = 0) {
-                if (node.nodeType === Node.TEXT_NODE) {
-                    return node.textContent;
+                const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${googleApiKey}`;
+                
+                let ticketsToSearch = showCompletedCheckbox.checked ? tickets : tickets.filter(t => t.status !== 'Finalizado');
+                const simplifiedTickets = ticketsToSearch.map(({ id, title, requirements, priority, deadline }) => ({ id, title, requirements, priority, deadline }));
+
+                const prompt = `Você é um assistente de kanban. Analise as tarefas JSON. A data atual é ${new Date().toLocaleDateString()}. Pesquisa do usuário: "${query}". Retorne um array JSON com os IDs das tarefas mais relevantes. Lista: ${JSON.stringify(simplifiedTickets)}. Responda apenas com o array de IDs.`;
+
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { response_mime_type: "application/json" } })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error.message || "Erro na API do Google.");
                 }
-                
-                if (node.nodeType !== Node.ELEMENT_NODE) {
-                    return '';
-                }
-                
-                const tagName = node.tagName.toLowerCase();
-                let result = '';
-                
-                switch (tagName) {
-                    case 'h1':
-                        result = `# ${node.textContent}\n\n`;
-                        break;
-                    case 'h2':
-                        result = `## ${node.textContent}\n\n`;
-                        break;
-                    case 'h3':
-                        result = `### ${node.textContent}\n\n`;
-                        break;
-                    case 'h4':
-                        result = `#### ${node.textContent}\n\n`;
-                        break;
-                    case 'h5':
-                        result = `##### ${node.textContent}\n\n`;
-                        break;
-                    case 'h6':
-                        result = `###### ${node.textContent}\n\n`;
-                        break;
-                    case 'p':
-                        result = `${processChildNodes(node)}\n\n`;
-                        break;
-                    case 'strong':
-                    case 'b':
-                        result = `**${processChildNodes(node)}**`;
-                        break;
-                    case 'em':
-                    case 'i':
-                        result = `*${processChildNodes(node)}*`;
-                        break;
-                    case 'ul':
-                        result = processList(node, false) + '\n';
-                        break;
-                    case 'ol':
-                        result = processList(node, true) + '\n';
-                        break;
-                    case 'li':
-                        result = `- ${processChildNodes(node)}\n`;
-                        break;
-                    case 'blockquote':
-                        result = `> ${processChildNodes(node).trim()}\n\n`;
-                        break;
-                    case 'a':
-                        const href = node.getAttribute('href') || '';
-                        const text = processChildNodes(node);
-                        result = `[${text}](${href})`;
-                        break;
-                    case 'div':
-                        // Processa divs com classes especiais
-                        if (node.classList.contains('bg-red-900/20') || 
-                            node.classList.contains('bg-blue-900/20') || 
-                            node.classList.contains('bg-gray-700/50')) {
-                            result = `\n${processChildNodes(node)}\n`;
-                        } else {
-                            result = processChildNodes(node);
-                        }
-                        break;
-                    default:
-                        // Para outros elementos, apenas processa os filhos
-                        result = processChildNodes(node);
-                }
-                
-                return result;
-            }
-            
-            // Função para processar nós filhos
-            function processChildNodes(node) {
-                let result = '';
-                Array.from(node.childNodes).forEach(child => {
-                    result += processNode(child);
+
+                const data = await response.json();
+                return JSON.parse(data.candidates[0].content.parts[0].text);
+            };
+
+            // --- NOTIFICAÇÕES ---
+            const renderNotifications = () => {
+                notificationList.innerHTML = '';
+                const now = new Date();
+                let count = 0;
+
+                const urgentTickets = tickets.filter(ticket => {
+                    if (ticket.status === 'Finalizado') return false;
+                    const deadline = new Date(ticket.deadline);
+                    const hoursRemaining = (deadline - now) / (1000 * 3600);
+                    return hoursRemaining <= 24;
                 });
-                return result;
-            }
-            
-            // Função para processar listas
-            function processList(listNode, isOrdered) {
-                let result = '';
-                const items = listNode.querySelectorAll('li');
-                
-                items.forEach((item, index) => {
-                    const prefix = isOrdered ? `${index + 1}.` : '-';
-                    result += `${prefix} ${processChildNodes(item).trim()}\n`;
-                });
-                
-                return result;
-            }
-            
-            function copyCardContent(cardId) {
-                const card = state.content.find(item => item.id === cardId);
-                if (!card) return;
-                
-                // Extrai o título
-                const titleText = card.title;
-                
-                // Converte o conteúdo HTML para Markdown
-                const contentMarkdown = htmlToMarkdown(card.content);
-                
-                // Combina título e conteúdo
-                const fullText = `# ${titleText}\n\n${contentMarkdown}`;
-                
-                // Copia para a área de transferência
-                navigator.clipboard.writeText(fullText).then(() => {
-                    // Exibe notificação de sucesso
-                    copyNotification.classList.add('show');
-                    setTimeout(() => {
-                        copyNotification.classList.remove('show');
-                    }, 2000);
-                }).catch(err => {
-                    console.error('Erro ao copiar texto: ', err);
-                    alert('Não foi possível copiar o texto. Tente novamente.');
-                });
-            }
-            
-            function copySubcardContent(parentId, subcardId) {
-                const parentCard = state.content.find(item => item.id === parentId);
-                if (!parentCard || !parentCard.subcards) return;
-                
-                const subcard = parentCard.subcards.find(subcard => subcard.id === subcardId);
-                if (!subcard) return;
-                
-                // Extrai o título do card pai e do subcard
-                const parentTitleText = parentCard.title;
-                const subcardTitleText = subcard.title;
-                
-                // Converte o conteúdo HTML para Markdown
-                const contentMarkdown = htmlToMarkdown(subcard.content);
-                
-                // Combina título e conteúdo
-                const fullText = `# ${parentTitleText}\n\n## ${subcardTitleText}\n\n${contentMarkdown}`;
-                
-                // Copia para a área de transferência
-                navigator.clipboard.writeText(fullText).then(() => {
-                    // Exibe notificação de sucesso
-                    copyNotification.classList.add('show');
-                    setTimeout(() => {
-                        copyNotification.classList.remove('show');
-                    }, 2000);
-                }).catch(err => {
-                    console.error('Erro ao copiar texto: ', err);
-                    alert('Não foi possível copiar o texto. Tente novamente.');
-                });
-            }
-            
-            function resetAllData() {
-                const password = prompt("Digite a senha de administrador para resetar todos os dados:");
-                if (password !== "123") {
-                    alert("Senha incorreta! Ação cancelada.");
+
+                if (urgentTickets.length === 0) {
+                    notificationList.innerHTML = '<div class="notification-item"><p>Nenhuma notificação</p></div>';
+                    notificationCount.style.display = 'none';
                     return;
                 }
-                
-                if (confirm("Tem certeza que deseja resetar todos os dados? Esta ação não pode ser desfeita.")) {
-                    // Limpa o localStorage
-                    localStorage.removeItem('unintaManualState');
-                    localStorage.removeItem('sidebarPinned');
+
+                urgentTickets.sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
+
+                urgentTickets.forEach(ticket => {
+                    const deadline = new Date(ticket.deadline);
+                    const isOverdue = deadline < now;
+                    const message = isOverdue ? 'Ticket Atrasado!' : 'Vence em menos de 24h!';
                     
-                    // Reseta o estado para os dados iniciais
-                    state.content = [...initialData];
-                    state.pinnedItems = [];
-                    state.isAdmin = false;
-                    state.isSidebarPinned = true;
-                    state.areCardsMinimized = false;
-                    
-                    // Salva o estado inicial
-                    saveState();
-                    
-                    // Renderiza novamente
-                    render();
-                    
-                    alert("Dados resetados com sucesso!");
+                    const item = document.createElement('div');
+                    item.className = 'notification-item';
+                    item.dataset.ticketId = ticket.id;
+                    item.innerHTML = `
+                        <div class="notification-info">
+                            <p><strong>${ticket.title}</strong></p>
+                            <small style="color: ${isOverdue ? 'var(--priority-alta)' : 'var(--status-aberto)'}">${message}</small>
+                        </div>
+                        <select data-id="${ticket.id}" class="card-status-select">
+                            ${statuses.map(s => `<option value="${s}" ${s === ticket.status ? 'selected' : ''}>${s}</option>`).join('')}
+                        </select>
+                    `;
+                    notificationList.appendChild(item);
+                });
+
+                count = urgentTickets.length;
+                notificationCount.textContent = count;
+                notificationCount.style.display = count > 0 ? 'flex' : 'none';
+            };
+
+            const requestNotificationPermission = () => {
+                if ('Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+                    Notification.requestPermission();
                 }
-            }
-            function setupHighlightToolbar() {
-                // Impede que a barra de ferramentas roube o foco, o que desfaz a seleção de texto.
-                highlightToolbar.addEventListener('mousedown', (e) => {
-                    e.preventDefault();
+            };
+
+            const checkDeadlinesForDesktop = () => {
+                const now = new Date();
+                tickets.forEach(ticket => {
+                    if (ticket.status === 'Finalizado') return;
+                    const deadline = new Date(ticket.deadline);
+                    const hoursRemaining = (deadline - now) / (1000 * 3600);
+                    if (hoursRemaining > 0 && hoursRemaining <= 24) {
+                        showDesktopNotification(`Ticket próximo do prazo: "${ticket.title}"`, `O prazo termina em menos de 24 horas.`);
+                    }
                 });
-                document.addEventListener('mouseup', () => {
-                    const selection = window.getSelection();
-                    if (!selection.isCollapsed && state.isAdmin) {
-                        const range = selection.getRangeAt(0);
-                        const rect = range.getBoundingClientRect();
-                        
-                        let parent = range.commonAncestorContainer;
-                        if (parent.nodeType !== Node.ELEMENT_NODE) {
-                            parent = parent.parentNode;
+            };
+
+            const showDesktopNotification = (title, body) => {
+                if ('Notification' in window && Notification.permission === 'granted') {
+                    new Notification(title, { body });
+                }
+            };
+
+            // --- MODAL E FORMULÁRIOS ---
+            const openModal = (modalId, ticketId = null) => {
+                const modal = document.getElementById(modalId);
+                if (modalId === 'ticketModal') setupTicketModal(ticketId);
+                modal.style.display = 'block';
+            };
+
+            const closeModal = (modalId) => document.getElementById(modalId).style.display = 'none';
+
+            const setupTicketModal = (ticketId) => {
+                ticketForm.reset();
+                document.getElementById('ticket-history').style.display = 'none';
+                document.getElementById('ticketStatus').innerHTML = statuses.map(s => `<option value="${s}">${s}</option>`).join('');
+
+                if (ticketId) {
+                    const ticket = tickets.find(t => t.id === ticketId);
+                    document.getElementById('modalTitle').textContent = 'Editar Ticket';
+                    Object.keys(ticket).forEach(key => {
+                        const el = document.getElementById(`ticket${key.charAt(0).toUpperCase() + key.slice(1)}`);
+                        if (el) {
+                           if (el.type === 'checkbox') {
+                               el.checked = ticket[key];
+                           } else {
+                               el.value = ticket[key];
+                           }
                         }
-                        if (parent.closest('[contenteditable="true"]')) {
-                            highlightToolbar.style.display = 'flex';
-                            highlightToolbar.style.left = `${rect.left + window.scrollX + rect.width / 2 - highlight-toolbar.offsetWidth / 2}px`;
-                            highlight-toolbar.style.top = `${rect.top + window.scrollY - highlight-toolbar.offsetHeight - 8}px`;
-                        } else {
-                           highlightToolbar.style.display = 'none';
-                        }
-                    } else {
-                        highlightToolbar.style.display = 'none';
-                    }
-                });
-                highlightToolbar.addEventListener('click', (e) => {
-                    const swatch = e.target.closest('.color-swatch');
-                    const removeBtn = e.target.closest('#remove-color-btn');
-                    if (swatch) {
-                        const color = swatch.dataset.color;
-                        document.execCommand('foreColor', false, color);
-                    } else if (removeBtn) {
-                        // removeFormat remove toda a formatação (negrito, etc.), mas é o mais confiável para remover a cor.
-                        document.execCommand('removeFormat', false, null);
-                    }
-                    
-                    // Esconde a barra de ferramentas após a ação
-                    if (swatch || removeBtn) {
-                        highlightToolbar.style.display = 'none';
-                    }
-                });
-            }
-            function toggleMinimizeAllCards() {
-                state.areCardsMinimized = !state.areCardsMinimized;
-                const wrappers = document.querySelectorAll('.card-content-wrapper');
-                wrappers.forEach(wrapper => {
-                    wrapper.classList.toggle('collapsed', state.areCardsMinimized);
-                });
+                    });
+                    document.getElementById('ticketId').value = ticket.id;
+                    if (ticket.history?.length > 0) renderHistoryInModal(ticket.history);
+                    document.getElementById('deleteTicketBtn').style.display = 'inline-block';
+                } else {
+                    document.getElementById('modalTitle').textContent = 'Novo Ticket';
+                    document.getElementById('ticketId').value = '';
+                    document.getElementById('ticketStartDate').value = new Date().toISOString().split('T')[0];
+                    document.getElementById('deleteTicketBtn').style.display = 'none';
+                }
+            };
+            
+            const renderHistoryInModal = (history) => {
+                const historyContainer = document.getElementById('ticket-history');
+                historyContainer.style.display = 'block';
+                document.getElementById('history-list').innerHTML = history.map(log => 
+                    `<li>${new Date(log.timestamp).toLocaleString()}: ${log.action} (por ${log.user})</li>`
+                ).join('');
+            };
+
+            // --- HANDLERS DE EVENTOS ---
+            const handleFormSubmit = (e) => {
+                e.preventDefault();
+                const id = document.getElementById('ticketId').value;
+                const originalTicket = id ? { ...tickets.find(t => t.id === id) } : null;
                 
-                // Atualiza os ícones de minimização
-                const minimizeBtns = document.querySelectorAll('.minimize-btn i');
-                minimizeBtns.forEach(icon => {
-                    if (state.areCardsMinimized) {
-                        icon.classList.add('rotated');
-                    } else {
-                        icon.classList.remove('rotated');
-                    }
-                });
-            }
-            function handleExport() {
-                updateStateFromDOM(); // Garante que o estado está atualizado com as últimas edições
-                const dataToExport = {
-                    content: state.content,
-                    pinnedItems: state.pinnedItems
+                const ticketData = {
+                    id: id || Date.now().toString(),
+                    title: document.getElementById('ticketTitle').value.trim(),
+                    status: document.getElementById('ticketStatus').value,
+                    startDate: document.getElementById('ticketStartDate').value,
+                    deadline: document.getElementById('ticketDeadline').value,
+                    priority: document.getElementById('ticketPriority').value,
+                    requirements: document.getElementById('ticketRequirements').value.trim(),
+                    aviseiRegiana: document.getElementById('ticketAviseiRegiana').checked,
+                    comuniqueiAluno: document.getElementById('ticketComuniqueiAluno').checked,
+                    aguardandoRetorno: document.getElementById('ticketAguardandoRetorno').checked,
+                    history: originalTicket?.history || []
                 };
-                const dataStr = JSON.stringify(dataToExport, null, 2);
-                const dataBlob = new Blob([dataStr], {type: "application/json"});
-                const url = URL.createObjectURL(dataBlob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = 'manual-uninta-dados.json';
-                link.click();
-                URL.revokeObjectURL(url);
-            }
-            function handleImport() {
-                importFileInput.click();
-            }
-            function processImportedFile(event) {
+
+                if (id) {
+                    const index = tickets.findIndex(t => t.id === id);
+                    const changes = getChanges(originalTicket, ticketData);
+                    if (changes) addLogEntry(ticketData, `Ticket editado: ${changes}`);
+                    tickets[index] = ticketData;
+                } else {
+                    addLogEntry(ticketData, 'Ticket criado.');
+                    tickets.push(ticketData);
+                }
+                saveData();
+                renderBoard();
+                closeModal('ticketModal');
+            };
+            
+            const getChanges = (oldT, newT) => Object.keys(newT).filter(key => key !== 'history' && JSON.stringify(oldT[key]) !== JSON.stringify(newT[key])).map(key => `${key} alterado`).join(', ');
+
+            const handleDeleteTicket = () => {
+                if (confirm('Tem certeza que deseja excluir este ticket?')) {
+                    const id = document.getElementById('ticketId').value;
+                    tickets = tickets.filter(t => t.id !== id);
+                    saveData();
+                    renderBoard();
+                    closeModal('ticketModal');
+                }
+            };
+            
+            const handleSetApiKey = () => {
+                const key = prompt("Insira sua chave de API do Google AI Studio:", googleApiKey);
+                if (key !== null) {
+                    googleApiKey = key.trim();
+                    localStorage.setItem('todo-adm-google-api-key', googleApiKey);
+                    alert("Chave de API salva com sucesso!");
+                }
+            };
+
+            const handleQuickStatusChange = (e) => {
+                e.stopPropagation();
+                const ticketId = e.target.dataset.id;
+                const newStatus = e.target.value;
+                const ticketToUpdate = tickets.find(t => t.id === ticketId);
+
+                if (ticketToUpdate && ticketToUpdate.status !== newStatus) {
+                    addLogEntry(ticketToUpdate, `Status alterado de "${ticketToUpdate.status}" para "${newStatus}"`);
+                    ticketToUpdate.status = newStatus;
+                    saveData();
+                    renderBoard();
+                }
+            };
+
+            // --- DRAG & DROP, IMPORT/EXPORT ---
+            const setupDragAndDrop = () => {
+                document.querySelectorAll('.ticket-card').forEach(card => {
+                    card.addEventListener('dragstart', e => e.target.classList.add('dragging'));
+                    card.addEventListener('dragend', e => e.target.classList.remove('dragging'));
+                });
+                document.querySelectorAll('.status-column').forEach(column => {
+                    column.addEventListener('dragover', e => { e.preventDefault(); });
+                    column.addEventListener('drop', e => {
+                        e.preventDefault();
+                        const cardId = document.querySelector('.dragging')?.dataset.id;
+                        if (!cardId) return;
+                        const ticket = tickets.find(t => t.id === cardId);
+                        const newStatus = column.dataset.status;
+                        if (ticket.status !== newStatus) {
+                            addLogEntry(ticket, `Status movido de "${ticket.status}" para "${newStatus}"`);
+                            ticket.status = newStatus;
+                            saveData();
+                            renderBoard();
+                        }
+                    });
+                });
+            };
+
+            const handleExport = (format) => {
+                if (tickets.length === 0) return alert('Nenhum ticket para exportar.');
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                const filename = `todo-adm-backup-${timestamp}.${format}`;
+                let content, mimeType;
+
+                if (format === 'json') {
+                    content = JSON.stringify(tickets, null, 2);
+                    mimeType = 'application/json';
+                } else if (format === 'csv') {
+                    const headers = Object.keys(tickets[0] || {}).join(',');
+                    const rows = tickets.map(t => {
+                        return Object.values(t).map(val => {
+                            let value = '';
+                            if (typeof val === 'string') {
+                                value = val.replace(/"/g, '""');
+                            } else if (typeof val === 'object' && val !== null) {
+                                value = JSON.stringify(val).replace(/"/g, '""');
+                            } else {
+                                value = String(val);
+                            }
+                            return `"${value}"`;
+                        }).join(',');
+                    });
+                    content = `${headers}\n${rows.join('\n')}`;
+                    mimeType = 'text/csv;charset=utf-8;';
+                }
+                if (content) {
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(new Blob([content], { type: mimeType }));
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(a.href);
+                }
+            };
+
+            const handleImport = (event) => {
                 const file = event.target.files[0];
                 if (!file) return;
                 const reader = new FileReader();
-                reader.onload = (e) => {
+                reader.onload = e => {
                     try {
-                        const importedData = JSON.parse(e.target.result);
-                        if (importedData.content && Array.isArray(importedData.content)) {
-                            state.content = importedData.content;
-                            state.pinnedItems = importedData.pinnedItems || [];
-                            saveState();
-                            render();
-                            alert('Dados importados com sucesso!');
-                        } else {
-                            alert('Arquivo inválido. O formato dos dados não é o esperado.');
+                        if (!file.name.endsWith('.json')) {
+                            throw new Error('Formato de arquivo não suportado. Use JSON.');
                         }
+                        const importedTickets = JSON.parse(e.target.result);
+                        if (!Array.isArray(importedTickets)) throw new Error('O arquivo JSON não contém um array de tickets válido.');
+                        
+                        const merge = confirm('Deseja mesclar com os tickets existentes? "Cancelar" irá substituir.');
+                        if (merge) {
+                            const existingIds = new Set(tickets.map(t => t.id));
+                            tickets.push(...importedTickets.filter(t => !existingIds.has(t.id)));
+                        } else {
+                            tickets = importedTickets;
+                        }
+                        saveData();
+                        renderBoard();
+                        alert('Dados importados com sucesso!');
                     } catch (error) {
-                        alert('Erro ao ler o arquivo. Verifique se é um arquivo JSON válido.');
-                        console.error("Erro ao importar:", error);
+                        alert('Erro ao importar arquivo: ' + error.message);
+                    } finally {
+                        event.target.value = ''; // Limpa o input
                     }
                 };
                 reader.readAsText(file);
-                // Reseta o valor para poder importar o mesmo arquivo novamente
-                importFileInput.value = '';
-            }
-            // --- Drag & Drop ---
-            let draggedItem = null;
-            contentSections.addEventListener('dragstart', (e) => {
-                if (!state.isAdmin) return;
-                draggedItem = e.target.closest('section');
-                if (draggedItem) {
-                    setTimeout(() => { draggedItem.classList.add('dragging'); }, 0);
-                    e.dataTransfer.effectAllowed = 'move';
-                }
+            };
+
+            // --- INICIALIZAÇÃO E LISTENERS ---
+            addTicketFab.addEventListener('click', () => openModal('ticketModal'));
+            document.querySelector('#ticketModal .close-button').addEventListener('click', () => closeModal('ticketModal'));
+            document.querySelector('#ticketModal .btn-cancel').addEventListener('click', () => closeModal('ticketModal'));
+            ticketForm.addEventListener('submit', handleFormSubmit);
+            document.getElementById('deleteTicketBtn').addEventListener('click', handleDeleteTicket);
+            document.getElementById('setApiKeyBtn').addEventListener('click', handleSetApiKey);
+
+            document.querySelectorAll('.dropdown-toggle').forEach(btn => {
+                btn.addEventListener('click', e => {
+                    e.stopPropagation();
+                    const dropdown = btn.nextElementSibling;
+                    document.querySelectorAll('.dropdown-content').forEach(d => {
+                        if (d !== dropdown) d.classList.remove('show');
+                    });
+                    dropdown.classList.toggle('show');
+                });
             });
-            contentSections.addEventListener('dragend', () => { if (draggedItem) { draggedItem.classList.remove('dragging'); draggedItem = null; } });
-            contentSections.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                if (!state.isAdmin || !draggedItem) return;
-                const target = e.target.closest('section');
-                if (target && target !== draggedItem) {
-                    const rect = target.getBoundingClientRect();
-                    const next = (e.clientY - rect.top) / (rect.bottom - rect.top) > 0.5;
-                    contentSections.insertBefore(draggedItem, next && target.nextSibling || target);
-                }
-            });
-            contentSections.addEventListener('drop', (e) => { 
-                e.preventDefault(); 
-                if (state.isAdmin) { 
-                    updateStateFromDOM();
-                    saveState(); 
-                    render(); 
-                } 
-            });
-            // --- EVENT LISTENERS ---
-            adminToggleBtn.addEventListener('click', toggleAdminMode);
-            saveBtn.addEventListener('click', () => {
-                updateStateFromDOM();
-                saveState();
-            });
-            addCardBtn.addEventListener('click', addNewCard);
-            resetBtn.addEventListener('click', resetAllData);
-            pinSidebarBtn.addEventListener('click', toggleSidebarPin);
-            minimizeAllBtn.addEventListener('click', toggleMinimizeAllCards);
-            openSidebarBtn.addEventListener('click', () => {
-                sidebar.classList.remove('-translate-x-full');
-            });
-            document.addEventListener('click', (e) => {
-                if (window.innerWidth < 1024 && !sidebar.contains(e.target) && !openSidebarBtn.contains(e.target)) {
-                    sidebar.classList.add('-translate-x-full');
+            
+            window.addEventListener('click', (e) => {
+                if (!e.target.closest('.dropdown')) {
+                    document.querySelectorAll('.dropdown-content').forEach(d => d.classList.remove('show'));
                 }
             });
             
-            // Listeners do Modal de Confirmação
-            modalCancelBtn.addEventListener('click', () => {
-                confirmModal.classList.add('hidden');
-                confirmModal.classList.remove('flex');
-                // Limpa as variáveis globais
-                cardToDelete = null;
-                subcardToDelete = null;
-            });
-            
-            modalConfirmBtn.addEventListener('click', () => {
-                if (cardToDelete) {
-                    deleteCard();
-                } else if (subcardToDelete) {
-                    deleteSubcard();
+            notificationList.addEventListener('click', (e) => {
+                const target = e.target;
+                if (target.closest('.notification-item') && !target.matches('select')) {
+                    const ticketId = target.closest('.notification-item').dataset.ticketId;
+                    const card = document.querySelector(`.ticket-card[data-id="${ticketId}"]`);
+                    if (card) {
+                        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        card.classList.add('flash');
+                        setTimeout(() => card.classList.remove('flash'), 1000);
+                    }
+                    notificationList.classList.remove('show');
                 }
-                confirmModal.classList.add('hidden');
-                confirmModal.classList.remove('flex');
             });
-            
-            // Listeners de Importar/Exportar
-            importBtn.addEventListener('click', handleImport);
-            exportBtn.addEventListener('click', handleExport);
-            importFileInput.addEventListener('change', processImportedFile);
-            // --- INICIALIZAÇÃO ---
-            loadState();
-            setupHighlightToolbar();
-            lucide.createIcons();
+            notificationList.addEventListener('change', handleQuickStatusChange);
+
+
+            document.getElementById('importBtn').addEventListener('click', () => document.getElementById('importFile').click());
+            document.getElementById('importFile').addEventListener('change', handleImport);
+            document.getElementById('exportSelect').addEventListener('change', e => { if (e.target.value) { handleExport(e.target.value); e.target.value = ''; } });
+
+            let searchTimeout;
+            searchInput.addEventListener('input', () => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(renderBoard, 500); // Debounce para evitar buscas excessivas
+            });
+            searchMode.addEventListener('change', () => searchInput.classList.toggle('ai-active', searchMode.checked));
+            filterStatus.addEventListener('change', renderBoard);
+            showCompletedCheckbox.addEventListener('change', renderBoard);
+            prioritySortToggle.addEventListener('change', renderBoard);
+
+            loadData();
+            renderBoard();
+            requestNotificationPermission();
+            setInterval(checkDeadlinesForDesktop, 60 * 1000 * 5); // Verifica prazos a cada 5 minutos
         });
     </script>
 </body>

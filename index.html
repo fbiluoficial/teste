@@ -300,14 +300,9 @@
         
         .ticket-header {
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-end;
             align-items: center;
             margin-bottom: 10px;
-        }
-        
-        .ticket-header-right {
-            display: flex;
-            align-items: center;
             gap: 10px;
         }
 
@@ -364,7 +359,6 @@
             transform: scale(1.1);
         }
         
-        .ticket-id { font-size: 0.8em; color: #aaa; }
         .ticket-priority { padding: 3px 8px; border-radius: 10px; font-size: 0.8em; color: white; font-weight: bold; }
         .ticket-content { margin-bottom: 10px; }
         .ticket-content strong { 
@@ -437,6 +431,7 @@
             transition: color 0.2s, text-decoration 0.2s;
             white-space: normal;
             word-break: break-word;
+            min-width: 0; /* FIX para overflow de texto em flex containers */
         }
         .checklist-item input[type="checkbox"]:checked + label {
             text-decoration: line-through;
@@ -468,8 +463,6 @@
 
         .ticket-row {
             display: flex;
-            align-items: flex-start; /* Alinha itens ao topo */
-            justify-content: space-between;
             background-color: var(--surface-hover-color);
             padding: 12px 20px;
             border-radius: 6px;
@@ -487,12 +480,18 @@
         }
         .ticket-row-main {
             flex-grow: 1;
-            margin: 0 20px;
+            margin-right: 20px;
             overflow: hidden;
             display: flex;
             flex-direction: column;
             align-items: flex-start;
             min-width: 0; /* Fix para content overflow */
+        }
+        .ticket-row-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start; /* Alinha ao topo */
+            width: 100%;
         }
         .ticket-row-title-header {
             display: flex;
@@ -980,13 +979,10 @@
 
                 card.innerHTML = `
                     <div class="ticket-header">
-                        <span class="ticket-id">#${ticket.id.toString().substring(0, 6)}</span>
-                        <div class="ticket-header-right">
-                            <select data-id="${ticket.id}" class="card-status-select">
-                                ${statuses.map(s => `<option value="${s}" ${s === ticket.status ? 'selected' : ''}>${s}</option>`).join('')}
-                            </select>
-                            <span class="ticket-priority" style="background-color: ${priorityColors[ticket.priority]}">${ticket.priority}</span>
-                        </div>
+                        <select data-id="${ticket.id}" class="card-status-select">
+                            ${statuses.map(s => `<option value="${s}" ${s === ticket.status ? 'selected' : ''}>${s}</option>`).join('')}
+                        </select>
+                        <span class="ticket-priority" style="background-color: ${priorityColors[ticket.priority]}">${ticket.priority}</span>
                     </div>
                     <div class="ticket-content">
                         <strong>${ticket.title}</strong>
@@ -1059,25 +1055,27 @@
                 
                 row.innerHTML = `
                     <div class="ticket-row-main">
-                        <div class="ticket-row-title-header">
-                            <strong>${ticket.title}</strong>
-                            ${checklist ? checklist.progressHTML : ''}
+                        <div class="ticket-row-top">
+                            <div class="ticket-row-title-header">
+                                <strong>${ticket.title}</strong>
+                                ${checklist ? checklist.progressHTML : ''}
+                            </div>
+                            <div class="ticket-row-end">
+                                ${communicationHTML}
+                                <span class="last-seen">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/><path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/></svg>
+                                    <span class="last-seen-text">${formatTimeAgo(ticket.lastSeen)}</span>
+                                </span>
+                                <span class="ticket-priority" style="background-color: ${priorityColors[ticket.priority]}">${ticket.priority}</span>
+                                <div class="deadline-wrapper ${isOverdue ? 'alert' : ''}">
+                                    <span>Prazo: ${new Date(ticket.deadline).toLocaleDateString()}</span>
+                                </div>
+                                <select data-id="${ticket.id}" class="card-status-select">
+                                    ${statuses.map(s => `<option value="${s}" ${s === ticket.status ? 'selected' : ''}>${s}</option>`).join('')}
+                                </select>
+                            </div>
                         </div>
                         ${checklistHTML}
-                    </div>
-                    <div class="ticket-row-end">
-                        ${communicationHTML}
-                        <span class="last-seen">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/><path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/></svg>
-                            <span class="last-seen-text">${formatTimeAgo(ticket.lastSeen)}</span>
-                        </span>
-                        <span class="ticket-priority" style="background-color: ${priorityColors[ticket.priority]}">${ticket.priority}</span>
-                        <div class="deadline-wrapper ${isOverdue ? 'alert' : ''}">
-                            <span>Prazo: ${new Date(ticket.deadline).toLocaleDateString()}</span>
-                        </div>
-                        <select data-id="${ticket.id}" class="card-status-select">
-                            ${statuses.map(s => `<option value="${s}" ${s === ticket.status ? 'selected' : ''}>${s}</option>`).join('')}
-                        </select>
                     </div>
                 `;
                 

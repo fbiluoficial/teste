@@ -383,32 +383,58 @@
             font-weight: bold;
         }
 
-        .ticket-requirements .tags-container {
+        /* --- CHECKLIST / SUB-TAREFAS --- */
+        .checklist {
+            margin-top: 10px;
+        }
+        .checklist-progress {
             display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-            margin-top: 8px;
-            max-height: 50px; /* Altura inicial para 2 linhas de tags */
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85em;
+            color: #ccc;
+            margin-bottom: 8px;
+        }
+        .progress-bar {
+            flex-grow: 1;
+            height: 6px;
+            background-color: var(--border-color);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .progress-bar-inner {
+            height: 100%;
+            background-color: var(--primary-accent);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+        .checklist-items {
+            max-height: 105px; /* Altura para ~3 itens */
             overflow: hidden;
             transition: max-height 0.3s ease-in-out;
         }
-        .ticket-requirements .tags-container.expanded {
-            max-height: 500px; /* Altura máxima expandida */
+        .checklist-items.expanded {
+            max-height: 500px;
         }
-        .req-tag {
-            background-color: var(--border-color);
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 0.85em;
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 0;
             cursor: pointer;
-            transition: background-color 0.2s, text-decoration 0.2s;
         }
-        .req-tag.completed {
+        .checklist-item input[type="checkbox"] {
+            flex-shrink: 0;
+        }
+        .checklist-item label {
+            flex-grow: 1;
+            transition: color 0.2s, text-decoration 0.2s;
+        }
+        .checklist-item input[type="checkbox"]:checked + label {
             text-decoration: line-through;
-            background-color: #444;
-            opacity: 0.7;
+            color: #888;
         }
-        .toggle-reqs {
+        .toggle-checklist {
             background: none;
             border: none;
             color: var(--primary-accent);
@@ -681,8 +707,8 @@
                         <input type="date" id="ticketDeadline" required>
                     </div>
                     <div class="form-field full-width">
-                        <label for="ticketRequirements">Requerimento (tags separadas por vírgula)</label>
-                        <textarea id="ticketRequirements" rows="3"></textarea>
+                        <label for="ticketSubtasks">Sub-tarefas (uma por linha)</label>
+                        <textarea id="ticketSubtasks" rows="4"></textarea>
                     </div>
                     <div class="form-field full-width">
                         <label>Status de Comunicação</label>
@@ -735,35 +761,45 @@
 
             // --- FUNÇÕES DE LÓGICA DE DADOS ---
             const loadData = () => {
-                const data = localStorage.getItem('todo-adm-tickets-v8');
+                const data = localStorage.getItem('todo-adm-tickets-v9'); // Version bump for data structure change
                 googleApiKey = localStorage.getItem('todo-adm-google-api-key') || '';
                 autoBackupCount = parseInt(localStorage.getItem('todo-adm-autobackup-count') || '5', 10);
                 editCount = parseInt(localStorage.getItem('todo-adm-edit-count') || '0', 10);
                 tickets = data ? JSON.parse(data) : [];
-                migrateTagsDataStructure();
+                migrateDataStructure();
                 renderNotifications();
             };
-
-            const migrateTagsDataStructure = () => {
+            
+            const migrateDataStructure = () => {
                 let needsSave = false;
                 tickets.forEach(ticket => {
+                    // This function now handles migration from old tags (string) to subtasks (array of objects)
                     if (ticket.requirements && typeof ticket.requirements === 'string') {
                         needsSave = true;
-                        ticket.requirements = ticket.requirements.split(',')
+                        ticket.subtasks = ticket.requirements.split(',')
                             .map(name => name.trim())
                             .filter(name => name)
                             .map(name => ({ name: name, completed: false }));
-                    } else if (!ticket.requirements) {
-                        ticket.requirements = [];
+                        delete ticket.requirements;
+                    } else if (ticket.requirements && Array.isArray(ticket.requirements)) {
+                        // This handles migration from the intermediate tag object format
+                        needsSave = true;
+                        ticket.subtasks = ticket.requirements.map(req => ({
+                            name: req.name,
+                            completed: req.completed || false
+                        }));
+                        delete ticket.requirements;
+                    } else if (!ticket.subtasks) {
+                        ticket.subtasks = [];
                     }
                 });
                 if (needsSave) {
-                    saveData(false); // Save without incrementing edit count
+                    saveData(false);
                 }
             };
 
             const saveData = (trackEdit = true) => {
-                localStorage.setItem('todo-adm-tickets-v8', JSON.stringify(tickets));
+                localStorage.setItem('todo-adm-tickets-v9', JSON.stringify(tickets));
                 renderNotifications();
 
                 if (trackEdit && autoBackupCount > 0) {
@@ -855,22 +891,33 @@
                 });
             };
 
-            const createRequirementsHTML = (requirements, tagLimit = 3) => {
-                if (!requirements || requirements.length === 0) return '';
+            const createChecklistHTML = (subtasks, ticketId) => {
+                if (!subtasks || subtasks.length === 0) return '';
 
-                // Sort tags: completed ones go to the end
-                const sortedReqs = [...requirements].sort((a, b) => a.completed - b.completed);
+                const sortedTasks = [...subtasks].sort((a, b) => a.completed - b.completed);
+                const completedCount = subtasks.filter(t => t.completed).length;
+                const totalCount = subtasks.length;
+                const progress = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
 
-                const tagsHTML = sortedReqs.map(req => 
-                    `<span class="req-tag ${req.completed ? 'completed' : ''}" data-tag-name="${req.name}">${req.name}</span>`
-                ).join('');
+                const itemsHTML = sortedTasks.map((task, index) => `
+                    <div class="checklist-item">
+                        <input type="checkbox" id="task-${ticketId}-${index}" data-task-name="${task.name}" ${task.completed ? 'checked' : ''}>
+                        <label for="task-${ticketId}-${index}">${task.name}</label>
+                    </div>
+                `).join('');
 
                 return `
-                    <div class="ticket-requirements">
-                        <div class="tags-container">
-                            ${tagsHTML}
+                    <div class="checklist">
+                        <div class="checklist-progress">
+                            <span>${completedCount} de ${totalCount} concluídas</span>
+                            <div class="progress-bar">
+                                <div class="progress-bar-inner" style="width: ${progress}%;"></div>
+                            </div>
                         </div>
-                        ${sortedReqs.length > tagLimit ? '<button class="toggle-reqs">Mostrar mais...</button>' : ''}
+                        <div class="checklist-items">
+                            ${itemsHTML}
+                        </div>
+                        ${sortedTasks.length > 3 ? '<button class="toggle-checklist">Mostrar mais...</button>' : ''}
                     </div>
                 `;
             };
@@ -908,7 +955,7 @@
                     </div>
                     <div class="ticket-content">
                         <strong>${ticket.title}</strong>
-                        ${createRequirementsHTML(ticket.requirements, 2)}
+                        ${createChecklistHTML(ticket.subtasks, ticket.id)}
                     </div>
                     <div class="ticket-footer">
                         <div class="footer-left">
@@ -928,14 +975,19 @@
                 card.querySelector('.card-status-select').addEventListener('change', handleQuickStatusChange);
 
                 card.addEventListener('click', (e) => {
-                    if (e.target.classList.contains('toggle-reqs')) {
+                    if (e.target.classList.contains('toggle-checklist')) {
                          e.stopPropagation();
                          const container = e.target.previousElementSibling;
                          container.classList.toggle('expanded');
                          e.target.textContent = container.classList.contains('expanded') ? 'Mostrar menos' : 'Mostrar mais...';
-                    } else if (e.target.classList.contains('req-tag')) {
+                    } else if (e.target.matches('.checklist-item, .checklist-item *')) {
                         e.stopPropagation();
-                        handleTagClick(ticket.id, e.target.dataset.tagName);
+                        const item = e.target.closest('.checklist-item');
+                        const checkbox = item.querySelector('input[type="checkbox"]');
+                        if (e.target !== checkbox) {
+                           checkbox.checked = !checkbox.checked;
+                        }
+                        handleSubtaskCheck(ticket.id, checkbox.dataset.taskName, checkbox.checked);
                     } else {
                         handleMarkAsSeen(ticket.id);
                         openModal('ticketModal', ticket.id);
@@ -968,7 +1020,7 @@
                     <span class="ticket-id">#${ticket.id.toString().substring(0, 6)}</span>
                     <div class="ticket-row-main">
                         <strong>${ticket.title}</strong>
-                        ${createRequirementsHTML(ticket.requirements, 3)}
+                        ${createChecklistHTML(ticket.subtasks, ticket.id)}
                     </div>
                     <div class="ticket-row-end">
                         ${communicationHTML}
@@ -987,14 +1039,19 @@
                 `;
                 
                 row.addEventListener('click', (e) => {
-                    if (e.target.classList.contains('toggle-reqs')) {
+                    if (e.target.classList.contains('toggle-checklist')) {
                          e.stopPropagation();
                          const container = e.target.previousElementSibling;
                          container.classList.toggle('expanded');
                          e.target.textContent = container.classList.contains('expanded') ? 'Mostrar menos' : 'Mostrar mais...';
-                    } else if (e.target.classList.contains('req-tag')) {
+                    } else if (e.target.matches('.checklist-item, .checklist-item *')) {
                         e.stopPropagation();
-                        handleTagClick(ticket.id, e.target.dataset.tagName);
+                        const item = e.target.closest('.checklist-item');
+                        const checkbox = item.querySelector('input[type="checkbox"]');
+                        if (e.target !== checkbox) {
+                           checkbox.checked = !checkbox.checked;
+                        }
+                        handleSubtaskCheck(ticket.id, checkbox.dataset.taskName, checkbox.checked);
                     } else if (e.target.tagName.toLowerCase() !== 'select') {
                         handleMarkAsSeen(ticket.id);
                         openModal('ticketModal', ticket.id);
@@ -1024,7 +1081,7 @@
                         alert(`Erro na busca com IA: ${error.message}`);
                         baseTickets = tickets.filter(ticket => 
                             (ticket.title && ticket.title.toLowerCase().includes(searchTerm)) ||
-                            (ticket.requirements && ticket.requirements.some(r => r.name.toLowerCase().includes(searchTerm)))
+                            (ticket.subtasks && ticket.subtasks.some(r => r.name.toLowerCase().includes(searchTerm)))
                         );
                     } finally {
                         searchInput.disabled = false;
@@ -1033,7 +1090,7 @@
                 } else if (searchTerm) {
                     baseTickets = tickets.filter(ticket => 
                         (ticket.title && ticket.title.toLowerCase().includes(searchTerm)) ||
-                        (ticket.requirements && ticket.requirements.some(r => r.name.toLowerCase().includes(searchTerm)))
+                        (ticket.subtasks && ticket.subtasks.some(r => r.name.toLowerCase().includes(searchTerm)))
                     );
                 }
 
@@ -1051,10 +1108,10 @@
                 const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${googleApiKey}`;
                 
                 let ticketsToSearch = showCompletedCheckbox.checked ? tickets : tickets.filter(t => t.status !== 'Finalizado');
-                const simplifiedTickets = ticketsToSearch.map(({ id, title, requirements, priority, deadline }) => ({ 
+                const simplifiedTickets = ticketsToSearch.map(({ id, title, subtasks, priority, deadline }) => ({ 
                     id, 
                     title, 
-                    requirements: requirements.map(r => r.name).join(', '), 
+                    subtasks: subtasks.map(r => r.name).join(', '), 
                     priority, 
                     deadline 
                 }));
@@ -1174,13 +1231,11 @@
                     document.getElementById('ticketComuniqueiAluno').checked = ticket.comuniqueiAluno;
                     document.getElementById('ticketAguardandoRetorno').checked = ticket.aguardandoRetorno;
                     
-                    let reqValue = '';
-                    if (Array.isArray(ticket.requirements)) {
-                        reqValue = ticket.requirements.map(r => r.name).join(', ');
-                    } else if (typeof ticket.requirements === 'string') {
-                        reqValue = ticket.requirements;
+                    if (Array.isArray(ticket.subtasks)) {
+                        document.getElementById('ticketSubtasks').value = ticket.subtasks.map(r => r.name).join('\n');
+                    } else {
+                         document.getElementById('ticketSubtasks').value = '';
                     }
-                    document.getElementById('ticketRequirements').value = reqValue;
 
                     if (ticket.history?.length > 0) renderHistoryInModal(ticket.history);
                     document.getElementById('deleteTicketBtn').style.display = 'inline-block';
@@ -1206,12 +1261,12 @@
                 const id = document.getElementById('ticketId').value;
                 const originalTicket = id ? { ...tickets.find(t => t.id === id) } : null;
                 
-                const newReqsString = document.getElementById('ticketRequirements').value.trim();
-                const newReqsNames = newReqsString.split(',').map(name => name.trim()).filter(name => name);
+                const newSubtasksString = document.getElementById('ticketSubtasks').value.trim();
+                const newSubtasksNames = newSubtasksString.split('\n').map(name => name.trim()).filter(name => name);
                 
-                const newRequirements = newReqsNames.map(name => {
-                    const existingReq = originalTicket?.requirements.find(r => r.name === name);
-                    return { name: name, completed: existingReq ? existingReq.completed : false };
+                const newSubtasks = newSubtasksNames.map(name => {
+                    const existingTask = originalTicket?.subtasks.find(r => r.name === name);
+                    return { name: name, completed: existingTask ? existingTask.completed : false };
                 });
 
                 const ticketData = {
@@ -1221,7 +1276,7 @@
                     startDate: document.getElementById('ticketStartDate').value,
                     deadline: document.getElementById('ticketDeadline').value,
                     priority: document.getElementById('ticketPriority').value,
-                    requirements: newRequirements,
+                    subtasks: newSubtasks,
                     aviseiRegiana: document.getElementById('ticketAviseiRegiana').checked,
                     comuniqueiAluno: document.getElementById('ticketComuniqueiAluno').checked,
                     aguardandoRetorno: document.getElementById('ticketAguardandoRetorno').checked,
@@ -1279,15 +1334,15 @@
                 }
             };
 
-            const handleTagClick = (ticketId, tagName) => {
+            const handleSubtaskCheck = (ticketId, taskName, isChecked) => {
                 const ticket = tickets.find(t => t.id === ticketId);
                 if (!ticket) return;
 
-                const tag = ticket.requirements.find(r => r.name === tagName);
-                if (!tag) return;
+                const task = ticket.subtasks.find(r => r.name === taskName);
+                if (!task) return;
 
-                tag.completed = !tag.completed;
-                addLogEntry(ticket, `Tag "${tagName}" marcada como ${tag.completed ? 'concluída' : 'pendente'}.`);
+                task.completed = isChecked;
+                addLogEntry(ticket, `Sub-tarefa "${taskName}" marcada como ${task.completed ? 'concluída' : 'pendente'}.`);
                 updateLastSeenTimestamp(ticket);
                 saveData();
 
@@ -1404,14 +1459,23 @@
                         const importedTickets = JSON.parse(e.target.result);
                         if (!Array.isArray(importedTickets)) throw new Error('O arquivo JSON não contém um array de tickets válido.');
                         
+                        // FIX: Migrate imported tickets to the new data structure before merging/replacing
                         importedTickets.forEach(ticket => {
-                            if (ticket.requirements && typeof ticket.requirements === 'string') {
-                                ticket.requirements = ticket.requirements.split(',')
-                                    .map(name => name.trim())
-                                    .filter(name => name)
-                                    .map(name => ({ name: name, completed: false }));
-                            } else if (!ticket.requirements) {
-                                ticket.requirements = [];
+                            if (ticket.requirements) { // Check if old 'requirements' key exists
+                                if (typeof ticket.requirements === 'string') {
+                                    ticket.subtasks = ticket.requirements.split(',')
+                                        .map(name => name.trim())
+                                        .filter(name => name)
+                                        .map(name => ({ name: name, completed: false }));
+                                } else if (Array.isArray(ticket.requirements)) {
+                                    ticket.subtasks = ticket.requirements.map(req => ({
+                                        name: req.name,
+                                        completed: req.completed || false
+                                    }));
+                                }
+                                delete ticket.requirements;
+                            } else if (!ticket.subtasks) {
+                                ticket.subtasks = [];
                             }
                         });
 

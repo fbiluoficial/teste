@@ -367,7 +367,13 @@
         .ticket-id { font-size: 0.8em; color: #aaa; }
         .ticket-priority { padding: 3px 8px; border-radius: 10px; font-size: 0.8em; color: white; font-weight: bold; }
         .ticket-content { margin-bottom: 10px; }
-        .ticket-content strong { font-size: 1.1em; }
+        .ticket-content strong { 
+            font-size: 1.05em; 
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: block;
+        }
         
         .deadline-wrapper {
             border: 2px solid transparent;
@@ -429,6 +435,8 @@
         .checklist-item label {
             flex-grow: 1;
             transition: color 0.2s, text-decoration 0.2s;
+            white-space: normal;
+            word-break: break-word;
         }
         .checklist-item input[type="checkbox"]:checked + label {
             text-decoration: line-through;
@@ -460,7 +468,7 @@
 
         .ticket-row {
             display: flex;
-            align-items: center;
+            align-items: flex-start; /* Alinha itens ao topo */
             justify-content: space-between;
             background-color: var(--surface-hover-color);
             padding: 12px 20px;
@@ -486,12 +494,25 @@
             align-items: flex-start;
             min-width: 0; /* Fix para content overflow */
         }
+        .ticket-row-title-header {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            gap: 15px;
+            margin-bottom: 8px;
+        }
         .ticket-row-main strong {
-            font-size: 1.1em;
+            font-size: 1.05em;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            width: 100%;
+            flex-grow: 1;
+            min-width: 0;
+        }
+        .ticket-row-title-header .checklist-progress {
+            flex-shrink: 0;
+            width: 200px;
+            margin-bottom: 0;
         }
         .ticket-row-end {
             display: flex;
@@ -537,6 +558,9 @@
         .form-field input, .form-field select, .form-field textarea {
             width: 100%; padding: 10px; background-color: var(--bg-color); border: 1px solid var(--border-color);
             color: var(--font-color); border-radius: 4px; box-sizing: border-box; transition: border-color 0.2s;
+        }
+        #ticketTitle {
+            text-transform: capitalize;
         }
         .form-field input:focus, .form-field select:focus, .form-field textarea:focus { outline: none; border-color: var(--primary-accent); }
         .checkbox-group {
@@ -684,7 +708,7 @@
                 <div class="form-grid">
                     <div class="form-field full-width">
                         <label for="ticketTitle">Título do Ticket</label>
-                        <input type="text" id="ticketTitle" required>
+                        <input type="text" id="ticketTitle" required maxlength="38">
                     </div>
                     <div class="form-field">
                         <label for="ticketStatus">Status</label>
@@ -906,20 +930,23 @@
                     </div>
                 `).join('');
 
-                return `
-                    <div class="checklist">
-                        <div class="checklist-progress">
-                            <span>${completedCount} de ${totalCount} concluídas</span>
-                            <div class="progress-bar">
-                                <div class="progress-bar-inner" style="width: ${progress}%;"></div>
-                            </div>
+                const progressHTML = `
+                    <div class="checklist-progress">
+                        <span>${completedCount}/${totalCount}</span>
+                        <div class="progress-bar">
+                            <div class="progress-bar-inner" style="width: ${progress}%;"></div>
                         </div>
-                        <div class="checklist-items">
-                            ${itemsHTML}
-                        </div>
-                        ${sortedTasks.length > 3 ? '<button class="toggle-checklist">Mostrar mais...</button>' : ''}
                     </div>
                 `;
+
+                const itemsContainerHTML = `
+                    <div class="checklist-items">
+                        ${itemsHTML}
+                    </div>
+                    ${sortedTasks.length > 3 ? '<button class="toggle-checklist">Mostrar mais...</button>' : ''}
+                `;
+
+                return { progressHTML, itemsContainerHTML };
             };
             
             const createTicketCard = (ticket) => {
@@ -943,6 +970,14 @@
                     communicationHTML += '</div>';
                 }
 
+                const checklist = createChecklistHTML(ticket.subtasks, ticket.id);
+                const checklistHTML = checklist ? `
+                    <div class="checklist">
+                        ${checklist.progressHTML}
+                        ${checklist.itemsContainerHTML}
+                    </div>` : '';
+
+
                 card.innerHTML = `
                     <div class="ticket-header">
                         <span class="ticket-id">#${ticket.id.toString().substring(0, 6)}</span>
@@ -955,7 +990,7 @@
                     </div>
                     <div class="ticket-content">
                         <strong>${ticket.title}</strong>
-                        ${createChecklistHTML(ticket.subtasks, ticket.id)}
+                        ${checklistHTML}
                     </div>
                     <div class="ticket-footer">
                         <div class="footer-left">
@@ -1015,12 +1050,20 @@
                     if (ticket.aguardandoRetorno) communicationHTML += '<span class="comm-icon" title="Aguardando retorno do aluno">⏳</span>';
                     communicationHTML += '</div>';
                 }
+
+                const checklist = createChecklistHTML(ticket.subtasks, ticket.id);
+                const checklistHTML = checklist ? `
+                    <div class="checklist">
+                        ${checklist.itemsContainerHTML}
+                    </div>` : '';
                 
                 row.innerHTML = `
-                    <span class="ticket-id">#${ticket.id.toString().substring(0, 6)}</span>
                     <div class="ticket-row-main">
-                        <strong>${ticket.title}</strong>
-                        ${createChecklistHTML(ticket.subtasks, ticket.id)}
+                        <div class="ticket-row-title-header">
+                            <strong>${ticket.title}</strong>
+                            ${checklist ? checklist.progressHTML : ''}
+                        </div>
+                        ${checklistHTML}
                     </div>
                     <div class="ticket-row-end">
                         ${communicationHTML}
@@ -1256,6 +1299,10 @@
             };
 
             // --- HANDLERS DE EVENTOS ---
+            const capitalizeWords = (str) => {
+                return str.toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
+            };
+
             const handleFormSubmit = (e) => {
                 e.preventDefault();
                 const id = document.getElementById('ticketId').value;
@@ -1271,7 +1318,7 @@
 
                 const ticketData = {
                     id: id || Date.now().toString(),
-                    title: document.getElementById('ticketTitle').value.trim(),
+                    title: capitalizeWords(document.getElementById('ticketTitle').value.trim()),
                     status: document.getElementById('ticketStatus').value,
                     startDate: document.getElementById('ticketStartDate').value,
                     deadline: document.getElementById('ticketDeadline').value,

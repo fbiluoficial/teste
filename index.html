@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>To-do-ADM com IA</title>
+    <link rel="icon" type="image/png" href="https://i.ibb.co/mHq3ADF/to-do-list.png">
     <style>
         /* --- GERAL E TEMA --- */
         :root {
@@ -225,8 +226,8 @@
             display: flex;
             gap: 15px;
             padding: 20px;
-            overflow-x: auto;
-            min-height: calc(100vh - 60px);
+            min-height: calc(100vh - 100px);
+            max-height: calc(100vh - 100px);
             align-items: flex-start;
         }
 
@@ -236,7 +237,7 @@
             border-radius: 8px;
             display: flex;
             flex-direction: column;
-            max-height: calc(100vh - 100px);
+            max-height: 100%;
             border-top: 4px solid;
             transition: box-shadow 0.3s;
         }
@@ -336,6 +337,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            flex-wrap: wrap;
         }
         
         .communication-status {
@@ -423,10 +425,13 @@
         main.list-view {
             flex-direction: column;
             align-items: stretch;
+            position: relative;
+            overflow-y: auto;
         }
         main.list-view .status-column {
             display: none;
         }
+
         .ticket-row {
             display: flex;
             align-items: center;
@@ -438,7 +443,9 @@
             border-left: 5px solid;
             cursor: pointer;
             transition: background-color 0.2s, transform 0.2s;
-            animation: fadeIn 0.5s ease;
+            min-height: 70px;
+            height: auto;
+            box-sizing: border-box;
         }
         .ticket-row:hover {
             background-color: var(--surface-color);
@@ -451,6 +458,7 @@
             display: flex;
             flex-direction: column;
             align-items: flex-start;
+            min-width: 0; /* Fix para content overflow */
         }
         .ticket-row-main strong {
             font-size: 1.1em;
@@ -462,8 +470,23 @@
         .ticket-row-end {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 15px;
             flex-shrink: 0;
+        }
+        .last-seen {
+            color: #999;
+            font-style: italic;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background-color: rgba(255, 255, 255, 0.05);
+            padding: 3px 7px;
+            border-radius: 10px;
+        }
+        .last-seen svg {
+            width: 15px;
+            height: 15px;
+            fill: #999;
         }
 
         /* --- MODAL --- */
@@ -765,62 +788,71 @@
                 const filteredTickets = await getFilteredTickets();
                 const statusFilter = filterStatus.value;
                 kanbanBoard.innerHTML = ''; // Limpa o painel primeiro
+                kanbanBoard.onscroll = null; // Limpa o listener de scroll anterior
 
                 if (statusFilter && statusFilter !== '') {
-                    // --- MODO DE VISUALIZAÇÃO EM LISTA ---
-                    kanbanBoard.classList.add('list-view');
-                    if (filteredTickets.length === 0) {
-                        kanbanBoard.innerHTML = '<p style="padding: 20px; color: #aaa;">Nenhum ticket encontrado com o status selecionado.</p>';
-                        return;
-                    }
-                    if (prioritySortToggle.checked) {
-                        const priorityOrder = { 'Alta': 0, 'Media': 1, 'Baixa': 2 };
-                        filteredTickets.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
-                    }
-                    filteredTickets.forEach(ticket => {
-                        const ticketRow = createTicketRow(ticket);
-                        kanbanBoard.appendChild(ticketRow);
-                    });
+                    renderListView(filteredTickets);
                 } else {
-                    // --- MODO DE VISUALIZAÇÃO KANBAN (COLUNAS) ---
-                    kanbanBoard.classList.remove('list-view');
-                    if (filteredTickets.length === 0 && tickets.length > 0) {
-                        kanbanBoard.innerHTML = '<p style="padding: 20px; color: #aaa;">Nenhum ticket encontrado com os filtros atuais.</p>';
-                    }
-                    
-                    statuses.forEach(status => {
-                        if (!showCompletedCheckbox.checked && status === 'Finalizado') return;
-                        
-                        const column = document.createElement('div');
-                        column.className = 'status-column';
-                        column.id = `column-${status.replace(/\s+/g, '')}`;
-                        column.dataset.status = status;
-                        column.style.borderColor = statusColors[status];
-
-                        const ticketsInColumn = filteredTickets.filter(t => t.status === status);
-
-                        if (prioritySortToggle.checked) {
-                            const priorityOrder = { 'Alta': 0, 'Media': 1, 'Baixa': 2 };
-                            ticketsInColumn.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
-                        }
-
-                        column.innerHTML = `
-                            <div class="column-header">
-                                <span>${status}</span>
-                                <span class="ticket-count">${ticketsInColumn.length}</span>
-                            </div>
-                            <div class="tickets-container"></div>
-                        `;
-                        kanbanBoard.appendChild(column);
-                        
-                        const ticketsContainer = column.querySelector('.tickets-container');
-                        ticketsInColumn.forEach(ticket => {
-                            const ticketCard = createTicketCard(ticket);
-                            ticketsContainer.appendChild(ticketCard);
-                        });
-                    });
+                    renderKanbanView(filteredTickets);
                 }
                 setupDragAndDrop();
+            };
+
+            const renderKanbanView = (filteredTickets) => {
+                kanbanBoard.classList.remove('list-view');
+                if (filteredTickets.length === 0 && tickets.length > 0) {
+                    kanbanBoard.innerHTML = '<p style="padding: 20px; color: #aaa;">Nenhum ticket encontrado com os filtros atuais.</p>';
+                }
+                
+                statuses.forEach(status => {
+                    if (!showCompletedCheckbox.checked && status === 'Finalizado') return;
+                    
+                    const column = document.createElement('div');
+                    column.className = 'status-column';
+                    column.id = `column-${status.replace(/\s+/g, '')}`;
+                    column.dataset.status = status;
+                    column.style.borderColor = statusColors[status];
+
+                    const ticketsInColumn = filteredTickets.filter(t => t.status === status);
+
+                    if (prioritySortToggle.checked) {
+                        const priorityOrder = { 'Alta': 0, 'Media': 1, 'Baixa': 2 };
+                        ticketsInColumn.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+                    }
+
+                    column.innerHTML = `
+                        <div class="column-header">
+                            <span>${status}</span>
+                            <span class="ticket-count">${ticketsInColumn.length}</span>
+                        </div>
+                        <div class="tickets-container"></div>
+                    `;
+                    kanbanBoard.appendChild(column);
+                    
+                    const ticketsContainer = column.querySelector('.tickets-container');
+                    ticketsInColumn.forEach(ticket => {
+                        const ticketCard = createTicketCard(ticket);
+                        ticketsContainer.appendChild(ticketCard);
+                    });
+                });
+            };
+
+            const renderListView = (filteredTickets) => {
+                kanbanBoard.classList.add('list-view');
+                if (filteredTickets.length === 0) {
+                    kanbanBoard.innerHTML = '<p style="padding: 20px; color: #aaa;">Nenhum ticket encontrado com o status selecionado.</p>';
+                    return;
+                }
+                if (prioritySortToggle.checked) {
+                    const priorityOrder = { 'Alta': 0, 'Media': 1, 'Baixa': 2 };
+                    filteredTickets.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+                }
+
+                // Simple render loop, no virtual scrolling
+                filteredTickets.forEach(ticket => {
+                    const ticketRow = createTicketRow(ticket);
+                    kanbanBoard.appendChild(ticketRow);
+                });
             };
 
             const createRequirementsHTML = (requirements, tagLimit = 3) => {
@@ -881,6 +913,10 @@
                     <div class="ticket-footer">
                         <div class="footer-left">
                            ${communicationHTML}
+                           <span class="last-seen">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/><path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/></svg>
+                                <span class="last-seen-text">${formatTimeAgo(ticket.lastSeen)}</span>
+                           </span>
                         </div>
                         <div class="deadline-wrapper ${isOverdue || nearingDeadline ? 'alert' : ''}">
                             <span>Prazo: ${new Date(ticket.deadline).toLocaleDateString()}</span>
@@ -901,6 +937,7 @@
                         e.stopPropagation();
                         handleTagClick(ticket.id, e.target.dataset.tagName);
                     } else {
+                        handleMarkAsSeen(ticket.id);
                         openModal('ticketModal', ticket.id);
                     }
                 });
@@ -935,6 +972,10 @@
                     </div>
                     <div class="ticket-row-end">
                         ${communicationHTML}
+                        <span class="last-seen">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/><path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/></svg>
+                            <span class="last-seen-text">${formatTimeAgo(ticket.lastSeen)}</span>
+                        </span>
                         <span class="ticket-priority" style="background-color: ${priorityColors[ticket.priority]}">${ticket.priority}</span>
                         <div class="deadline-wrapper ${isOverdue ? 'alert' : ''}">
                             <span>Prazo: ${new Date(ticket.deadline).toLocaleDateString()}</span>
@@ -955,6 +996,7 @@
                         e.stopPropagation();
                         handleTagClick(ticket.id, e.target.dataset.tagName);
                     } else if (e.target.tagName.toLowerCase() !== 'select') {
+                        handleMarkAsSeen(ticket.id);
                         openModal('ticketModal', ticket.id);
                     }
                 });
@@ -1132,13 +1174,10 @@
                     document.getElementById('ticketComuniqueiAluno').checked = ticket.comuniqueiAluno;
                     document.getElementById('ticketAguardandoRetorno').checked = ticket.aguardandoRetorno;
                     
-                    // FIX: Handle both old (string) and new (array of objects) data structures for requirements
                     let reqValue = '';
                     if (Array.isArray(ticket.requirements)) {
-                        // New format: array of objects
                         reqValue = ticket.requirements.map(r => r.name).join(', ');
                     } else if (typeof ticket.requirements === 'string') {
-                        // Old format: comma-separated string. This handles data from older versions.
                         reqValue = ticket.requirements;
                     }
                     document.getElementById('ticketRequirements').value = reqValue;
@@ -1186,7 +1225,8 @@
                     aviseiRegiana: document.getElementById('ticketAviseiRegiana').checked,
                     comuniqueiAluno: document.getElementById('ticketComuniqueiAluno').checked,
                     aguardandoRetorno: document.getElementById('ticketAguardandoRetorno').checked,
-                    history: originalTicket?.history || []
+                    history: originalTicket?.history || [],
+                    lastSeen: new Date().toISOString() // Update on save
                 };
 
                 if (id) {
@@ -1233,6 +1273,7 @@
                 if (ticketToUpdate && ticketToUpdate.status !== newStatus) {
                     addLogEntry(ticketToUpdate, `Status alterado de "${ticketToUpdate.status}" para "${newStatus}"`);
                     ticketToUpdate.status = newStatus;
+                    updateLastSeenTimestamp(ticketToUpdate);
                     saveData();
                     renderBoard();
                 }
@@ -1247,9 +1288,9 @@
 
                 tag.completed = !tag.completed;
                 addLogEntry(ticket, `Tag "${tagName}" marcada como ${tag.completed ? 'concluída' : 'pendente'}.`);
+                updateLastSeenTimestamp(ticket);
                 saveData();
 
-                // FIX: Update only the specific card/row instead of the whole board
                 const currentElement = document.querySelector(`.ticket-card[data-id="${ticketId}"], .ticket-row[data-id="${ticketId}"]`);
                 if (currentElement) {
                     let newElement;
@@ -1260,15 +1301,35 @@
                     }
                     currentElement.replaceWith(newElement);
                 } else {
-                    // Fallback in case the element isn't visible (e.g., filtered out)
                     renderBoard();
+                }
+            };
+
+            const handleMarkAsSeen = (ticketId) => {
+                const ticket = tickets.find(t => t.id === ticketId);
+                if (ticket) {
+                    updateLastSeenTimestamp(ticket);
+                    saveData();
+                    const currentElement = document.querySelector(`.ticket-card[data-id="${ticketId}"], .ticket-row[data-id="${ticketId}"]`);
+                    if (currentElement) {
+                        const lastSeenEl = currentElement.querySelector('.last-seen-text');
+                        if (lastSeenEl) {
+                            lastSeenEl.textContent = formatTimeAgo(ticket.lastSeen);
+                        }
+                    }
+                }
+            };
+            
+            const updateLastSeenTimestamp = (ticket) => {
+                if (ticket) {
+                    ticket.lastSeen = new Date().toISOString();
                 }
             };
 
             // --- DRAG & DROP, IMPORT/EXPORT, BACKUP ---
             const setupDragAndDrop = () => {
                 if (kanbanBoard.classList.contains('list-view')) {
-                    return; // Desabilita drag-and-drop na visualização em lista
+                    return;
                 }
                 document.querySelectorAll('.ticket-card').forEach(card => {
                     card.addEventListener('dragstart', e => e.target.classList.add('dragging'));
@@ -1285,6 +1346,7 @@
                         if (ticket.status !== newStatus) {
                             addLogEntry(ticket, `Status movido de "${ticket.status}" para "${newStatus}"`);
                             ticket.status = newStatus;
+                            updateLastSeenTimestamp(ticket);
                             saveData();
                             renderBoard();
                         }
@@ -1342,7 +1404,6 @@
                         const importedTickets = JSON.parse(e.target.result);
                         if (!Array.isArray(importedTickets)) throw new Error('O arquivo JSON não contém um array de tickets válido.');
                         
-                        // FIX: Migrate imported tickets to the new data structure before merging/replacing
                         importedTickets.forEach(ticket => {
                             if (ticket.requirements && typeof ticket.requirements === 'string') {
                                 ticket.requirements = ticket.requirements.split(',')
@@ -1411,6 +1472,48 @@
                 }
             };
 
+            const formatTimeAgo = (isoString) => {
+                if (!isoString) return '';
+                const now = new Date();
+                const seenDate = new Date(isoString);
+                const diffSeconds = (now - seenDate) / 1000;
+                const diffMinutes = diffSeconds / 60;
+                const diffHours = diffMinutes / 60;
+                const diffDays = Math.floor(diffHours / 24);
+
+                if (diffMinutes < 1) return 'agora';
+                if (diffMinutes < 60) return `há ${Math.round(diffMinutes)} min`;
+                if (diffHours < 6) return `há ${Math.round(diffHours)}h`;
+
+                const isToday = now.toDateString() === seenDate.toDateString();
+                if (isToday) {
+                    const seenHour = seenDate.getHours();
+                    if (seenHour < 12) return 'hoje de manhã';
+                    if (seenHour < 18) return 'hoje à tarde';
+                    return 'hoje à noite';
+                }
+
+                const yesterday = new Date();
+                yesterday.setDate(now.getDate() - 1);
+                if (yesterday.toDateString() === seenDate.toDateString()) {
+                    return 'ontem';
+                }
+
+                return `há ${diffDays} dias`;
+            };
+
+            const updateAllVisibleTimestamps = () => {
+                document.querySelectorAll('.ticket-card[data-id], .ticket-row[data-id]').forEach(el => {
+                    const ticket = tickets.find(t => t.id === el.dataset.id);
+                    if (ticket && ticket.lastSeen) {
+                        const lastSeenEl = el.querySelector('.last-seen-text');
+                        if (lastSeenEl) {
+                            lastSeenEl.textContent = formatTimeAgo(ticket.lastSeen);
+                        }
+                    }
+                });
+            };
+
             // --- INICIALIZAÇÃO E LISTENERS ---
             addTicketFab.addEventListener('click', () => openModal('ticketModal'));
             document.querySelector('#ticketModal .close-button').addEventListener('click', () => closeModal('ticketModal'));
@@ -1472,6 +1575,7 @@
             renderBoard();
             requestNotificationPermission();
             setInterval(checkDeadlinesForDesktop, 60 * 1000 * 5); // Verifica prazos a cada 5 minutos
+            setInterval(updateAllVisibleTimestamps, 60000); // Atualiza os tempos a cada minuto
         });
     </script>
 </body>

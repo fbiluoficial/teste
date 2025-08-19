@@ -3,1688 +3,872 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>To-do-ADM com IA</title>
-    <link rel="icon" type="image/png" href="https://i.ibb.co/mHq3ADF/to-do-list.png">
+    <title>Manual Interativo UNINTA</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Biblioteca de Ícones (Lucide) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Fontes do Google -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+
     <style>
-        /* --- GERAL E TEMA --- */
-        :root {
-            --bg-color: #121212;
-            --surface-color: #1e1e1e;
-            --surface-hover-color: #2a2a2a;
-            --font-color: #e0e0e0;
-            --border-color: #333;
-            --primary-accent: #0d6efd;
-            --primary-accent-hover: #0b5ed7;
-            
-            --status-aberto: #ffc107;
-            --status-andamento: #0d6efd;
-            --status-finalizado: #198754;
-            --status-aguardando: #6f42c1;
-
-            --priority-alta: #dc3545;
-            --priority-media: #ffc107;
-            --priority-baixa: #198754;
-
-            --google-blue: #4285F4;
-            --google-red: #DB4437;
-            --google-yellow: #F4B400;
-            --google-green: #0F9D58;
-        }
-
+        /* Estilo base com a nova paleta dark */
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--font-color);
-            margin: 0;
-            padding-top: 60px; /* Espaço para o cabeçalho fixo */
+            font-family: 'Inter', sans-serif;
+            background-color: #111827; /* Fundo principal azul-escuro */
+            color: #d1d5db; /* Texto principal cinza claro */
             overflow-x: hidden;
         }
-
-        /* --- CABEÇALHO E MENU SUPERIOR --- */
-        header {
-            background-color: var(--surface-color);
-            border-bottom: 1px solid var(--border-color);
-            padding: 0 20px;
+        /* Fundo com gradiente sutil e textura */
+        body::before {
+            content: '';
             position: fixed;
             top: 0;
             left: 0;
-            right: 0;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            z-index: 1000;
-            gap: 15px;
-        }
-
-        .header-left, .header-right {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .logo {
-            font-size: 1.5em;
-            font-weight: bold;
-            color: var(--primary-accent);
-        }
-
-        .menu-button, .menu-item select, .menu-item input[type="text"] {
-            background-color: var(--surface-color);
-            color: var(--font-color);
-            border: 1px solid var(--border-color);
-            padding: 8px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background-color 0.2s, border-color 0.2s;
-            font-size: 14px;
-        }
-        .menu-button:hover, .menu-item select:hover { 
-            background-color: var(--surface-hover-color);
-            border-color: var(--primary-accent);
-        }
-        
-        /* --- Dropdown Menu --- */
-        .dropdown {
-            position: relative;
-            display: inline-block;
-        }
-        .dropdown-content {
-            display: none;
-            position: absolute;
-            background-color: var(--surface-color);
-            min-width: 180px;
-            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-            z-index: 1;
-            border-radius: 6px;
-            border: 1px solid var(--border-color);
-            overflow: hidden;
-            right: 0; /* Alinha o dropdown de configurações à direita */
-        }
-        .dropdown-content .dropdown-item {
-            color: var(--font-color);
-            padding: 12px 16px;
-            text-decoration: none;
-            display: block;
-            background: none;
-            border: none;
             width: 100%;
-            text-align: left;
-            cursor: pointer;
-        }
-        .dropdown-content .dropdown-item:hover { background-color: var(--surface-hover-color); }
-        .show { display: block; }
-
-        /* Notificações */
-        #notificationBtn {
-            position: relative;
-        }
-        #notification-count {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background-color: var(--priority-alta);
-            color: white;
-            border-radius: 50%;
-            width: 18px;
-            height: 18px;
-            font-size: 10px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid var(--surface-color);
-        }
-        #notification-list {
-            max-height: 400px;
-            overflow-y: auto;
-            min-width: 300px;
-        }
-        .notification-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            border-bottom: 1px solid var(--border-color);
-            cursor: pointer;
-        }
-        .notification-item:last-child {
-            border-bottom: none;
-        }
-        .notification-item:hover {
-            background-color: var(--surface-hover-color);
-        }
-        .notification-info {
-            flex-grow: 1;
-            margin-right: 10px;
-        }
-        .notification-item p {
-            margin: 0 0 2px 0;
-            font-size: 0.9em;
-        }
-        .notification-item small {
-            color: #aaa;
-        }
-        
-        /* --- Pesquisa com IA --- */
-        .search-container {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        #searchInput.ai-active {
-            border-color: transparent;
-            background-image: linear-gradient(var(--surface-color), var(--surface-color)), 
-                              radial-gradient(circle at top left, var(--google-blue), var(--google-green), var(--google-yellow), var(--google-red));
-            background-origin: border-box;
-            background-clip: padding-box, border-box;
-            animation: bg-spin 3s linear infinite;
-        }
-        #searchMode {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 40px;
-            height: 20px;
-            background-color: var(--border-color);
-            border-radius: 10px;
-            position: relative;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        #searchMode::before {
-            content: 'IA';
-            color: #000;
-            font-size: 10px;
-            font-weight: bold;
-            position: absolute;
-            left: 20px;
-            top: 2px;
-        }
-        #searchMode::after {
-            content: '';
-            width: 16px;
-            height: 16px;
-            background-color: white;
-            border-radius: 50%;
-            position: absolute;
-            top: 2px;
-            left: 2px;
-            transition: transform 0.3s;
-        }
-        #searchMode:checked {
-            background-color: var(--google-blue);
-        }
-        #searchMode:checked::before {
-            content: '';
-        }
-        #searchMode:checked::after {
-            transform: translateX(20px);
-        }
-
-        /* --- PAINEL PRINCIPAL (KANBAN & LIST) --- */
-        main {
-            display: flex;
-            gap: 15px;
-            padding: 20px;
-            min-height: calc(100vh - 100px);
-            max-height: calc(100vh - 100px);
-            align-items: flex-start;
-        }
-
-        .status-column {
-            flex: 0 0 320px;
-            background-color: var(--surface-color);
-            border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-            max-height: 100%;
-            border-top: 4px solid;
-            transition: box-shadow 0.3s;
-        }
-        .status-column:hover {
-            box-shadow: 0 0 20px -5px var(--border-color);
-        }
-
-        .column-header {
-            padding: 10px 15px;
-            font-weight: bold;
-            font-size: 1.1em;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .ticket-count {
-            background-color: var(--surface-hover-color);
-            border-radius: 50%;
-            width: 28px;
-            height: 28px;
-            display: inline-flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 0.9em;
-            font-weight: bold;
-        }
-        
-        #column-Aberto { border-color: var(--status-aberto); }
-        #column-Andamento { border-color: var(--status-andamento); }
-        #column-Finalizado { border-color: var(--status-finalizado); }
-        #column-Aguardando { border-color: var(--status-aguardando); }
-
-        .tickets-container {
-            overflow-y: auto;
-            flex-grow: 1;
-            padding: 10px;
-        }
-        
-        /* --- CARTÃO DE TICKET --- */
-        .ticket-card {
-            background-color: var(--surface-hover-color);
-            border-radius: 6px;
-            padding: 15px;
-            margin-bottom: 10px;
-            border-left: 5px solid;
-            cursor: grab;
-            transition: transform 0.2s, box-shadow 0.2s;
-            animation: fadeIn 0.5s ease;
-        }
-        .ticket-card.dragging {
-            opacity: 0.5;
-            transform: rotate(3deg);
-        }
-        .ticket-card:hover {
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            transform: translateY(-2px);
-        }
-        
-        .ticket-header {
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            margin-bottom: 10px;
-            gap: 10px;
-        }
-
-        .card-status-select {
-            background-color: var(--surface-color);
-            color: var(--font-color);
-            border: 1px solid var(--border-color);
-            border-radius: 5px;
-            padding: 2px 5px;
-            font-size: 0.8em;
-            cursor: pointer;
-        }
-        .card-status-select:hover {
-            border-color: var(--primary-accent);
-        }
-
-        .ticket-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 10px;
-            font-size: 0.8em;
-            color: #aaa;
-        }
-        
-        .footer-left {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        
-        .communication-status {
-            display: flex;
-            gap: 8px;
-        }
-
-        .comm-icon {
-            background-color: var(--surface-hover-color);
-            border: 1px solid var(--border-color);
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: bold;
-            cursor: help;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-            transition: transform 0.2s;
-        }
-        .comm-icon:hover {
-            transform: scale(1.1);
-        }
-        
-        .ticket-priority { padding: 3px 8px; border-radius: 10px; font-size: 0.8em; color: white; font-weight: bold; }
-        .ticket-content { margin-bottom: 10px; }
-        .ticket-content strong { 
-            font-size: 1.05em; 
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            display: block;
-        }
-        
-        .deadline-wrapper {
-            border: 2px solid transparent;
-            padding: 2px 5px;
-            border-radius: 4px;
-            transition: border-color 0.3s;
-        }
-        .deadline-wrapper.alert {
-            animation: pulse-border-red 1.5s infinite;
-        }
-        .deadline-wrapper.alert span {
-            color: var(--priority-alta);
-            font-weight: bold;
-        }
-
-        /* --- CHECKLIST / SUB-TAREFAS --- */
-        .checklist {
-            margin-top: 10px;
-        }
-        .checklist-progress {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.85em;
-            color: #ccc;
-            margin-bottom: 8px;
-        }
-        .progress-bar {
-            flex-grow: 1;
-            height: 6px;
-            background-color: var(--border-color);
-            border-radius: 3px;
-            overflow: hidden;
-        }
-        .progress-bar-inner {
             height: 100%;
-            background-color: var(--primary-accent);
-            border-radius: 3px;
-            transition: width 0.3s ease;
+            background-image: radial-gradient(circle at top right, rgba(12, 74, 110, 0.5), transparent 40%),
+                              radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.2), transparent 50%);
+            background-repeat: no-repeat;
+            z-index: -1;
         }
-        .checklist-items {
-            max-height: 105px; /* Altura para ~3 itens */
-            overflow: hidden;
-            transition: max-height 0.3s ease-in-out;
+        .header-title {
+            font-family: 'Poppins', sans-serif;
         }
-        .checklist-items.expanded {
-            max-height: 500px;
+        /* Efeito de arrastar para o modo ADM */
+        .dragging {
+            opacity: 0.4;
+            transform: scale(0.98);
+            border: 2px dashed #3b82f6;
         }
-        .checklist-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 4px 0;
-            cursor: pointer;
-        }
-        .checklist-item input[type="checkbox"] {
-            flex-shrink: 0;
-        }
-        .checklist-item label {
-            flex-grow: 1;
-            transition: color 0.2s, text-decoration 0.2s;
-            white-space: normal;
-            word-break: break-word;
-            min-width: 0; /* FIX para overflow de texto em flex containers */
-        }
-        .checklist-item input[type="checkbox"]:checked + label {
-            text-decoration: line-through;
-            color: #888;
-        }
-        .toggle-checklist {
-            background: none;
-            border: none;
-            color: var(--primary-accent);
-            cursor: pointer;
-            font-size: 0.8em;
-            margin-top: 5px;
-            padding: 0;
-            display: block;
-            width: 100%;
-            text-align: left;
-        }
-
-        /* --- ESTILOS PARA VISUALIZAÇÃO EM LISTA --- */
-        main.list-view {
-            flex-direction: column;
-            align-items: stretch;
-            position: relative;
-            overflow-y: auto;
-        }
-        main.list-view .status-column {
-            display: none;
-        }
-
-        .ticket-row {
-            display: flex;
-            background-color: var(--surface-hover-color);
-            padding: 12px 20px;
-            border-radius: 6px;
-            margin-bottom: 8px;
-            border-left: 5px solid;
-            cursor: pointer;
-            transition: background-color 0.2s, transform 0.2s;
-            min-height: 70px;
-            height: auto;
-            box-sizing: border-box;
-        }
-        .ticket-row:hover {
-            background-color: var(--surface-color);
-            transform: translateY(-1px);
-        }
-        .ticket-row-main {
-            flex-grow: 1;
-            margin-right: 20px;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            min-width: 0; /* Fix para content overflow */
-        }
-        .ticket-row-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start; /* Alinha ao topo */
-            width: 100%;
-        }
-        .ticket-row-title-header {
-            display: flex;
-            align-items: center;
-            width: 100%;
-            gap: 15px;
-            margin-bottom: 8px;
-        }
-        .ticket-row-main strong {
-            font-size: 1.05em;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            flex-grow: 1;
-            min-width: 0;
-        }
-        .ticket-row-title-header .checklist-progress {
-            flex-shrink: 0;
-            width: 200px;
-            margin-bottom: 0;
-        }
-        .ticket-row-end {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            flex-shrink: 0;
-        }
-        .last-seen {
-            color: #999;
-            font-style: italic;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            background-color: rgba(255, 255, 255, 0.05);
-            padding: 3px 7px;
-            border-radius: 10px;
-        }
-        .last-seen svg {
-            width: 15px;
-            height: 15px;
-            fill: #999;
-        }
-
-        /* --- MODAL --- */
-        .modal {
-            display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%;
-            overflow: auto; background-color: rgba(0,0,0,0.8); animation: fadeIn 0.3s;
-        }
-        .modal-content {
-            background-color: var(--surface-color); margin: 5% auto; padding: 25px; border: 1px solid var(--border-color);
-            width: 90%; max-width: 700px; border-radius: 8px; position: relative; box-shadow: 0 5px 25px rgba(0,0,0,0.5);
-        }
-        .close-button {
-            color: #aaa; position: absolute; top: 15px; right: 25px; font-size: 28px; font-weight: bold; cursor: pointer; transition: color 0.2s;
-        }
-        .close-button:hover { color: white; }
-        .modal-content h2 { margin-top: 0; border-bottom: 1px solid var(--border-color); padding-bottom: 15px;}
-        
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .form-field { display: flex; flex-direction: column; }
-        .form-field.full-width { grid-column: 1 / -1; }
-        .form-field label { margin-bottom: 8px; font-size: 0.9em; color: #ccc; }
-        .form-field input, .form-field select, .form-field textarea {
-            width: 100%; padding: 10px; background-color: var(--bg-color); border: 1px solid var(--border-color);
-            color: var(--font-color); border-radius: 4px; box-sizing: border-box; transition: border-color 0.2s;
-        }
-        #ticketTitle {
-            text-transform: capitalize;
-        }
-        .form-field input:focus, .form-field select:focus, .form-field textarea:focus { outline: none; border-color: var(--primary-accent); }
-        .checkbox-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            background-color: var(--bg-color);
-            padding: 10px;
+        /* Estilo para edição de texto */
+        [contenteditable="true"] {
+            outline: 2px dashed #22c55e;
+            padding: 4px;
             border-radius: 4px;
-            border: 1px solid var(--border-color);
+            background-color: rgba(34, 197, 94, 0.1);
         }
-        .checkbox-group label {
-            display: flex;
-            align-items: center;
+        /* Scrollbar customizada */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #374151;
+            border-radius: 10px;
+            border: 2px solid transparent;
+            background-clip: content-box;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background-color: #4b5563;
+        }
+        /* Barra de ferramentas de destaque */
+        #highlight-toolbar {
+            position: absolute;
+            display: none;
+            background-color: #1f2937;
+            border-radius: 6px;
+            padding: 4px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            z-index: 1000;
+            border: 1px solid #4b5563;
+        }
+        .color-swatch {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
             cursor: pointer;
+            transition: transform 0.1s ease-in-out;
         }
-        .checkbox-group input {
-            width: auto;
-            margin-right: 10px;
+        .color-swatch:hover {
+            transform: scale(1.2);
         }
-        .form-buttons { margin-top: 25px; display: flex; justify-content: flex-end; gap: 10px; }
-        .form-buttons button { padding: 10px 20px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; }
-        .btn-save { background-color: var(--primary-accent); color: white; }
-        .btn-delete { background-color: var(--priority-alta); color: white; }
-        .btn-cancel { background-color: var(--surface-hover-color); color: var(--font-color); }
-        
-        /* Histórico no Modal */
-        .modal-extra-section {
-            margin-top: 20px; max-height: 150px; overflow-y: auto; padding: 15px; background: var(--bg-color);
-            border-radius: 4px; border: 1px solid var(--border-color);
+        /* Estilos para minimizar card */
+        .card-content-wrapper {
+            transition: max-height 0.5s ease-in-out, opacity 0.3s ease-in-out 0.1s;
+            overflow: hidden;
+            max-height: 2000px; /* Altura grande o suficiente */
+            opacity: 1;
         }
-        .modal-extra-section h4 { margin: 0 0 10px 0; }
-        .modal-extra-section ul { list-style: none; padding: 0; margin: 0; }
-        .modal-extra-section li { font-size: 0.8em; color: #ccc; padding: 5px 0; border-bottom: 1px solid var(--border-color); }
-        .modal-extra-section li:last-child { border-bottom: none; }
-
-        /* Botão Adicionar Flutuante (FAB) */
-        .fab {
-            position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px;
-            background-color: var(--primary-accent); color: white; border: none; border-radius: 50%;
-            font-size: 30px; line-height: 60px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            cursor: pointer; z-index: 1001; transition: background-color 0.2s, transform 0.2s;
+        .card-content-wrapper.collapsed {
+            max-height: 0;
+            opacity: 0;
+            transition: max-height 0.5s ease-in-out, opacity 0.2s ease-in-out;
         }
-        .fab:hover { background-color: var(--primary-accent-hover); transform: scale(1.05); }
-
-        /* --- ANIMAÇÕES E RESPONSIVIDADE --- */
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes pulse-border-red { 0% { border-color: var(--priority-alta); } 50% { border-color: transparent; } 100% { border-color: var(--priority-alta); } }
-        @keyframes bg-spin { to { --border-angle: 360deg; } }
-        @keyframes flash {
-            0% { background-color: var(--primary-accent); }
-            100% { background-color: var(--surface-hover-color); }
+        /* Estilos para a barra de pesquisa */
+        #search-input {
+            transition: width 0.3s ease-in-out;
         }
-        .flash {
-            animation: flash 1s ease-out;
-        }
-        
-        @property --border-angle { syntax: "<angle>"; inherits: true; initial-value: 0deg; }
-
-        @media (max-width: 900px) {
-            header { height: auto; padding: 10px; flex-wrap: wrap; justify-content: center; }
-            .header-left, .header-right { width: 100%; justify-content: center; }
-            body { padding-top: 120px; }
-            main { flex-direction: column; }
-            .status-column { flex: 1 1 auto; max-height: none; }
-        }
-
     </style>
 </head>
-<body>
+<body class="min-h-screen">
 
-    <!-- CABEÇALHO FIXO -->
-    <header>
-        <div class="header-left">
-            <div class="logo">To-do-ADM</div>
-            <div class="dropdown">
-                <button class="menu-button dropdown-toggle">Arquivo ▾</button>
-                <div class="dropdown-content">
-                    <input type="file" id="importFile" accept=".json" style="display: none;">
-                    <button id="importBtn" class="dropdown-item">Importar JSON...</button>
-                    <select id="exportSelect" class="dropdown-item">
-                        <option value="" disabled selected>Exportar como...</option>
-                        <option value="json">JSON</option>
-                        <option value="csv">CSV</option>
-                    </select>
+    <!-- Tela de Carregamento -->
+    <div id="loader" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#111827] transition-opacity duration-500">
+        <div class="text-blue-400 text-2xl font-bold">UNINTA</div>
+        <p class="text-gray-400 mt-2">Carregando manual...</p>
+    </div>
+
+    <!-- Container principal que gerencia o layout da sidebar -->
+    <div id="app-container" class="opacity-0 transition-opacity duration-500">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen bg-gray-900/80 backdrop-blur-lg border-r border-gray-700/60 transition-transform duration-300 ease-in-out">
+            <div class="flex flex-col h-full p-4">
+                <!-- Cabeçalho da Sidebar -->
+                <div class="flex items-center justify-between mb-6 px-2">
+                    <h2 class="text-xl font-bold text-white">Sumário</h2>
+                    <button id="pin-sidebar-btn" class="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-md" title="Fixar/Ocultar menu">
+                        <i data-lucide="pin"></i>
+                    </button>
+                </div>
+                <!-- Navegação -->
+                <nav id="menu-nav-links" class="flex-1 overflow-y-auto custom-scrollbar"></nav>
+                <!-- Controles de Importar/Exportar -->
+                <div class="mt-4 pt-4 border-t border-gray-700 space-y-2">
+                    <button id="import-btn" class="w-full flex items-center justify-center px-3 py-2 text-sm font-medium text-gray-300 bg-gray-700/50 rounded-md hover:bg-gray-700">
+                        <i data-lucide="upload" class="h-4 w-4 mr-2"></i>
+                        Importar Dados
+                    </button>
+                    <button id="export-btn" class="w-full flex items-center justify-center px-3 py-2 text-sm font-medium text-gray-300 bg-gray-700/50 rounded-md hover:bg-gray-700">
+                        <i data-lucide="download" class="h-4 w-4 mr-2"></i>
+                        Exportar Dados
+                    </button>
+                    <input type="file" id="import-file-input" class="hidden" accept=".json">
                 </div>
             </div>
-        </div>
-        <div class="header-right">
-            <div class="menu-item">
-                <label title="Ordenar por Prioridade" style="font-size: 1.5em; cursor: pointer; display: flex; align-items: center;">
-                    <input type="checkbox" id="prioritySortToggle" style="display: none;"> ⇅
-                </label>
-            </div>
-            <div class="search-container">
-                <input type="text" id="searchInput" placeholder="Buscar...">
-                <input type="checkbox" id="searchMode" title="Ativar busca por IA">
-            </div>
-            <div class="menu-item">
-                <select id="filterStatus">
-                    <option value="">Todos Status</option>
-                    <option value="Aberto">Aberto</option>
-                    <option value="Andamento">Em Andamento</option>
-                    <option value="Finalizado">Finalizado</option>
-                    <option value="Aguardando">Aguardando</option>
-                </select>
-            </div>
-            <div class="menu-item">
-                <label style="font-size: 0.8em; margin-right: 5px; display: flex; align-items: center; cursor: pointer;">
-                    <input type="checkbox" id="showCompleted" checked> Mostrar Finalizados
-                </label>
-            </div>
-            <div class="dropdown">
-                <button id="notificationBtn" class="menu-button dropdown-toggle">
-                    🔔
-                    <span id="notification-count" style="display: none;">0</span>
-                </button>
-                <div id="notification-list" class="dropdown-content">
-                    <!-- Notificações serão inseridas aqui -->
-                </div>
-            </div>
-            <div class="dropdown">
-                <button class="menu-button dropdown-toggle">⚙️</button>
-                <div class="dropdown-content">
-                    <button id="setApiKeyBtn" class="dropdown-item">Definir Chave de API</button>
-                    <button id="autoBackupBtn" class="dropdown-item">Backup Automático...</button>
-                </div>
-            </div>
-        </div>
-    </header>
+        </aside>
 
-    <!-- PAINEL KANBAN -->
-    <main id="kanbanBoard"></main>
+        <!-- Botão para abrir a sidebar quando ela está oculta -->
+        <button id="open-sidebar-btn" class="fixed top-4 left-4 z-30 p-2 text-gray-300 bg-gray-800/80 backdrop-blur-sm rounded-full shadow-lg hover:bg-gray-700 transition-opacity duration-300 ease-in-out opacity-0 pointer-events-none">
+            <i data-lucide="menu"></i>
+        </button>
 
-    <!-- BOTÃO ADICIONAR FLUTUANTE -->
-    <button id="addTicketFab" class="fab">+</button>
-
-    <!-- MODAL PARA NOVO/EDITAR TICKET -->
-    <div id="ticketModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button">&times;</span>
-            <h2 id="modalTitle">Novo Ticket</h2>
-            <form id="ticketForm">
-                <input type="hidden" id="ticketId">
-                <div class="form-grid">
-                    <div class="form-field full-width">
-                        <label for="ticketTitle">Título do Ticket</label>
-                        <input type="text" id="ticketTitle" required maxlength="38">
-                    </div>
-                    <div class="form-field">
-                        <label for="ticketStatus">Status</label>
-                        <select id="ticketStatus" required></select>
-                    </div>
-                     <div class="form-field">
-                        <label for="ticketPriority">Prioridade</label>
-                        <select id="ticketPriority" required>
-                            <option value="Baixa">Baixa</option>
-                            <option value="Media">Média</option>
-                            <option value="Alta">Alta</option>
-                        </select>
-                    </div>
-                     <div class="form-field">
-                        <label for="ticketStartDate">Data de Início</label>
-                        <input type="date" id="ticketStartDate" required>
-                    </div>
-                    <div class="form-field">
-                        <label for="ticketDeadline">Prazo Final</label>
-                        <input type="date" id="ticketDeadline" required>
-                    </div>
-                    <div class="form-field full-width">
-                        <label for="ticketSubtasks">Sub-tarefas (uma por linha)</label>
-                        <textarea id="ticketSubtasks" rows="4"></textarea>
-                    </div>
-                    <div class="form-field full-width">
-                        <label>Status de Comunicação</label>
-                        <div class="checkbox-group">
-                            <label><input type="checkbox" id="ticketAviseiRegiana"> Avisei a Regiana</label>
-                            <label><input type="checkbox" id="ticketComuniqueiAluno"> Comuniquei o aluno</label>
-                            <label><input type="checkbox" id="ticketAguardandoRetorno"> Aguardando retorno do aluno</label>
+        <!-- Conteúdo Principal -->
+        <main id="main-content" class="transition-all duration-300 ease-in-out">
+            <div class="container mx-auto px-6 py-8">
+                <!-- Cabeçalho da Página -->
+                <header class="mb-10">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h1 class="header-title text-4xl md:text-5xl font-bold text-white">
+                                Manual Administrativo <span class="text-blue-400">UNINTA</span>
+                            </h1>
+                            <p class="mt-2 text-lg text-gray-400">Guia interativo de procedimentos e informações.</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button id="settings-btn" class="p-2 text-gray-400 bg-gray-800/80 backdrop-blur-sm rounded-full shadow-lg hover:text-white hover:bg-gray-700" title="Configurações">
+                                <i data-lucide="settings-2"></i>
+                            </button>
+                            <div id="search-container" class="flex items-center bg-gray-800/80 backdrop-blur-sm rounded-full shadow-lg">
+                                <input type="text" id="search-input" placeholder="Pesquisar..." class="w-0 bg-transparent text-white placeholder-gray-400 focus:outline-none px-0 ml-2">
+                                <button id="search-btn" class="p-2 text-gray-400 hover:text-white">
+                                    <i data-lucide="search"></i>
+                                </button>
+                                <button id="smart-search-btn" class="p-2 text-blue-400 hover:text-blue-300 hidden" title="Busca Inteligente (IA)">
+                                    <i data-lucide="sparkles"></i>
+                                </button>
+                            </div>
+                            <button id="minimize-all-btn" class="p-2 text-gray-400 bg-gray-800/80 backdrop-blur-sm rounded-full shadow-lg hover:text-white hover:bg-gray-700" title="Minimizar/Expandir Todos">
+                                <i data-lucide="chevrons-up-down"></i>
+                            </button>
                         </div>
                     </div>
-                </div>
-                <div class="form-buttons">
-                    <button type="button" id="deleteTicketBtn" class="btn-delete" style="display:none;">Excluir</button>
-                    <button type="button" class="btn-cancel">Cancelar</button>
-                    <button type="submit" class="btn-save">Salvar</button>
-                </div>
-            </form>
-            <div id="ticket-history" class="modal-extra-section" style="display:none;">
-                <h4>Histórico de Alterações</h4>
-                <ul id="history-list"></ul>
+                </header>
+
+                <!-- Seção de Tópicos Fixados -->
+                <div id="pinned-container" class="mb-10"></div>
+                
+                <!-- Seção de Conteúdo Principal -->
+                <div id="content-sections" class="space-y-6"></div>
             </div>
+        </main>
+    </div>
+
+    <!-- Controles do ADM -->
+    <div id="admin-controls" class="fixed bottom-5 z-20 flex items-center space-x-3 transition-all duration-300 ease-in-out">
+        <button id="admin-toggle-btn" class="p-3 bg-gray-800 rounded-full shadow-lg text-gray-300 hover:bg-gray-700">
+            <i data-lucide="shield"></i>
+        </button>
+        <button id="save-btn" class="hidden items-center px-4 py-2 bg-green-600 text-white font-semibold rounded-full shadow-lg hover:bg-green-700">
+            <i data-lucide="save" class="mr-2 h-5 w-5"></i>
+            Salvar
+        </button>
+    </div>
+    
+    <!-- Botão para Adicionar Novo Card -->
+    <button id="add-card-btn" class="hidden fixed bottom-5 right-5 z-20 p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-transform hover:scale-110">
+        <i data-lucide="plus"></i>
+    </button>
+
+
+    <!-- Modals -->
+    <div id="modal-backdrop" class="fixed inset-0 bg-black/60 z-50 hidden"></div>
+    
+    <div id="confirm-modal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-sm z-50 hidden">
+        <h3 id="modal-title" class="text-lg font-bold text-white">Confirmar Exclusão</h3>
+        <p id="modal-message" class="text-gray-300 mt-2">Você tem certeza que deseja excluir este card? Esta ação não pode ser desfeita.</p>
+        <div class="mt-6 flex justify-end space-x-4">
+            <button id="modal-cancel-btn" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-500">Cancelar</button>
+            <button id="modal-confirm-btn" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-500">Excluir</button>
         </div>
     </div>
 
+    <div id="settings-panel" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md z-50 hidden">
+        <div class="flex justify-between items-center">
+            <h3 class="text-lg font-bold text-white">Configurações</h3>
+            <button id="settings-close-btn" class="p-1 text-gray-400 hover:text-white"><i data-lucide="x"></i></button>
+        </div>
+        <div class="mt-4 space-y-4">
+            <div>
+                <label for="api-key-input" class="block text-sm font-medium text-gray-300">Chave de API (Google AI Studio)</label>
+                <input type="password" id="api-key-input" class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                <p class="mt-1 text-xs text-gray-400">Sua chave é salva apenas no seu navegador.</p>
+            </div>
+            <div class="flex justify-end">
+                <button id="save-api-key-btn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500">Salvar Chave</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="smart-search-modal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-2xl z-50 hidden">
+         <div class="flex justify-between items-center">
+            <h3 class="text-lg font-bold text-white flex items-center"><i data-lucide="sparkles" class="mr-2 text-blue-400"></i> Resposta da IA</h3>
+            <button id="smart-search-close-btn" class="p-1 text-gray-400 hover:text-white"><i data-lucide="x"></i></button>
+        </div>
+        <div id="smart-search-result" class="mt-4 prose prose-invert max-w-none text-gray-300"></div>
+    </div>
+
+    
+    <!-- Barra de ferramentas flutuante para destaque de texto -->
+    <div id="highlight-toolbar">
+        <div class="flex space-x-2 items-center">
+            <div class="color-swatch" style="background-color: #FBBF24;" data-color="#FBBF24" title="Amarelo"></div>
+            <div class="color-swatch" style="background-color: #3B82F6;" data-color="#3B82F6" title="Azul"></div>
+            <div class="color-swatch" style="background-color: #EC4899;" data-color="#EC4899" title="Rosa"></div>
+            <div class="color-swatch" style="background-color: #22C55E;" data-color="#22C55E" title="Verde"></div>
+            <div class="h-5 border-l border-gray-600"></div>
+            <button id="remove-color-btn" class="p-1 text-gray-400 hover:text-white" title="Remover Cor">
+                <i data-lucide="remove-formatting" class="h-5 w-5"></i>
+            </button>
+        </div>
+    </div>
+
+
+    <!-- Templates -->
+    <template id="section-template">
+        <section class="bg-gray-800/70 backdrop-blur-sm border border-gray-700/80 rounded-xl shadow-lg transition-all duration-300 ease-in-out" draggable="false">
+            <div class="p-6">
+                <div class="flex justify-between items-start">
+                    <div class="prose prose-invert max-w-none w-full text-gray-300">
+                        <h2 class="text-2xl font-bold text-white mb-4" data-editable></h2>
+                        <div class="card-content-wrapper">
+                            <div data-editable></div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-center space-y-2 ml-4 flex-shrink-0">
+                        <button class="pin-btn text-gray-500 hover:text-blue-400 transition-colors p-1" title="Fixar Tópico no Topo">
+                            <i data-lucide="bookmark-plus" class="h-5 w-5"></i>
+                        </button>
+                        <button class="clone-btn hidden text-gray-500 hover:text-green-400 transition-colors p-1" title="Clonar Card">
+                            <i data-lucide="copy" class="h-5 w-5"></i>
+                        </button>
+                        <button class="delete-btn hidden text-gray-500 hover:text-red-400 transition-colors p-1" title="Excluir Card">
+                            <i data-lucide="trash-2" class="h-5 w-5"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </template>
+
+    <template id="pinned-item-template">
+        <div class="bg-blue-600/80 backdrop-blur-sm border border-blue-500 text-white rounded-lg p-4 shadow-lg flex justify-between items-center">
+            <a href="#" class="font-semibold hover:underline"></a>
+            <button class="unpin-btn text-white/70 hover:text-white" title="Desafixar Tópico">
+                <i data-lucide="bookmark-minus" class="h-5 w-5"></i>
+            </button>
+        </div>
+    </template>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // --- VARIÁVEIS E CONSTANTES GLOBAIS ---
-            const kanbanBoard = document.getElementById('kanbanBoard');
-            const ticketForm = document.getElementById('ticketForm');
-            const searchInput = document.getElementById('searchInput');
-            const searchMode = document.getElementById('searchMode');
-            const filterStatus = document.getElementById('filterStatus');
-            const addTicketFab = document.getElementById('addTicketFab');
-            const showCompletedCheckbox = document.getElementById('showCompleted');
-            const notificationList = document.getElementById('notification-list');
-            const notificationCount = document.getElementById('notification-count');
-            const prioritySortToggle = document.getElementById('prioritySortToggle');
+            // --- DADOS INICIAIS ---
+            const initialData = [];
 
-            let tickets = [];
-            let googleApiKey = '';
-            let editCount = 0;
-            let autoBackupCount = 5; // Default
-            const statuses = ['Aberto', 'Andamento', 'Aguardando', 'Finalizado'];
-            const statusColors = {
-                Aberto: 'var(--status-aberto)', Andamento: 'var(--status-andamento)',
-                Finalizado: 'var(--status-finalizado)', Aguardando: 'var(--status-aguardando)',
-            };
-            const priorityColors = {
-                Alta: 'var(--priority-alta)', Media: 'var(--priority-media)', Baixa: 'var(--priority-baixa)',
-            };
+            // --- ESTADO DA APLICAÇÃO ---
+            let state = { isAdmin: false, content: [], pinnedItems: [], isSidebarPinned: true, areCardsMinimized: false };
 
-            // --- FUNÇÕES DE LÓGICA DE DADOS ---
-            const loadData = () => {
-                const data = localStorage.getItem('todo-adm-tickets-v9'); // Version bump for data structure change
-                googleApiKey = localStorage.getItem('todo-adm-google-api-key') || '';
-                autoBackupCount = parseInt(localStorage.getItem('todo-adm-autobackup-count') || '5', 10);
-                editCount = parseInt(localStorage.getItem('todo-adm-edit-count') || '0', 10);
-                tickets = data ? JSON.parse(data) : [];
-                migrateDataStructure();
-                renderNotifications();
-            };
+            // --- ELEMENTOS DO DOM ---
+            const appContainer = document.getElementById('app-container');
+            const mainContent = document.getElementById('main-content');
+            const contentSections = document.getElementById('content-sections');
+            const pinnedContainer = document.getElementById('pinned-container');
+            const sectionTemplate = document.getElementById('section-template');
+            const pinnedItemTemplate = document.getElementById('pinned-item-template');
+            const adminControls = document.getElementById('admin-controls');
+            const adminToggleBtn = document.getElementById('admin-toggle-btn');
+            const saveBtn = document.getElementById('save-btn');
+            const addCardBtn = document.getElementById('add-card-btn');
             
-            const migrateDataStructure = () => {
-                let needsSave = false;
-                tickets.forEach(ticket => {
-                    // This function now handles migration from old tags (string) to subtasks (array of objects)
-                    if (ticket.requirements && typeof ticket.requirements === 'string') {
-                        needsSave = true;
-                        ticket.subtasks = ticket.requirements.split(',')
-                            .map(name => name.trim())
-                            .filter(name => name)
-                            .map(name => ({ name: name, completed: false }));
-                        delete ticket.requirements;
-                    } else if (ticket.requirements && Array.isArray(ticket.requirements)) {
-                        // This handles migration from the intermediate tag object format
-                        needsSave = true;
-                        ticket.subtasks = ticket.requirements.map(req => ({
-                            name: req.name,
-                            completed: req.completed || false
-                        }));
-                        delete ticket.requirements;
-                    } else if (!ticket.subtasks) {
-                        ticket.subtasks = [];
+            const sidebar = document.getElementById('sidebar');
+            const pinSidebarBtn = document.getElementById('pin-sidebar-btn');
+            const openSidebarBtn = document.getElementById('open-sidebar-btn');
+            const menuNavLinks = document.getElementById('menu-nav-links');
+
+            const modalBackdrop = document.getElementById('modal-backdrop');
+            const confirmModal = document.getElementById('confirm-modal');
+            const modalConfirmBtn = document.getElementById('modal-confirm-btn');
+            const modalCancelBtn = document.getElementById('modal-cancel-btn');
+
+            const settingsPanel = document.getElementById('settings-panel');
+            const settingsBtn = document.getElementById('settings-btn');
+            const settingsCloseBtn = document.getElementById('settings-close-btn');
+            const apiKeyInput = document.getElementById('api-key-input');
+            const saveApiKeyBtn = document.getElementById('save-api-key-btn');
+
+            const searchInput = document.getElementById('search-input');
+            const searchBtn = document.getElementById('search-btn');
+            const smartSearchBtn = document.getElementById('smart-search-btn');
+            const smartSearchModal = document.getElementById('smart-search-modal');
+            const smartSearchResult = document.getElementById('smart-search-result');
+            const smartSearchCloseBtn = document.getElementById('smart-search-close-btn');
+
+            const highlightToolbar = document.getElementById('highlight-toolbar');
+            const minimizeAllBtn = document.getElementById('minimize-all-btn');
+
+            const importBtn = document.getElementById('import-btn');
+            const exportBtn = document.getElementById('export-btn');
+            const importFileInput = document.getElementById('import-file-input');
+
+            // --- FUNÇÕES ---
+            function updateStateFromDOM() {
+                const currentOrderIds = Array.from(contentSections.children).map(sectionEl => sectionEl.dataset.id);
+                const contentMap = new Map(state.content.map(item => [item.id, item]));
+
+                const reorderedContent = currentOrderIds.map(id => {
+                    const sectionEl = document.getElementById(id);
+                    const title = sectionEl.querySelector('h2').innerText;
+                    const content = sectionEl.querySelector('div[data-editable]').innerHTML;
+                    const originalItem = contentMap.get(id);
+                    return { ...originalItem, title, content };
+                });
+
+                state.content.forEach(item => {
+                    if (!reorderedContent.find(rc => rc.id === item.id)) {
+                        reorderedContent.push(item);
                     }
                 });
-                if (needsSave) {
-                    saveData(false);
-                }
-            };
+                state.content = reorderedContent;
+            }
 
-            const saveData = (trackEdit = true) => {
-                localStorage.setItem('todo-adm-tickets-v9', JSON.stringify(tickets));
-                renderNotifications();
+            function saveState() {
+                localStorage.setItem('unintaManualState', JSON.stringify({ content: state.content, pinnedItems: state.pinnedItems }));
+                
+                saveBtn.innerHTML = `<i data-lucide="check-circle" class="mr-2 h-5 w-5"></i> Salvo!`;
+                lucide.createIcons();
+                setTimeout(() => {
+                    saveBtn.innerHTML = `<i data-lucide="save" class="mr-2 h-5 w-5"></i> Salvar`;
+                    lucide.createIcons();
+                }, 2000);
+            }
 
-                if (trackEdit && autoBackupCount > 0) {
-                    editCount++;
-                    localStorage.setItem('todo-adm-edit-count', editCount.toString());
-                    if (editCount >= autoBackupCount) {
-                        handleAutoBackup();
-                        editCount = 0; 
-                        localStorage.setItem('todo-adm-edit-count', '0');
-                    }
-                }
-            };
-            
-            const addLogEntry = (ticket, action, user = "Usuário") => {
-                if (!ticket.history) ticket.history = [];
-                ticket.history.unshift({ action, user, timestamp: new Date().toISOString() });
-                if (ticket.history.length > 20) ticket.history.pop();
-            };
-
-            // --- RENDERIZAÇÃO DA UI ---
-            const renderBoard = async () => {
-                const filteredTickets = await getFilteredTickets();
-                const statusFilter = filterStatus.value;
-                kanbanBoard.innerHTML = ''; // Limpa o painel primeiro
-                kanbanBoard.onscroll = null; // Limpa o listener de scroll anterior
-
-                if (statusFilter && statusFilter !== '') {
-                    renderListView(filteredTickets);
+            function loadState() {
+                const savedState = localStorage.getItem('unintaManualState');
+                if (savedState) {
+                    const parsedState = JSON.parse(savedState);
+                    state.content = parsedState.content;
+                    state.pinnedItems = parsedState.pinnedItems || [];
                 } else {
-                    renderKanbanView(filteredTickets);
-                }
-                setupDragAndDrop();
-            };
-
-            const renderKanbanView = (filteredTickets) => {
-                kanbanBoard.classList.remove('list-view');
-                if (filteredTickets.length === 0 && tickets.length > 0) {
-                    kanbanBoard.innerHTML = '<p style="padding: 20px; color: #aaa;">Nenhum ticket encontrado com os filtros atuais.</p>';
+                    state.content = initialData;
+                    state.pinnedItems = [];
                 }
                 
-                statuses.forEach(status => {
-                    if (!showCompletedCheckbox.checked && status === 'Finalizado') return;
-                    
-                    const column = document.createElement('div');
-                    column.className = 'status-column';
-                    column.id = `column-${status.replace(/\s+/g, '')}`;
-                    column.dataset.status = status;
-                    column.style.borderColor = statusColors[status];
+                const savedSidebarPin = localStorage.getItem('sidebarPinned');
+                state.isSidebarPinned = window.innerWidth < 1024 ? false : (savedSidebarPin === null ? true : JSON.parse(savedSidebarPin));
 
-                    const ticketsInColumn = filteredTickets.filter(t => t.status === status);
+                apiKeyInput.value = localStorage.getItem('geminiApiKey') || '';
+                updateSmartSearchButton();
 
-                    if (prioritySortToggle.checked) {
-                        const priorityOrder = { 'Alta': 0, 'Media': 1, 'Baixa': 2 };
-                        ticketsInColumn.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
-                    }
+                render();
 
-                    column.innerHTML = `
-                        <div class="column-header">
-                            <span>${status}</span>
-                            <span class="ticket-count">${ticketsInColumn.length}</span>
-                        </div>
-                        <div class="tickets-container"></div>
-                    `;
-                    kanbanBoard.appendChild(column);
-                    
-                    const ticketsContainer = column.querySelector('.tickets-container');
-                    ticketsInColumn.forEach(ticket => {
-                        const ticketCard = createTicketCard(ticket);
-                        ticketsContainer.appendChild(ticketCard);
+                // Esconde o loader e mostra o conteúdo
+                const loader = document.getElementById('loader');
+                
+                setTimeout(() => {
+                    loader.classList.add('opacity-0');
+                    appContainer.classList.remove('opacity-0');
+                    // Remove o loader do DOM após a transição
+                    setTimeout(() => loader.style.display = 'none', 500);
+                }, 100); 
+            }
+
+            function render() {
+                contentSections.innerHTML = '';
+                pinnedContainer.innerHTML = '';
+                menuNavLinks.innerHTML = '';
+                const contentMap = new Map(state.content.map(item => [item.id, item]));
+
+                if (state.pinnedItems.length > 0) {
+                    const pinnedHeader = document.createElement('h3');
+                    pinnedHeader.className = "text-xl font-bold text-white mb-4 flex items-center";
+                    pinnedHeader.innerHTML = `<i data-lucide="bookmark-check" class="h-5 w-5 mr-2 text-blue-400"></i> Tópicos Fixados`;
+                    pinnedContainer.appendChild(pinnedHeader);
+                    const pinnedGrid = document.createElement('div');
+                    pinnedGrid.className = 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4';
+                    state.pinnedItems.forEach(id => {
+                        const item = contentMap.get(id);
+                        if (!item) return;
+                        const pinnedClone = pinnedItemTemplate.content.cloneNode(true);
+                        const link = pinnedClone.querySelector('a');
+                        link.textContent = item.title;
+                        link.href = `#${item.id}`;
+                        link.onclick = (e) => { e.preventDefault(); document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth' }); };
+                        pinnedClone.querySelector('.unpin-btn').addEventListener('click', (e) => { e.preventDefault(); toggleContentPin(item.id); });
+                        pinnedGrid.appendChild(pinnedClone);
                     });
-                });
-            };
-
-            const renderListView = (filteredTickets) => {
-                kanbanBoard.classList.add('list-view');
-                if (filteredTickets.length === 0) {
-                    kanbanBoard.innerHTML = '<p style="padding: 20px; color: #aaa;">Nenhum ticket encontrado com o status selecionado.</p>';
-                    return;
-                }
-                if (prioritySortToggle.checked) {
-                    const priorityOrder = { 'Alta': 0, 'Media': 1, 'Baixa': 2 };
-                    filteredTickets.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+                    pinnedContainer.appendChild(pinnedGrid);
                 }
 
-                // Simple render loop, no virtual scrolling
-                filteredTickets.forEach(ticket => {
-                    const ticketRow = createTicketRow(ticket);
-                    kanbanBoard.appendChild(ticketRow);
-                });
-            };
-
-            const createChecklistHTML = (subtasks, ticketId) => {
-                if (!subtasks || subtasks.length === 0) return '';
-
-                const sortedTasks = [...subtasks].sort((a, b) => a.completed - b.completed);
-                const completedCount = subtasks.filter(t => t.completed).length;
-                const totalCount = subtasks.length;
-                const progress = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
-
-                const itemsHTML = sortedTasks.map((task, index) => `
-                    <div class="checklist-item">
-                        <input type="checkbox" id="task-${ticketId}-${index}" data-task-name="${task.name}" ${task.completed ? 'checked' : ''}>
-                        <label for="task-${ticketId}-${index}">${task.name}</label>
-                    </div>
-                `).join('');
-
-                const progressHTML = `
-                    <div class="checklist-progress">
-                        <span>${completedCount}/${totalCount}</span>
-                        <div class="progress-bar">
-                            <div class="progress-bar-inner" style="width: ${progress}%;"></div>
-                        </div>
-                    </div>
-                `;
-
-                const itemsContainerHTML = `
-                    <div class="checklist-items">
-                        ${itemsHTML}
-                    </div>
-                    ${sortedTasks.length > 3 ? '<button class="toggle-checklist">Mostrar mais...</button>' : ''}
-                `;
-
-                return { progressHTML, itemsContainerHTML };
-            };
-            
-            const createTicketCard = (ticket) => {
-                const card = document.createElement('div');
-                card.className = 'ticket-card';
-                card.draggable = true;
-                card.dataset.id = ticket.id;
-                card.style.borderColor = statusColors[ticket.status];
-
-                const now = new Date();
-                const deadline = new Date(ticket.deadline);
-                const isOverdue = deadline < now && ticket.status !== 'Finalizado';
-                const nearingDeadline = !isOverdue && (deadline - now) / (1000 * 3600) <= 24 && ticket.status !== 'Finalizado';
-                
-                let communicationHTML = '';
-                if (ticket.aviseiRegiana || ticket.comuniqueiAluno || ticket.aguardandoRetorno) {
-                    communicationHTML += '<div class="communication-status">';
-                    if (ticket.aviseiRegiana) communicationHTML += '<span class="comm-icon" title="Regiana foi avisada">R</span>';
-                    if (ticket.comuniqueiAluno) communicationHTML += '<span class="comm-icon" title="Aluno comunicado">A</span>';
-                    if (ticket.aguardandoRetorno) communicationHTML += '<span class="comm-icon" title="Aguardando retorno do aluno">⏳</span>';
-                    communicationHTML += '</div>';
-                }
-
-                const checklist = createChecklistHTML(ticket.subtasks, ticket.id);
-                const checklistHTML = checklist ? `
-                    <div class="checklist">
-                        ${checklist.progressHTML}
-                        ${checklist.itemsContainerHTML}
-                    </div>` : '';
-
-
-                card.innerHTML = `
-                    <div class="ticket-header">
-                        <select data-id="${ticket.id}" class="card-status-select">
-                            ${statuses.map(s => `<option value="${s}" ${s === ticket.status ? 'selected' : ''}>${s}</option>`).join('')}
-                        </select>
-                        <span class="ticket-priority" style="background-color: ${priorityColors[ticket.priority]}">${ticket.priority}</span>
-                    </div>
-                    <div class="ticket-content">
-                        <strong>${ticket.title}</strong>
-                        ${checklistHTML}
-                    </div>
-                    <div class="ticket-footer">
-                        <div class="footer-left">
-                           ${communicationHTML}
-                           <span class="last-seen">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/><path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/></svg>
-                                <span class="last-seen-text">${formatTimeAgo(ticket.lastSeen)}</span>
-                           </span>
-                        </div>
-                        <div class="deadline-wrapper ${isOverdue || nearingDeadline ? 'alert' : ''}">
-                            <span>Prazo: ${new Date(ticket.deadline).toLocaleDateString()}</span>
-                        </div>
-                    </div>
-                `;
-                
-                card.querySelector('.card-status-select').addEventListener('click', (e) => e.stopPropagation());
-                card.querySelector('.card-status-select').addEventListener('change', handleQuickStatusChange);
-
-                card.addEventListener('click', (e) => {
-                    if (e.target.classList.contains('toggle-checklist')) {
-                         e.stopPropagation();
-                         const container = e.target.previousElementSibling;
-                         container.classList.toggle('expanded');
-                         e.target.textContent = container.classList.contains('expanded') ? 'Mostrar menos' : 'Mostrar mais...';
-                    } else if (e.target.matches('.checklist-item, .checklist-item *')) {
-                        e.stopPropagation();
-                        const item = e.target.closest('.checklist-item');
-                        const checkbox = item.querySelector('input[type="checkbox"]');
-                        if (e.target !== checkbox) {
-                           checkbox.checked = !checkbox.checked;
-                        }
-                        handleSubtaskCheck(ticket.id, checkbox.dataset.taskName, checkbox.checked);
-                    } else {
-                        handleMarkAsSeen(ticket.id);
-                        openModal('ticketModal', ticket.id);
-                    }
-                });
-
-                return card;
-            };
-
-            const createTicketRow = (ticket) => {
-                const row = document.createElement('div');
-                row.className = 'ticket-row';
-                row.dataset.id = ticket.id;
-                row.style.borderColor = statusColors[ticket.status];
-
-                const now = new Date();
-                const deadline = new Date(ticket.deadline);
-                const isOverdue = deadline < now && ticket.status !== 'Finalizado';
-                
-                let communicationHTML = '';
-                if (ticket.aviseiRegiana || ticket.comuniqueiAluno || ticket.aguardandoRetorno) {
-                    communicationHTML += '<div class="communication-status">';
-                    if (ticket.aviseiRegiana) communicationHTML += '<span class="comm-icon" title="Regiana foi avisada">R</span>';
-                    if (ticket.comuniqueiAluno) communicationHTML += '<span class="comm-icon" title="Aluno comunicado">A</span>';
-                    if (ticket.aguardandoRetorno) communicationHTML += '<span class="comm-icon" title="Aguardando retorno do aluno">⏳</span>';
-                    communicationHTML += '</div>';
-                }
-
-                const checklist = createChecklistHTML(ticket.subtasks, ticket.id);
-                const checklistHTML = checklist ? `
-                    <div class="checklist">
-                        ${checklist.itemsContainerHTML}
-                    </div>` : '';
-                
-                row.innerHTML = `
-                    <div class="ticket-row-main">
-                        <div class="ticket-row-top">
-                            <div class="ticket-row-title-header">
-                                <strong>${ticket.title}</strong>
-                                ${checklist ? checklist.progressHTML : ''}
-                            </div>
-                            <div class="ticket-row-end">
-                                ${communicationHTML}
-                                <span class="last-seen">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/><path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/></svg>
-                                    <span class="last-seen-text">${formatTimeAgo(ticket.lastSeen)}</span>
-                                </span>
-                                <span class="ticket-priority" style="background-color: ${priorityColors[ticket.priority]}">${ticket.priority}</span>
-                                <div class="deadline-wrapper ${isOverdue ? 'alert' : ''}">
-                                    <span>Prazo: ${new Date(ticket.deadline).toLocaleDateString()}</span>
-                                </div>
-                                <select data-id="${ticket.id}" class="card-status-select">
-                                    ${statuses.map(s => `<option value="${s}" ${s === ticket.status ? 'selected' : ''}>${s}</option>`).join('')}
-                                </select>
-                            </div>
-                        </div>
-                        ${checklistHTML}
-                    </div>
-                `;
-                
-                row.addEventListener('click', (e) => {
-                    if (e.target.classList.contains('toggle-checklist')) {
-                         e.stopPropagation();
-                         const container = e.target.previousElementSibling;
-                         container.classList.toggle('expanded');
-                         e.target.textContent = container.classList.contains('expanded') ? 'Mostrar menos' : 'Mostrar mais...';
-                    } else if (e.target.matches('.checklist-item, .checklist-item *')) {
-                        e.stopPropagation();
-                        const item = e.target.closest('.checklist-item');
-                        const checkbox = item.querySelector('input[type="checkbox"]');
-                        if (e.target !== checkbox) {
-                           checkbox.checked = !checkbox.checked;
-                        }
-                        handleSubtaskCheck(ticket.id, checkbox.dataset.taskName, checkbox.checked);
-                    } else if (e.target.tagName.toLowerCase() !== 'select') {
-                        handleMarkAsSeen(ticket.id);
-                        openModal('ticketModal', ticket.id);
-                    }
-                });
-                
-                const statusSelect = row.querySelector('.card-status-select');
-                statusSelect.addEventListener('change', handleQuickStatusChange);
-                statusSelect.addEventListener('click', (e) => e.stopPropagation());
-
-                return row;
-            };
-
-            const getFilteredTickets = async () => {
-                const searchTerm = searchInput.value.toLowerCase();
-                const statusFilter = filterStatus.value;
-                
-                let baseTickets = tickets;
-
-                if (searchMode.checked && searchTerm) {
-                    searchInput.disabled = true;
-                    searchInput.placeholder = 'Pesquisando com IA...';
-                    try {
-                        const aiFilteredIds = await performAISearch(searchTerm);
-                        baseTickets = tickets.filter(t => aiFilteredIds.includes(t.id));
-                    } catch (error) {
-                        alert(`Erro na busca com IA: ${error.message}`);
-                        baseTickets = tickets.filter(ticket => 
-                            (ticket.title && ticket.title.toLowerCase().includes(searchTerm)) ||
-                            (ticket.subtasks && ticket.subtasks.some(r => r.name.toLowerCase().includes(searchTerm)))
-                        );
-                    } finally {
-                        searchInput.disabled = false;
-                        searchInput.placeholder = 'Buscar...';
-                    }
-                } else if (searchTerm) {
-                    baseTickets = tickets.filter(ticket => 
-                        (ticket.title && ticket.title.toLowerCase().includes(searchTerm)) ||
-                        (ticket.subtasks && ticket.subtasks.some(r => r.name.toLowerCase().includes(searchTerm)))
-                    );
-                }
-
-                return baseTickets.filter(ticket => {
-                    const matchesStatus = statusFilter === '' || ticket.status === statusFilter;
-                    const matchesCompleted = showCompletedCheckbox.checked || ticket.status !== 'Finalizado';
-                    return matchesStatus && matchesCompleted;
-                });
-            };
-
-            // --- LÓGICA DE IA ---
-            const performAISearch = async (query) => {
-                if (!googleApiKey) throw new Error("Chave de API do Google não definida. Por favor, defina nas configurações.");
-                
-                const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${googleApiKey}`;
-                
-                let ticketsToSearch = showCompletedCheckbox.checked ? tickets : tickets.filter(t => t.status !== 'Finalizado');
-                const simplifiedTickets = ticketsToSearch.map(({ id, title, subtasks, priority, deadline }) => ({ 
-                    id, 
-                    title, 
-                    subtasks: subtasks.map(r => r.name).join(', '), 
-                    priority, 
-                    deadline 
-                }));
-
-                const prompt = `Você é um assistente de kanban. Analise as tarefas JSON. A data atual é ${new Date().toLocaleDateString()}. Pesquisa do usuário: "${query}". Retorne um array JSON com os IDs das tarefas mais relevantes. Lista: ${JSON.stringify(simplifiedTickets)}. Responda apenas com o array de IDs.`;
-
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { response_mime_type: "application/json" } })
-                });
-
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error.message || "Erro na API do Google.");
-                }
-
-                const data = await response.json();
-                return JSON.parse(data.candidates[0].content.parts[0].text);
-            };
-
-            // --- NOTIFICAÇÕES ---
-            const renderNotifications = () => {
-                notificationList.innerHTML = '';
-                const now = new Date();
-                let count = 0;
-
-                const urgentTickets = tickets.filter(ticket => {
-                    if (ticket.status === 'Finalizado') return false;
-                    const deadline = new Date(ticket.deadline);
-                    const hoursRemaining = (deadline - now) / (1000 * 3600);
-                    return hoursRemaining <= 24;
-                });
-
-                if (urgentTickets.length === 0) {
-                    notificationList.innerHTML = '<div class="notification-item"><p>Nenhuma notificação</p></div>';
-                    notificationCount.style.display = 'none';
-                    return;
-                }
-
-                urgentTickets.sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
-
-                urgentTickets.forEach(ticket => {
-                    const deadline = new Date(ticket.deadline);
-                    const isOverdue = deadline < now;
-                    const message = isOverdue ? 'Ticket Atrasado!' : 'Vence em menos de 24h!';
-                    
-                    const item = document.createElement('div');
-                    item.className = 'notification-item';
-                    item.dataset.ticketId = ticket.id;
-                    item.innerHTML = `
-                        <div class="notification-info">
-                            <p><strong>${ticket.title}</strong></p>
-                            <small style="color: ${isOverdue ? 'var(--priority-alta)' : 'var(--status-aberto)'}">${message}</small>
-                        </div>
-                        <select data-id="${ticket.id}" class="card-status-select">
-                            ${statuses.map(s => `<option value="${s}" ${s === ticket.status ? 'selected' : ''}>${s}</option>`).join('')}
-                        </select>
-                    `;
-                    notificationList.appendChild(item);
-                });
-
-                count = urgentTickets.length;
-                notificationCount.textContent = count;
-                notificationCount.style.display = count > 0 ? 'flex' : 'none';
-            };
-
-            const requestNotificationPermission = () => {
-                if ('Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
-                    Notification.requestPermission();
-                }
-            };
-
-            const checkDeadlinesForDesktop = () => {
-                const now = new Date();
-                tickets.forEach(ticket => {
-                    if (ticket.status === 'Finalizado') return;
-                    const deadline = new Date(ticket.deadline);
-                    const hoursRemaining = (deadline - now) / (1000 * 3600);
-                    if (hoursRemaining > 0 && hoursRemaining <= 24) {
-                        showDesktopNotification(`Ticket próximo do prazo: "${ticket.title}"`, `O prazo termina em menos de 24 horas.`);
-                    }
-                });
-            };
-
-            const showDesktopNotification = (title, body) => {
-                if ('Notification' in window && Notification.permission === 'granted') {
-                    new Notification(title, { body });
-                }
-            };
-
-            // --- MODAL E FORMULÁRIOS ---
-            const openModal = (modalId, ticketId = null) => {
-                const modal = document.getElementById(modalId);
-                if (modalId === 'ticketModal') setupTicketModal(ticketId);
-                modal.style.display = 'block';
-            };
-
-            const closeModal = (modalId) => document.getElementById(modalId).style.display = 'none';
-
-            const setupTicketModal = (ticketId) => {
-                ticketForm.reset();
-                document.getElementById('ticket-history').style.display = 'none';
-                document.getElementById('ticketStatus').innerHTML = statuses.map(s => `<option value="${s}">${s}</option>`).join('');
-
-                if (ticketId) {
-                    const ticket = tickets.find(t => t.id === ticketId);
-                    document.getElementById('modalTitle').textContent = 'Editar Ticket';
-                    
-                    document.getElementById('ticketId').value = ticket.id;
-                    document.getElementById('ticketTitle').value = ticket.title;
-                    document.getElementById('ticketStatus').value = ticket.status;
-                    document.getElementById('ticketPriority').value = ticket.priority;
-                    document.getElementById('ticketStartDate').value = ticket.startDate;
-                    document.getElementById('ticketDeadline').value = ticket.deadline;
-                    document.getElementById('ticketAviseiRegiana').checked = ticket.aviseiRegiana;
-                    document.getElementById('ticketComuniqueiAluno').checked = ticket.comuniqueiAluno;
-                    document.getElementById('ticketAguardandoRetorno').checked = ticket.aguardandoRetorno;
-                    
-                    if (Array.isArray(ticket.subtasks)) {
-                        document.getElementById('ticketSubtasks').value = ticket.subtasks.map(r => r.name).join('\n');
-                    } else {
-                         document.getElementById('ticketSubtasks').value = '';
-                    }
-
-                    if (ticket.history?.length > 0) renderHistoryInModal(ticket.history);
-                    document.getElementById('deleteTicketBtn').style.display = 'inline-block';
-                } else {
-                    document.getElementById('modalTitle').textContent = 'Novo Ticket';
-                    document.getElementById('ticketId').value = '';
-                    document.getElementById('ticketStartDate').value = new Date().toISOString().split('T')[0];
-                    document.getElementById('deleteTicketBtn').style.display = 'none';
-                }
-            };
-            
-            const renderHistoryInModal = (history) => {
-                const historyContainer = document.getElementById('ticket-history');
-                historyContainer.style.display = 'block';
-                document.getElementById('history-list').innerHTML = history.map(log => 
-                    `<li>${new Date(log.timestamp).toLocaleString()}: ${log.action} (por ${log.user})</li>`
-                ).join('');
-            };
-
-            // --- HANDLERS DE EVENTOS ---
-            const capitalizeWords = (str) => {
-                return str.toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
-            };
-
-            const handleFormSubmit = (e) => {
-                e.preventDefault();
-                const id = document.getElementById('ticketId').value;
-                const originalTicket = id ? { ...tickets.find(t => t.id === id) } : null;
-                
-                const newSubtasksString = document.getElementById('ticketSubtasks').value.trim();
-                const newSubtasksNames = newSubtasksString.split('\n').map(name => name.trim()).filter(name => name);
-                
-                const newSubtasks = newSubtasksNames.map(name => {
-                    const existingTask = originalTicket?.subtasks.find(r => r.name === name);
-                    return { name: name, completed: existingTask ? existingTask.completed : false };
-                });
-
-                const ticketData = {
-                    id: id || Date.now().toString(),
-                    title: capitalizeWords(document.getElementById('ticketTitle').value.trim()),
-                    status: document.getElementById('ticketStatus').value,
-                    startDate: document.getElementById('ticketStartDate').value,
-                    deadline: document.getElementById('ticketDeadline').value,
-                    priority: document.getElementById('ticketPriority').value,
-                    subtasks: newSubtasks,
-                    aviseiRegiana: document.getElementById('ticketAviseiRegiana').checked,
-                    comuniqueiAluno: document.getElementById('ticketComuniqueiAluno').checked,
-                    aguardandoRetorno: document.getElementById('ticketAguardandoRetorno').checked,
-                    history: originalTicket?.history || [],
-                    lastSeen: new Date().toISOString() // Update on save
-                };
-
-                if (id) {
-                    const index = tickets.findIndex(t => t.id === id);
-                    const changes = getChanges(originalTicket, ticketData);
-                    if (changes) addLogEntry(ticketData, `Ticket editado: ${changes}`);
-                    tickets[index] = ticketData;
-                } else {
-                    addLogEntry(ticketData, 'Ticket criado.');
-                    tickets.push(ticketData);
-                }
-                saveData();
-                renderBoard();
-                closeModal('ticketModal');
-            };
-            
-            const getChanges = (oldT, newT) => Object.keys(newT).filter(key => key !== 'history' && JSON.stringify(oldT[key]) !== JSON.stringify(newT[key])).map(key => `${key} alterado`).join(', ');
-
-            const handleDeleteTicket = () => {
-                if (confirm('Tem certeza que deseja excluir este ticket?')) {
-                    const id = document.getElementById('ticketId').value;
-                    tickets = tickets.filter(t => t.id !== id);
-                    saveData();
-                    renderBoard();
-                    closeModal('ticketModal');
-                }
-            };
-            
-            const handleSetApiKey = () => {
-                const key = prompt("Insira sua chave de API do Google AI Studio:", googleApiKey);
-                if (key !== null) {
-                    googleApiKey = key.trim();
-                    localStorage.setItem('todo-adm-google-api-key', googleApiKey);
-                    alert("Chave de API salva com sucesso!");
-                }
-            };
-
-            const handleQuickStatusChange = (e) => {
-                e.stopPropagation();
-                const ticketId = e.target.dataset.id;
-                const newStatus = e.target.value;
-                const ticketToUpdate = tickets.find(t => t.id === ticketId);
-
-                if (ticketToUpdate && ticketToUpdate.status !== newStatus) {
-                    addLogEntry(ticketToUpdate, `Status alterado de "${ticketToUpdate.status}" para "${newStatus}"`);
-                    ticketToUpdate.status = newStatus;
-                    updateLastSeenTimestamp(ticketToUpdate);
-                    saveData();
-                    renderBoard();
-                }
-            };
-
-            const handleSubtaskCheck = (ticketId, taskName, isChecked) => {
-                const ticket = tickets.find(t => t.id === ticketId);
-                if (!ticket) return;
-
-                const task = ticket.subtasks.find(r => r.name === taskName);
-                if (!task) return;
-
-                task.completed = isChecked;
-                addLogEntry(ticket, `Sub-tarefa "${taskName}" marcada como ${task.completed ? 'concluída' : 'pendente'}.`);
-                updateLastSeenTimestamp(ticket);
-                saveData();
-
-                const currentElement = document.querySelector(`.ticket-card[data-id="${ticketId}"], .ticket-row[data-id="${ticketId}"]`);
-                if (currentElement) {
-                    let newElement;
-                    if (currentElement.classList.contains('ticket-card')) {
-                        newElement = createTicketCard(ticket);
-                    } else {
-                        newElement = createTicketRow(ticket);
-                    }
-                    currentElement.replaceWith(newElement);
-                } else {
-                    renderBoard();
-                }
-            };
-
-            const handleMarkAsSeen = (ticketId) => {
-                const ticket = tickets.find(t => t.id === ticketId);
-                if (ticket) {
-                    updateLastSeenTimestamp(ticket);
-                    saveData();
-                    const currentElement = document.querySelector(`.ticket-card[data-id="${ticketId}"], .ticket-row[data-id="${ticketId}"]`);
-                    if (currentElement) {
-                        const lastSeenEl = currentElement.querySelector('.last-seen-text');
-                        if (lastSeenEl) {
-                            lastSeenEl.textContent = formatTimeAgo(ticket.lastSeen);
-                        }
-                    }
-                }
-            };
-            
-            const updateLastSeenTimestamp = (ticket) => {
-                if (ticket) {
-                    ticket.lastSeen = new Date().toISOString();
-                }
-            };
-
-            // --- DRAG & DROP, IMPORT/EXPORT, BACKUP ---
-            const setupDragAndDrop = () => {
-                if (kanbanBoard.classList.contains('list-view')) {
-                    return;
-                }
-                document.querySelectorAll('.ticket-card').forEach(card => {
-                    card.addEventListener('dragstart', e => e.target.classList.add('dragging'));
-                    card.addEventListener('dragend', e => e.target.classList.remove('dragging'));
-                });
-                document.querySelectorAll('.status-column').forEach(column => {
-                    column.addEventListener('dragover', e => { e.preventDefault(); });
-                    column.addEventListener('drop', e => {
-                        e.preventDefault();
-                        const cardId = document.querySelector('.dragging')?.dataset.id;
-                        if (!cardId) return;
-                        const ticket = tickets.find(t => t.id === cardId);
-                        const newStatus = column.dataset.status;
-                        if (ticket.status !== newStatus) {
-                            addLogEntry(ticket, `Status movido de "${ticket.status}" para "${newStatus}"`);
-                            ticket.status = newStatus;
-                            updateLastSeenTimestamp(ticket);
-                            saveData();
-                            renderBoard();
-                        }
-                    });
-                });
-            };
-
-            const handleExport = (format) => {
-                if (tickets.length === 0) return alert('Nenhum ticket para exportar.');
-                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-                const filename = `todo-adm-backup-${timestamp}.${format}`;
-                let content, mimeType;
-
-                if (format === 'json') {
-                    content = JSON.stringify(tickets, null, 2);
-                    mimeType = 'application/json';
-                } else if (format === 'csv') {
-                    const headers = Object.keys(tickets[0] || {}).join(',');
-                    const rows = tickets.map(t => {
-                        return Object.values(t).map(val => {
-                            let value = '';
-                            if (typeof val === 'string') {
-                                value = val.replace(/"/g, '""');
-                            } else if (typeof val === 'object' && val !== null) {
-                                value = JSON.stringify(val).replace(/"/g, '""');
-                            } else {
-                                value = String(val);
-                            }
-                            return `"${value}"`;
-                        }).join(',');
-                    });
-                    content = `${headers}\n${rows.join('\n')}`;
-                    mimeType = 'text/csv;charset=utf-8;';
-                }
-                if (content) {
-                    const a = document.createElement('a');
-                    a.href = URL.createObjectURL(new Blob([content], { type: mimeType }));
-                    a.download = filename;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(a.href);
-                }
-            };
-
-            const handleImport = (event) => {
-                const file = event.target.files[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = e => {
-                    try {
-                        if (!file.name.endsWith('.json')) {
-                            throw new Error('Formato de arquivo não suportado. Use JSON.');
-                        }
-                        const importedTickets = JSON.parse(e.target.result);
-                        if (!Array.isArray(importedTickets)) throw new Error('O arquivo JSON não contém um array de tickets válido.');
+                state.content.forEach(item => {
+                    if (!state.pinnedItems.includes(item.id)) {
+                        const sectionClone = sectionTemplate.content.cloneNode(true);
+                        const sectionEl = sectionClone.querySelector('section');
+                        sectionEl.id = item.id;
+                        sectionEl.dataset.id = item.id;
                         
-                        // FIX: Migrate imported tickets to the new data structure before merging/replacing
-                        importedTickets.forEach(ticket => {
-                            if (ticket.requirements) { // Check if old 'requirements' key exists
-                                if (typeof ticket.requirements === 'string') {
-                                    ticket.subtasks = ticket.requirements.split(',')
-                                        .map(name => name.trim())
-                                        .filter(name => name)
-                                        .map(name => ({ name: name, completed: false }));
-                                } else if (Array.isArray(ticket.requirements)) {
-                                    ticket.subtasks = ticket.requirements.map(req => ({
-                                        name: req.name,
-                                        completed: req.completed || false
-                                    }));
-                                }
-                                delete ticket.requirements;
-                            } else if (!ticket.subtasks) {
-                                ticket.subtasks = [];
+                        const titleEl = sectionEl.querySelector('h2');
+                        titleEl.textContent = item.title;
+                        
+                        const contentEl = sectionEl.querySelector('div[data-editable]');
+                        contentEl.innerHTML = item.content;
+
+                        if (state.areCardsMinimized) {
+                            sectionEl.querySelector('.card-content-wrapper').classList.add('collapsed');
+                        }
+
+                        sectionEl.querySelector('.pin-btn').addEventListener('click', () => toggleContentPin(item.id));
+                        sectionEl.querySelector('.clone-btn').addEventListener('click', () => cloneCard(item.id));
+                        sectionEl.querySelector('.delete-btn').addEventListener('click', () => showDeleteConfirmation(item.id, item.title));
+                        
+                        // Evento para atualizar o título dinamicamente
+                        titleEl.addEventListener('input', () => {
+                            const newTitle = titleEl.innerText;
+                            // Atualiza o título no estado
+                            const stateItem = state.content.find(i => i.id === item.id);
+                            if (stateItem) {
+                                stateItem.title = newTitle;
+                            }
+                            // Atualiza o link no sumário
+                            const sidebarLink = menuNavLinks.querySelector(`a[href="#${item.id}"]`);
+                            if (sidebarLink) {
+                                sidebarLink.textContent = newTitle;
                             }
                         });
 
-                        const merge = confirm('Deseja mesclar com os tickets existentes? "Cancelar" irá substituir.');
-                        if (merge) {
-                            const existingIds = new Set(tickets.map(t => t.id));
-                            tickets.push(...importedTickets.filter(t => !existingIds.has(t.id)));
-                        } else {
-                            tickets = importedTickets;
+                        contentSections.appendChild(sectionClone);
+                    }
+                    const menuLink = document.createElement('a');
+                    menuLink.href = `#${item.id}`;
+                    menuLink.textContent = item.title;
+                    menuLink.className = 'block py-2 px-3 rounded-md text-gray-300 hover:bg-gray-700 hover:text-white transition-colors';
+                    menuLink.onclick = (e) => {
+                        e.preventDefault();
+                        document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth' });
+                        if (window.innerWidth < 1024) {
+                            sidebar.classList.add('-translate-x-full');
                         }
-                        saveData();
-                        renderBoard();
-                        alert('Dados importados com sucesso!');
+                    };
+                    menuNavLinks.appendChild(menuLink);
+                });
+                updateAdminUI();
+                updateSidebarUI();
+                lucide.createIcons();
+            }
+            
+            function toggleContentPin(id) {
+                const index = state.pinnedItems.indexOf(id);
+                if (index > -1) {
+                    state.pinnedItems.splice(index, 1);
+                } else {
+                    if (state.pinnedItems.length < 5) {
+                        state.pinnedItems.push(id);
+                    } else {
+                        alert('Você pode fixar no máximo 5 tópicos.');
+                        return;
+                    }
+                }
+                saveState();
+                render();
+            }
+
+            function updateAdminUI() {
+                const editableElements = document.querySelectorAll('[data-editable]');
+                const sections = document.querySelectorAll('#content-sections section');
+                const deleteButtons = document.querySelectorAll('.delete-btn');
+                const cloneButtons = document.querySelectorAll('.clone-btn');
+
+                if (state.isAdmin) {
+                    saveBtn.classList.remove('hidden');
+                    addCardBtn.classList.remove('hidden');
+                    adminToggleBtn.classList.add('bg-blue-600', 'text-white');
+                    deleteButtons.forEach(btn => btn.classList.remove('hidden'));
+                    cloneButtons.forEach(btn => btn.classList.remove('hidden'));
+                    editableElements.forEach(el => el.setAttribute('contenteditable', 'true'));
+                    sections.forEach(sec => sec.setAttribute('draggable', 'true'));
+                } else {
+                    saveBtn.classList.add('hidden');
+                    addCardBtn.classList.add('hidden');
+                    adminToggleBtn.classList.remove('bg-blue-600', 'text-white');
+                    deleteButtons.forEach(btn => btn.classList.add('hidden'));
+                    cloneButtons.forEach(btn => btn.classList.add('hidden'));
+                    editableElements.forEach(el => el.setAttribute('contenteditable', 'false'));
+                    sections.forEach(sec => sec.setAttribute('draggable', 'false'));
+                }
+            }
+            
+            function toggleAdminMode() {
+                if (!state.isAdmin) {
+                    const password = prompt("Digite a senha de administrador:");
+                    if (password !== "123") { alert("Senha incorreta!"); return; }
+                }
+                state.isAdmin = !state.isAdmin;
+                updateAdminUI();
+            }
+
+            function updateSidebarUI() {
+                const pinIcon = pinSidebarBtn.querySelector('i');
+                if (state.isSidebarPinned) {
+                    sidebar.classList.remove('-translate-x-full');
+                    mainContent.classList.add('lg:ml-64');
+                    adminControls.classList.add('lg:left-72');
+                    openSidebarBtn.classList.add('opacity-0', 'pointer-events-none');
+                    pinIcon.setAttribute('data-lucide', 'pin-off');
+                    pinSidebarBtn.classList.add('bg-blue-600/30', 'text-blue-300');
+                } else {
+                    sidebar.classList.add('-translate-x-full');
+                    mainContent.classList.remove('lg:ml-64');
+                    adminControls.classList.remove('lg:left-72');
+                    openSidebarBtn.classList.remove('opacity-0', 'pointer-events-none');
+                    pinIcon.setAttribute('data-lucide', 'pin');
+                    pinSidebarBtn.classList.remove('bg-blue-600/30', 'text-blue-300');
+                }
+                lucide.createIcons();
+            }
+
+            function toggleSidebarPin() {
+                state.isSidebarPinned = !state.isSidebarPinned;
+                localStorage.setItem('sidebarPinned', state.isSidebarPinned);
+                updateSidebarUI();
+            }
+            
+            // --- Novas Funções de Edição ---
+            function addNewCard() {
+                const newId = 'card-' + Date.now();
+                const newCard = {
+                    id: newId,
+                    title: 'Novo Tópico',
+                    content: '<p>Comece a editar este conteúdo...</p>'
+                };
+                state.content.push(newCard);
+                render(); // Re-renderiza a UI com o novo card
+                
+                // Rola a página para o novo card e foca no título para edição
+                const newCardElement = document.getElementById(newId);
+                if (newCardElement) {
+                    newCardElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    setTimeout(() => {
+                        newCardElement.querySelector('h2').focus();
+                    }, 300);
+                }
+            }
+
+            function cloneCard(id) {
+                const originalCardIndex = state.content.findIndex(item => item.id === id);
+                if (originalCardIndex === -1) return;
+
+                const originalCard = state.content[originalCardIndex];
+                const newCard = {
+                    ...originalCard, // Copia todo o conteúdo
+                    id: 'card-' + Date.now(),
+                    title: `Cópia de ${originalCard.title}`
+                };
+
+                state.content.splice(originalCardIndex + 1, 0, newCard);
+                render();
+            }
+
+            function showDeleteConfirmation(id, title) {
+                modalBackdrop.classList.remove('hidden');
+                confirmModal.classList.remove('hidden');
+                modalConfirmBtn.dataset.deleteId = id;
+            }
+
+            function deleteCard(id) {
+                state.content = state.content.filter(item => item.id !== id);
+                state.pinnedItems = state.pinnedItems.filter(pinnedId => pinnedId !== id);
+                saveState();
+                render();
+            }
+
+            function setupHighlightToolbar() {
+                highlightToolbar.addEventListener('mousedown', (e) => e.preventDefault());
+                document.addEventListener('mouseup', () => {
+                    const selection = window.getSelection();
+                    if (!selection.isCollapsed && state.isAdmin) {
+                        const range = selection.getRangeAt(0);
+                        const rect = range.getBoundingClientRect();
+                        let parent = range.commonAncestorContainer.nodeType === 3 ? range.commonAncestorContainer.parentNode : range.commonAncestorContainer;
+                        if (parent.closest('[contenteditable="true"]')) {
+                            highlightToolbar.style.display = 'flex';
+                            highlightToolbar.style.left = `${rect.left + window.scrollX + rect.width / 2 - highlightToolbar.offsetWidth / 2}px`;
+                            highlightToolbar.style.top = `${rect.top + window.scrollY - highlightToolbar.offsetHeight - 8}px`;
+                        } else {
+                           highlightToolbar.style.display = 'none';
+                        }
+                    } else {
+                        highlightToolbar.style.display = 'none';
+                    }
+                });
+                highlightToolbar.addEventListener('click', (e) => {
+                    const swatch = e.target.closest('.color-swatch');
+                    const removeBtn = e.target.closest('#remove-color-btn');
+                    if (swatch) {
+                        document.execCommand('foreColor', false, swatch.dataset.color);
+                    } else if (removeBtn) {
+                        document.execCommand('removeFormat', false, null);
+                    }
+                    if (swatch || removeBtn) {
+                        highlightToolbar.style.display = 'none';
+                    }
+                });
+            }
+
+            function toggleMinimizeAllCards() {
+                state.areCardsMinimized = !state.areCardsMinimized;
+                const wrappers = document.querySelectorAll('.card-content-wrapper');
+                wrappers.forEach(wrapper => {
+                    wrapper.classList.toggle('collapsed', state.areCardsMinimized);
+                });
+            }
+
+            function handleExport() {
+                updateStateFromDOM(); // Garante que o estado está atualizado com as últimas edições
+                const dataToExport = {
+                    content: state.content,
+                    pinnedItems: state.pinnedItems
+                };
+                const dataStr = JSON.stringify(dataToExport, null, 2);
+                const dataBlob = new Blob([dataStr], {type: "application/json"});
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'manual-uninta-dados.json';
+                link.click();
+                URL.revokeObjectURL(url);
+            }
+
+            function handleImport() {
+                importFileInput.click();
+            }
+
+            function processImportedFile(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const importedData = JSON.parse(e.target.result);
+                        if (importedData.content && Array.isArray(importedData.content)) {
+                            state.content = importedData.content;
+                            state.pinnedItems = importedData.pinnedItems || [];
+                            saveState();
+                            render();
+                            alert('Dados importados com sucesso!');
+                        } else {
+                            alert('Arquivo inválido. O formato dos dados não é o esperado.');
+                        }
                     } catch (error) {
-                        alert('Erro ao importar arquivo: ' + error.message);
-                    } finally {
-                        event.target.value = ''; // Limpa o input
+                        alert('Erro ao ler o arquivo. Verifique se é um arquivo JSON válido.');
                     }
                 };
                 reader.readAsText(file);
-            };
+                importFileInput.value = '';
+            }
 
-            const handleAutoBackup = () => {
-                if (tickets.length === 0) return; 
+            // --- Drag & Drop ---
+            let draggedItem = null;
+            contentSections.addEventListener('dragstart', (e) => {
+                if (!state.isAdmin) return;
+                draggedItem = e.target.closest('section');
+                if (draggedItem) {
+                    setTimeout(() => { draggedItem.classList.add('dragging'); }, 0);
+                    e.dataTransfer.effectAllowed = 'move';
+                }
+            });
+            contentSections.addEventListener('dragend', () => { if (draggedItem) { draggedItem.classList.remove('dragging'); draggedItem = null; } });
+            contentSections.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                if (!state.isAdmin || !draggedItem) return;
+                const target = e.target.closest('section');
+                if (target && target !== draggedItem) {
+                    const rect = target.getBoundingClientRect();
+                    const next = (e.clientY - rect.top) / (rect.bottom - rect.top) > 0.5;
+                    contentSections.insertBefore(draggedItem, next && target.nextSibling || target);
+                }
+            });
+            contentSections.addEventListener('drop', (e) => { 
+                e.preventDefault(); 
+                if (state.isAdmin) { 
+                    updateStateFromDOM();
+                    saveState(); 
+                    render(); 
+                } 
+            });
 
-                const now = new Date();
-                const hours = now.getHours().toString().padStart(2, '0');
-                const minutes = now.getMinutes().toString().padStart(2, '0');
-                const filename = `Backup-${hours}${minutes}.json`;
-
-                const content = JSON.stringify(tickets, null, 2);
-                const mimeType = 'application/json';
-
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(new Blob([content], { type: mimeType }));
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(a.href);
-            };
-
-            const handleAutoBackupSettings = () => {
-                const currentSetting = autoBackupCount > 0 ? autoBackupCount : 'desativado';
-                const newCountStr = prompt(`A cada quantas edições o backup automático deve ser feito?\n(Atual: ${currentSetting}).\nDigite um número (ex: 5) ou 0 para desativar.`, autoBackupCount);
-
-                if (newCountStr !== null) {
-                    const newCount = parseInt(newCountStr, 10);
-                    if (!isNaN(newCount) && newCount >= 0) {
-                        autoBackupCount = newCount;
-                        localStorage.setItem('todo-adm-autobackup-count', autoBackupCount.toString());
-                        editCount = 0;
-                        localStorage.setItem('todo-adm-edit-count', '0');
-                        alert(autoBackupCount > 0 ? `Backup automático configurado para cada ${autoBackupCount} edições.` : 'Backup automático desativado.');
+            // --- Lógica de Busca e IA ---
+            function filterCards(query) {
+                const normalizedQuery = query.toLowerCase().trim();
+                document.querySelectorAll('#content-sections section').forEach(card => {
+                    const cardText = card.innerText.toLowerCase();
+                    if (cardText.includes(normalizedQuery)) {
+                        card.style.display = '';
                     } else {
-                        alert('Por favor, insira um número válido.');
-                    }
-                }
-            };
-
-            const formatTimeAgo = (isoString) => {
-                if (!isoString) return '';
-                const now = new Date();
-                const seenDate = new Date(isoString);
-                const diffSeconds = (now - seenDate) / 1000;
-                const diffMinutes = diffSeconds / 60;
-                const diffHours = diffMinutes / 60;
-                const diffDays = Math.floor(diffHours / 24);
-
-                if (diffMinutes < 1) return 'agora';
-                if (diffMinutes < 60) return `há ${Math.round(diffMinutes)} min`;
-                if (diffHours < 6) return `há ${Math.round(diffHours)}h`;
-
-                const isToday = now.toDateString() === seenDate.toDateString();
-                if (isToday) {
-                    const seenHour = seenDate.getHours();
-                    if (seenHour < 12) return 'hoje de manhã';
-                    if (seenHour < 18) return 'hoje à tarde';
-                    return 'hoje à noite';
-                }
-
-                const yesterday = new Date();
-                yesterday.setDate(now.getDate() - 1);
-                if (yesterday.toDateString() === seenDate.toDateString()) {
-                    return 'ontem';
-                }
-
-                return `há ${diffDays} dias`;
-            };
-
-            const updateAllVisibleTimestamps = () => {
-                document.querySelectorAll('.ticket-card[data-id], .ticket-row[data-id]').forEach(el => {
-                    const ticket = tickets.find(t => t.id === el.dataset.id);
-                    if (ticket && ticket.lastSeen) {
-                        const lastSeenEl = el.querySelector('.last-seen-text');
-                        if (lastSeenEl) {
-                            lastSeenEl.textContent = formatTimeAgo(ticket.lastSeen);
-                        }
+                        card.style.display = 'none';
                     }
                 });
-            };
+            }
 
-            // --- INICIALIZAÇÃO E LISTENERS ---
-            addTicketFab.addEventListener('click', () => openModal('ticketModal'));
-            document.querySelector('#ticketModal .close-button').addEventListener('click', () => closeModal('ticketModal'));
-            document.querySelector('#ticketModal .btn-cancel').addEventListener('click', () => closeModal('ticketModal'));
-            ticketForm.addEventListener('submit', handleFormSubmit);
-            document.getElementById('deleteTicketBtn').addEventListener('click', handleDeleteTicket);
-            document.getElementById('setApiKeyBtn').addEventListener('click', handleSetApiKey);
-            document.getElementById('autoBackupBtn').addEventListener('click', handleAutoBackupSettings);
+            function updateSmartSearchButton() {
+                const apiKey = localStorage.getItem('geminiApiKey');
+                if (apiKey && searchInput.value.trim().length > 0) {
+                    smartSearchBtn.classList.remove('hidden');
+                } else {
+                    smartSearchBtn.classList.add('hidden');
+                }
+            }
 
+            async function performSmartSearch() {
+                const query = searchInput.value.trim();
+                const apiKey = localStorage.getItem('geminiApiKey');
+                if (!query || !apiKey) return;
 
-            document.querySelectorAll('.dropdown-toggle').forEach(btn => {
-                btn.addEventListener('click', e => {
-                    e.stopPropagation();
-                    const dropdown = btn.nextElementSibling;
-                    document.querySelectorAll('.dropdown-content').forEach(d => {
-                        if (d !== dropdown) d.classList.remove('show');
+                smartSearchResult.innerHTML = '<p>Pensando...</p>';
+                modalBackdrop.classList.remove('hidden');
+                smartSearchModal.classList.remove('hidden');
+                
+                let context = "Contexto:\n";
+                state.content.forEach(item => {
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = item.content;
+                    context += `Tópico: ${item.title}\nConteúdo: ${tempDiv.innerText}\n\n`;
+                });
+
+                const prompt = `Com base no contexto fornecido, responda à seguinte pergunta de forma clara e concisa em português:\n\n${context}\n\nPergunta: ${query}`;
+
+                try {
+                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
                     });
-                    dropdown.classList.toggle('show');
-                });
-            });
-            
-            window.addEventListener('click', (e) => {
-                if (!e.target.closest('.dropdown')) {
-                    document.querySelectorAll('.dropdown-content').forEach(d => d.classList.remove('show'));
-                }
-            });
-            
-            notificationList.addEventListener('click', (e) => {
-                const target = e.target;
-                if (target.closest('.notification-item') && !target.matches('select')) {
-                    const ticketId = target.closest('.notification-item').dataset.ticketId;
-                    const card = document.querySelector(`.ticket-card[data-id="${ticketId}"]`);
-                    if (card) {
-                        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        card.classList.add('flash');
-                        setTimeout(() => card.classList.remove('flash'), 1000);
+                    if (!response.ok) {
+                        throw new Error(`Erro na API: ${response.statusText}`);
                     }
-                    notificationList.classList.remove('show');
+                    const result = await response.json();
+                    const text = result.candidates[0].content.parts[0].text;
+                    smartSearchResult.innerHTML = text.replace(/\n/g, '<br>');
+                } catch (error) {
+                    smartSearchResult.innerHTML = `<p class="text-red-400">Ocorreu um erro. Verifique sua chave de API e a conexão com a internet.</p><p class="text-xs text-gray-400 mt-2">${error.message}</p>`;
+                }
+            }
+
+            // --- EVENT LISTENERS ---
+            adminToggleBtn.addEventListener('click', toggleAdminMode);
+            saveBtn.addEventListener('click', () => {
+                updateStateFromDOM();
+                saveState();
+            });
+            addCardBtn.addEventListener('click', addNewCard);
+            pinSidebarBtn.addEventListener('click', toggleSidebarPin);
+            minimizeAllBtn.addEventListener('click', toggleMinimizeAllCards);
+            openSidebarBtn.addEventListener('click', () => {
+                sidebar.classList.remove('-translate-x-full');
+            });
+            document.addEventListener('click', (e) => {
+                if (window.innerWidth < 1024 && !sidebar.contains(e.target) && !openSidebarBtn.contains(e.target)) {
+                    sidebar.classList.add('-translate-x-full');
                 }
             });
-            notificationList.addEventListener('change', handleQuickStatusChange);
-
-
-            document.getElementById('importBtn').addEventListener('click', () => document.getElementById('importFile').click());
-            document.getElementById('importFile').addEventListener('change', handleImport);
-            document.getElementById('exportSelect').addEventListener('change', e => { if (e.target.value) { handleExport(e.target.value); e.target.value = ''; } });
-
-            let searchTimeout;
-            searchInput.addEventListener('input', () => {
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(renderBoard, 500); // Debounce para evitar buscas excessivas
+            
+            // Modals
+            modalCancelBtn.addEventListener('click', () => {
+                modalBackdrop.classList.add('hidden');
+                confirmModal.classList.add('hidden');
             });
-            searchMode.addEventListener('change', () => searchInput.classList.toggle('ai-active', searchMode.checked));
-            filterStatus.addEventListener('change', renderBoard);
-            showCompletedCheckbox.addEventListener('change', renderBoard);
-            prioritySortToggle.addEventListener('change', renderBoard);
+            modalConfirmBtn.addEventListener('click', () => {
+                const idToDelete = modalConfirmBtn.dataset.deleteId;
+                if (idToDelete) {
+                    deleteCard(idToDelete);
+                }
+                modalBackdrop.classList.add('hidden');
+                confirmModal.classList.add('hidden');
+            });
 
-            loadData();
-            renderBoard();
-            requestNotificationPermission();
-            setInterval(checkDeadlinesForDesktop, 60 * 1000 * 5); // Verifica prazos a cada 5 minutos
-            setInterval(updateAllVisibleTimestamps, 60000); // Atualiza os tempos a cada minuto
+            settingsBtn.addEventListener('click', () => {
+                modalBackdrop.classList.remove('hidden');
+                settingsPanel.classList.remove('hidden');
+            });
+            settingsCloseBtn.addEventListener('click', () => {
+                modalBackdrop.classList.add('hidden');
+                settingsPanel.classList.add('hidden');
+            });
+            saveApiKeyBtn.addEventListener('click', () => {
+                localStorage.setItem('geminiApiKey', apiKeyInput.value);
+                updateSmartSearchButton();
+                alert('Chave de API salva!');
+                modalBackdrop.classList.add('hidden');
+                settingsPanel.classList.add('hidden');
+            });
+
+            searchBtn.addEventListener('click', () => {
+                searchInput.classList.toggle('w-0');
+                searchInput.classList.toggle('w-48');
+                searchInput.classList.toggle('px-0');
+                searchInput.classList.toggle('px-2');
+                if (searchInput.classList.contains('w-48')) {
+                    searchInput.focus();
+                } else {
+                    searchInput.value = '';
+                    filterCards('');
+                }
+                updateSmartSearchButton();
+            });
+            searchInput.addEventListener('input', () => {
+                filterCards(searchInput.value);
+                updateSmartSearchButton();
+            });
+            smartSearchBtn.addEventListener('click', performSmartSearch);
+            smartSearchCloseBtn.addEventListener('click', () => {
+                modalBackdrop.classList.add('hidden');
+                smartSearchModal.classList.add('hidden');
+            });
+
+            // Import/Export
+            importBtn.addEventListener('click', handleImport);
+            exportBtn.addEventListener('click', handleExport);
+            importFileInput.addEventListener('change', processImportedFile);
+
+            // --- INICIALIZAÇÃO ---
+            loadState();
+            setupHighlightToolbar();
+            lucide.createIcons();
         });
     </script>
 </body>

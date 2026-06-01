@@ -1,875 +1,690 @@
+```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manual Interativo UNINTA</title>
-    
-    <!-- Tailwind CSS -->
+    <title>Super Simulado de Matemática - 2º Ano</title>
+    <!-- Tailwind CSS para estilização rápida e responsiva -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Biblioteca de Ícones (Lucide) -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-
-    <!-- Fontes do Google -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
-
+    <!-- FontAwesome para ícones acessíveis -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Estilo base com a nova paleta dark */
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #111827; /* Fundo principal azul-escuro */
-            color: #d1d5db; /* Texto principal cinza claro */
-            overflow-x: hidden;
+            background-color: #0c0f12;
+            color: #ffffff;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            transition: font-size 0.2s ease;
         }
-        /* Fundo com gradiente sutil e textura */
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: radial-gradient(circle at top right, rgba(12, 74, 110, 0.5), transparent 40%),
-                              radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.2), transparent 50%);
-            background-repeat: no-repeat;
-            z-index: -1;
+        /* Cores de alto contraste para baixa visão */
+        .high-contrast-yellow {
+            color: #FFD700;
         }
-        .header-title {
-            font-family: 'Poppins', sans-serif;
+        .high-contrast-bg-yellow {
+            background-color: #FFD700;
+            color: #000000;
         }
-        /* Efeito de arrastar para o modo ADM */
-        .dragging {
-            opacity: 0.4;
-            transform: scale(0.98);
-            border: 2px dashed #3b82f6;
+        .option-card {
+            background-color: #1a222d;
+            border: 3px solid #324354;
+            transition: all 0.2s ease;
         }
-        /* Estilo para edição de texto */
-        [contenteditable="true"] {
-            outline: 2px dashed #22c55e;
-            padding: 4px;
-            border-radius: 4px;
-            background-color: rgba(34, 197, 94, 0.1);
+        .option-card:hover {
+            border-color: #4a627d;
         }
-        /* Scrollbar customizada */
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 8px;
+        .option-card.selected {
+            border-color: #00F0FF;
+            background-color: #0f354a;
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
         }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background-color: rgba(255, 255, 255, 0.05);
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background-color: #374151;
-            border-radius: 10px;
-            border: 2px solid transparent;
-            background-clip: content-box;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background-color: #4b5563;
-        }
-        /* Barra de ferramentas de destaque */
-        #highlight-toolbar {
-            position: absolute;
-            display: none;
-            background-color: #1f2937;
-            border-radius: 6px;
-            padding: 4px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-            z-index: 1000;
-            border: 1px solid #4b5563;
-        }
-        .color-swatch {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            cursor: pointer;
-            transition: transform 0.1s ease-in-out;
-        }
-        .color-swatch:hover {
-            transform: scale(1.2);
-        }
-        /* Estilos para minimizar card */
-        .card-content-wrapper {
-            transition: max-height 0.5s ease-in-out, opacity 0.3s ease-in-out 0.1s;
-            overflow: hidden;
-            max-height: 2000px; /* Altura grande o suficiente */
-            opacity: 1;
-        }
-        .card-content-wrapper.collapsed {
-            max-height: 0;
-            opacity: 0;
-            transition: max-height 0.5s ease-in-out, opacity 0.2s ease-in-out;
-        }
-        /* Estilos para a barra de pesquisa */
-        #search-input {
-            transition: width 0.3s ease-in-out;
+        /* Botões bem grandes para toque */
+        .btn-large {
+            min-height: 64px;
         }
     </style>
 </head>
-<body class="min-h-screen">
+<body class="min-h-screen flex flex-col justify-between" style="font-size: 20px;">
 
-    <!-- Tela de Carregamento -->
-    <div id="loader" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#111827] transition-opacity duration-500">
-        <div class="text-blue-400 text-2xl font-bold">UNINTA</div>
-        <p class="text-gray-400 mt-2">Carregando manual...</p>
-    </div>
-
-    <!-- Container principal que gerencia o layout da sidebar -->
-    <div id="app-container" class="opacity-0 transition-opacity duration-500">
-        <!-- Sidebar -->
-        <aside id="sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen bg-gray-900/80 backdrop-blur-lg border-r border-gray-700/60 transition-transform duration-300 ease-in-out">
-            <div class="flex flex-col h-full p-4">
-                <!-- Cabeçalho da Sidebar -->
-                <div class="flex items-center justify-between mb-6 px-2">
-                    <h2 class="text-xl font-bold text-white">Sumário</h2>
-                    <button id="pin-sidebar-btn" class="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-md" title="Fixar/Ocultar menu">
-                        <i data-lucide="pin"></i>
-                    </button>
-                </div>
-                <!-- Navegação -->
-                <nav id="menu-nav-links" class="flex-1 overflow-y-auto custom-scrollbar"></nav>
-                <!-- Controles de Importar/Exportar -->
-                <div class="mt-4 pt-4 border-t border-gray-700 space-y-2">
-                    <button id="import-btn" class="w-full flex items-center justify-center px-3 py-2 text-sm font-medium text-gray-300 bg-gray-700/50 rounded-md hover:bg-gray-700">
-                        <i data-lucide="upload" class="h-4 w-4 mr-2"></i>
-                        Importar Dados
-                    </button>
-                    <button id="export-btn" class="w-full flex items-center justify-center px-3 py-2 text-sm font-medium text-gray-300 bg-gray-700/50 rounded-md hover:bg-gray-700">
-                        <i data-lucide="download" class="h-4 w-4 mr-2"></i>
-                        Exportar Dados
-                    </button>
-                    <input type="file" id="import-file-input" class="hidden" accept=".json">
+    <!-- BARRA SUPERIOR DE ACESSIBILIDADE E PROGRESSO -->
+    <header class="bg-[#121820] border-b-2 border-[#1e293b] p-4 sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto flex flex-wrap justify-between items-center gap-3">
+            <div class="flex items-center gap-2">
+                <span class="text-2xl">⚡</span>
+                <h1 class="text-xl font-bold tracking-wide high-contrast-yellow">SUPER MATEMÁTICA</h1>
+            </div>
+            
+            <!-- CONTROLES DE ACESSIBILIDADE -->
+            <div class="flex items-center gap-3">
+                <!-- Botão de Som -->
+                <button id="toggle-sound-btn" onclick="toggleSound()" class="bg-[#1e293b] hover:bg-[#334155] border-2 border-slate-600 px-3 py-2 rounded-lg text-lg flex items-center gap-2" title="Ligar/Desligar Som">
+                    <i class="fas fa-volume-up text-green-400" id="sound-icon"></i> <span class="text-sm font-semibold">SOM</span>
+                </button>
+                <!-- Tamanho de Fonte -->
+                <div class="flex items-center bg-[#1e293b] rounded-lg border-2 border-slate-600 overflow-hidden">
+                    <button onclick="changeFontSize(-2)" class="px-3 py-2 hover:bg-[#334155] text-lg font-bold border-r border-slate-600" title="Diminuir Letra">A-</button>
+                    <button onclick="changeFontSize(2)" class="px-3 py-2 hover:bg-[#334155] text-lg font-bold" title="Aumentar Letra">A+</button>
                 </div>
             </div>
-        </aside>
+        </div>
+    </header>
 
-        <!-- Botão para abrir a sidebar quando ela está oculta -->
-        <button id="open-sidebar-btn" class="fixed top-4 left-4 z-30 p-2 text-gray-300 bg-gray-800/80 backdrop-blur-sm rounded-full shadow-lg hover:bg-gray-700 transition-opacity duration-300 ease-in-out opacity-0 pointer-events-none">
-            <i data-lucide="menu"></i>
-        </button>
-
-        <!-- Conteúdo Principal -->
-        <main id="main-content" class="transition-all duration-300 ease-in-out">
-            <div class="container mx-auto px-6 py-8">
-                <!-- Cabeçalho da Página -->
-                <header class="mb-10">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <h1 class="header-title text-4xl md:text-5xl font-bold text-white">
-                                Manual Administrativo <span class="text-blue-400">UNINTA</span>
-                            </h1>
-                            <p class="mt-2 text-lg text-gray-400">Guia interativo de procedimentos e informações.</p>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <button id="settings-btn" class="p-2 text-gray-400 bg-gray-800/80 backdrop-blur-sm rounded-full shadow-lg hover:text-white hover:bg-gray-700" title="Configurações">
-                                <i data-lucide="settings-2"></i>
-                            </button>
-                            <div id="search-container" class="flex items-center bg-gray-800/80 backdrop-blur-sm rounded-full shadow-lg">
-                                <input type="text" id="search-input" placeholder="Pesquisar..." class="w-0 bg-transparent text-white placeholder-gray-400 focus:outline-none px-0 ml-2">
-                                <button id="search-btn" class="p-2 text-gray-400 hover:text-white">
-                                    <i data-lucide="search"></i>
-                                </button>
-                                <button id="smart-search-btn" class="p-2 text-blue-400 hover:text-blue-300 hidden" title="Busca Inteligente (IA)">
-                                    <i data-lucide="sparkles"></i>
-                                </button>
-                            </div>
-                            <button id="minimize-all-btn" class="p-2 text-gray-400 bg-gray-800/80 backdrop-blur-sm rounded-full shadow-lg hover:text-white hover:bg-gray-700" title="Minimizar/Expandir Todos">
-                                <i data-lucide="chevrons-up-down"></i>
-                            </button>
-                        </div>
-                    </div>
-                </header>
-
-                <!-- Seção de Tópicos Fixados -->
-                <div id="pinned-container" class="mb-10"></div>
-                
-                <!-- Seção de Conteúdo Principal -->
-                <div id="content-sections" class="space-y-6"></div>
+    <!-- ÁREA PRINCIPAL -->
+    <main class="flex-grow max-w-3xl w-full mx-auto p-4 flex flex-col justify-center">
+        
+        <!-- TELA DE INÍCIO -->
+        <div id="start-screen" class="bg-[#121820] border-4 border-[#FFD700] p-6 rounded-2xl text-center space-y-6 shadow-2xl my-6">
+            <div class="text-6xl">🎒📐🕒</div>
+            <h2 class="text-3xl font-extrabold high-contrast-yellow">Olá, Campeão da Matemática!</h2>
+            <p class="text-lg leading-relaxed">
+                Este é um simulado super divertido preparado especialmente para você treinar tudo o que aprendeu nas suas aulas de matemática do 2º Ano!
+            </p>
+            <div class="bg-[#1a222d] p-4 rounded-xl text-left border-2 border-slate-700 space-y-2">
+                <p class="text-base font-bold text-cyan-400"><i class="fas fa-star mr-2"></i>O QUE VOCÊ VAI REVISAR:</p>
+                <ul class="list-disc pl-5 text-sm space-y-1 text-slate-300">
+                    <li>Sistema de numeração e Material Dourado;</li>
+                    <li>Dezena, Centena e Unidade;</li>
+                    <li>Decomposição de números grandes e Dinheirinho (Reais);</li>
+                    <li>Números Pares e Ímpares;</li>
+                    <li>Horas nos relógios analógico e digital.</li>
+                </ul>
             </div>
-        </main>
-    </div>
-
-    <!-- Controles do ADM -->
-    <div id="admin-controls" class="fixed bottom-5 z-20 flex items-center space-x-3 transition-all duration-300 ease-in-out">
-        <button id="admin-toggle-btn" class="p-3 bg-gray-800 rounded-full shadow-lg text-gray-300 hover:bg-gray-700">
-            <i data-lucide="shield"></i>
-        </button>
-        <button id="save-btn" class="hidden items-center px-4 py-2 bg-green-600 text-white font-semibold rounded-full shadow-lg hover:bg-green-700">
-            <i data-lucide="save" class="mr-2 h-5 w-5"></i>
-            Salvar
-        </button>
-    </div>
-    
-    <!-- Botão para Adicionar Novo Card -->
-    <button id="add-card-btn" class="hidden fixed bottom-5 right-5 z-20 p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-transform hover:scale-110">
-        <i data-lucide="plus"></i>
-    </button>
-
-
-    <!-- Modals -->
-    <div id="modal-backdrop" class="fixed inset-0 bg-black/60 z-50 hidden"></div>
-    
-    <div id="confirm-modal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-sm z-50 hidden">
-        <h3 id="modal-title" class="text-lg font-bold text-white">Confirmar Exclusão</h3>
-        <p id="modal-message" class="text-gray-300 mt-2">Você tem certeza que deseja excluir este card? Esta ação não pode ser desfeita.</p>
-        <div class="mt-6 flex justify-end space-x-4">
-            <button id="modal-cancel-btn" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-500">Cancelar</button>
-            <button id="modal-confirm-btn" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-500">Excluir</button>
-        </div>
-    </div>
-
-    <div id="settings-panel" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md z-50 hidden">
-        <div class="flex justify-between items-center">
-            <h3 class="text-lg font-bold text-white">Configurações</h3>
-            <button id="settings-close-btn" class="p-1 text-gray-400 hover:text-white"><i data-lucide="x"></i></button>
-        </div>
-        <div class="mt-4 space-y-4">
-            <div>
-                <label for="api-key-input" class="block text-sm font-medium text-gray-300">Chave de API (Google AI Studio)</label>
-                <input type="password" id="api-key-input" class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                <p class="mt-1 text-xs text-gray-400">Sua chave é salva apenas no seu navegador.</p>
+            
+            <div class="p-4 bg-yellow-950/40 border border-yellow-600 rounded-lg text-left">
+                <p class="text-sm text-yellow-300 font-bold"><i class="fas fa-lock mr-2"></i>TRAVA ANTI-ERRO ATIVADA:</p>
+                <p class="text-xs text-yellow-100 mt-1">
+                    Para garantir que você não clique sem querer, você deve selecionar a opção e depois clicar no grande botão de confirmação verde abaixo das alternativas!
+                </p>
             </div>
-            <div class="flex justify-end">
-                <button id="save-api-key-btn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500">Salvar Chave</button>
-            </div>
-        </div>
-    </div>
-    
-    <div id="smart-search-modal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-2xl z-50 hidden">
-         <div class="flex justify-between items-center">
-            <h3 class="text-lg font-bold text-white flex items-center"><i data-lucide="sparkles" class="mr-2 text-blue-400"></i> Resposta da IA</h3>
-            <button id="smart-search-close-btn" class="p-1 text-gray-400 hover:text-white"><i data-lucide="x"></i></button>
-        </div>
-        <div id="smart-search-result" class="mt-4 prose prose-invert max-w-none text-gray-300"></div>
-    </div>
 
-    
-    <!-- Barra de ferramentas flutuante para destaque de texto -->
-    <div id="highlight-toolbar">
-        <div class="flex space-x-2 items-center">
-            <div class="color-swatch" style="background-color: #FBBF24;" data-color="#FBBF24" title="Amarelo"></div>
-            <div class="color-swatch" style="background-color: #3B82F6;" data-color="#3B82F6" title="Azul"></div>
-            <div class="color-swatch" style="background-color: #EC4899;" data-color="#EC4899" title="Rosa"></div>
-            <div class="color-swatch" style="background-color: #22C55E;" data-color="#22C55E" title="Verde"></div>
-            <div class="h-5 border-l border-gray-600"></div>
-            <button id="remove-color-btn" class="p-1 text-gray-400 hover:text-white" title="Remover Cor">
-                <i data-lucide="remove-formatting" class="h-5 w-5"></i>
+            <button onclick="startQuiz()" class="w-full btn-large high-contrast-bg-yellow text-2xl font-black rounded-xl hover:scale-105 active:scale-95 transition-transform flex items-center justify-center gap-3 shadow-lg">
+                <i class="fas fa-play"></i> COMEÇAR O DESAFIO!
             </button>
         </div>
-    </div>
 
-
-    <!-- Templates -->
-    <template id="section-template">
-        <section class="bg-gray-800/70 backdrop-blur-sm border border-gray-700/80 rounded-xl shadow-lg transition-all duration-300 ease-in-out" draggable="false">
-            <div class="p-6">
-                <div class="flex justify-between items-start">
-                    <div class="prose prose-invert max-w-none w-full text-gray-300">
-                        <h2 class="text-2xl font-bold text-white mb-4" data-editable></h2>
-                        <div class="card-content-wrapper">
-                            <div data-editable></div>
-                        </div>
-                    </div>
-                    <div class="flex flex-col items-center space-y-2 ml-4 flex-shrink-0">
-                        <button class="pin-btn text-gray-500 hover:text-blue-400 transition-colors p-1" title="Fixar Tópico no Topo">
-                            <i data-lucide="bookmark-plus" class="h-5 w-5"></i>
-                        </button>
-                        <button class="clone-btn hidden text-gray-500 hover:text-green-400 transition-colors p-1" title="Clonar Card">
-                            <i data-lucide="copy" class="h-5 w-5"></i>
-                        </button>
-                        <button class="delete-btn hidden text-gray-500 hover:text-red-400 transition-colors p-1" title="Excluir Card">
-                            <i data-lucide="trash-2" class="h-5 w-5"></i>
-                        </button>
-                    </div>
+        <!-- TELA DE QUESTÕES -->
+        <div id="quiz-screen" class="hidden space-y-6">
+            <!-- Barra de Progresso Realista -->
+            <div class="bg-[#121820] p-4 rounded-xl border-2 border-slate-800">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm font-bold text-slate-400">Progresso do Desafio</span>
+                    <span id="question-progress" class="text-lg font-black high-contrast-yellow">Questão 1 de 30</span>
+                </div>
+                <div class="w-full bg-slate-800 rounded-full h-4 overflow-hidden">
+                    <div id="progress-bar" class="bg-gradient-to-r from-yellow-400 to-green-400 h-full transition-all duration-300" style="width: 3.33%;"></div>
                 </div>
             </div>
-        </section>
-    </template>
 
-    <template id="pinned-item-template">
-        <div class="bg-blue-600/80 backdrop-blur-sm border border-blue-500 text-white rounded-lg p-4 shadow-lg flex justify-between items-center">
-            <a href="#" class="font-semibold hover:underline"></a>
-            <button class="unpin-btn text-white/70 hover:text-white" title="Desafixar Tópico">
-                <i data-lucide="bookmark-minus" class="h-5 w-5"></i>
+            <!-- Card de Questão -->
+            <div class="bg-[#121820] border-2 border-slate-700 p-6 rounded-2xl shadow-xl space-y-6">
+                <!-- Enunciado com letra bem grande e legível -->
+                <div class="space-y-2">
+                    <span class="bg-blue-900 text-blue-200 text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider" id="question-tag">Sistema de Numeração</span>
+                    <p id="question-text" class="text-2xl font-bold leading-normal text-white">
+                        Carregando pergunta de teste...
+                    </p>
+                </div>
+
+                <!-- Lista de Alternativas (Botões Grandes) -->
+                <div id="options-container" class="grid grid-cols-1 gap-4">
+                    <!-- Geradas dinamicamente -->
+                </div>
+            </div>
+
+            <!-- TRAVA ANTI-ERRO (BOTÃO DE CONFIRMAÇÃO) -->
+            <div class="bg-[#121820] p-4 rounded-xl border-2 border-dashed border-slate-700 text-center">
+                <!-- Estado Bloqueado/Liberado -->
+                <div id="lock-status" class="mb-3 text-sm text-yellow-400 font-bold flex items-center justify-center gap-2">
+                    <i class="fas fa-lock"></i> Escolha uma alternativa acima para destravar!
+                </div>
+                <button id="confirm-btn" disabled onclick="confirmAnswer()" class="w-full btn-large bg-slate-800 text-slate-500 text-xl font-black rounded-xl cursor-not-allowed transition-all flex items-center justify-center gap-3">
+                    <i class="fas fa-check-double"></i> CONFIRMAR MINHA RESPOSTA
+                </button>
+            </div>
+        </div>
+
+        <!-- TELA DE RESULTADO FINAL -->
+        <div id="result-screen" class="hidden bg-[#121820] border-4 border-green-500 p-6 rounded-2xl text-center space-y-6 shadow-2xl my-6">
+            <div class="text-6xl" id="result-emoji">🏆</div>
+            <h2 class="text-4xl font-extrabold high-contrast-yellow" id="result-title">Incrível Trabalho!</h2>
+            
+            <p id="result-text" class="text-lg text-slate-200">
+                Você concluiu todas as 30 perguntas com muita atenção!
+            </p>
+
+            <!-- Painel de Estatísticas de fácil leitura -->
+            <div class="grid grid-cols-3 gap-3">
+                <div class="bg-green-950/40 border-2 border-green-500 p-3 rounded-xl">
+                    <span class="block text-xs font-bold text-green-400 uppercase">Acertos</span>
+                    <span id="stat-correct" class="text-3xl font-black text-green-300">0</span>
+                </div>
+                <div class="bg-red-950/40 border-2 border-red-500 p-3 rounded-xl">
+                    <span class="block text-xs font-bold text-red-400 uppercase">Erros</span>
+                    <span id="stat-incorrect" class="text-3xl font-black text-red-300">0</span>
+                </div>
+                <div class="bg-blue-950/40 border-2 border-blue-500 p-3 rounded-xl">
+                    <span class="block text-xs font-bold text-blue-400 uppercase">Nota Geral</span>
+                    <span id="stat-grade" class="text-3xl font-black text-blue-300">0.0</span>
+                </div>
+            </div>
+
+            <!-- Quadro de Medalhas -->
+            <div id="medal-panel" class="p-4 bg-slate-900 border-2 border-slate-700 rounded-xl">
+                <p class="text-sm text-slate-400">Sua Medalha de Conquista:</p>
+                <p id="medal-text" class="text-2xl font-black high-contrast-yellow mt-1">Estrela de Ouro ⭐</p>
+            </div>
+
+            <!-- Botão de Reinício Completo -->
+            <button onclick="restartQuiz()" class="w-full btn-large bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-xl font-bold rounded-xl active:scale-95 transition-transform flex items-center justify-center gap-2 text-white">
+                <i class="fas fa-undo"></i> Tentar Novamente!
             </button>
         </div>
-    </template>
 
+    </main>
+
+    <!-- FOOTER DA MARCA -->
+    <footer class="bg-[#090d12] py-4 text-center text-xs text-slate-500 border-t border-[#121820]">
+        Super Desafio de Matemática 2º Ano • Feito com ❤️ para Baixa Visão
+    </footer>
+
+    <!-- SCRIPT DO SIMULADO INTERATIVO -->
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // --- DADOS INICIAIS ---
-            const initialData = [];
-
-            // --- ESTADO DA APLICAÇÃO ---
-            let state = { isAdmin: false, content: [], pinnedItems: [], isSidebarPinned: true, areCardsMinimized: false };
-
-            // --- ELEMENTOS DO DOM ---
-            const appContainer = document.getElementById('app-container');
-            const mainContent = document.getElementById('main-content');
-            const contentSections = document.getElementById('content-sections');
-            const pinnedContainer = document.getElementById('pinned-container');
-            const sectionTemplate = document.getElementById('section-template');
-            const pinnedItemTemplate = document.getElementById('pinned-item-template');
-            const adminControls = document.getElementById('admin-controls');
-            const adminToggleBtn = document.getElementById('admin-toggle-btn');
-            const saveBtn = document.getElementById('save-btn');
-            const addCardBtn = document.getElementById('add-card-btn');
-            
-            const sidebar = document.getElementById('sidebar');
-            const pinSidebarBtn = document.getElementById('pin-sidebar-btn');
-            const openSidebarBtn = document.getElementById('open-sidebar-btn');
-            const menuNavLinks = document.getElementById('menu-nav-links');
-
-            const modalBackdrop = document.getElementById('modal-backdrop');
-            const confirmModal = document.getElementById('confirm-modal');
-            const modalConfirmBtn = document.getElementById('modal-confirm-btn');
-            const modalCancelBtn = document.getElementById('modal-cancel-btn');
-
-            const settingsPanel = document.getElementById('settings-panel');
-            const settingsBtn = document.getElementById('settings-btn');
-            const settingsCloseBtn = document.getElementById('settings-close-btn');
-            const apiKeyInput = document.getElementById('api-key-input');
-            const saveApiKeyBtn = document.getElementById('save-api-key-btn');
-
-            const searchInput = document.getElementById('search-input');
-            const searchBtn = document.getElementById('search-btn');
-            const smartSearchBtn = document.getElementById('smart-search-btn');
-            const smartSearchModal = document.getElementById('smart-search-modal');
-            const smartSearchResult = document.getElementById('smart-search-result');
-            const smartSearchCloseBtn = document.getElementById('smart-search-close-btn');
-
-            const highlightToolbar = document.getElementById('highlight-toolbar');
-            const minimizeAllBtn = document.getElementById('minimize-all-btn');
-
-            const importBtn = document.getElementById('import-btn');
-            const exportBtn = document.getElementById('export-btn');
-            const importFileInput = document.getElementById('import-file-input');
-
-            // --- FUNÇÕES ---
-            function updateStateFromDOM() {
-                const currentOrderIds = Array.from(contentSections.children).map(sectionEl => sectionEl.dataset.id);
-                const contentMap = new Map(state.content.map(item => [item.id, item]));
-
-                const reorderedContent = currentOrderIds.map(id => {
-                    const sectionEl = document.getElementById(id);
-                    const title = sectionEl.querySelector('h2').innerText;
-                    const content = sectionEl.querySelector('div[data-editable]').innerHTML;
-                    const originalItem = contentMap.get(id);
-                    return { ...originalItem, title, content };
-                });
-
-                state.content.forEach(item => {
-                    if (!reorderedContent.find(rc => rc.id === item.id)) {
-                        reorderedContent.push(item);
-                    }
-                });
-                state.content = reorderedContent;
+        // BANCO DE 30 QUESTÕES ALINHADAS COM O LIVRO (MATEMÁTICA 2º ANO)
+        const questions = [
+            // Sistema de numeração / Material Dourado (Págs 1, 2 e 3)
+            {
+                tag: "Material Dourado",
+                question: "No material dourado que estudamos no livro, qual pecinha representa exatamente 1 unidade?",
+                options: ["Cubinho", "Barra", "Placa", "Cédula de 1 Real"],
+                answer: 0,
+                hint: "Ela é a menor pecinha de todas!"
+            },
+            {
+                tag: "Material Dourado",
+                question: "Se 1 barra é formada por 10 cubinhos unidos, quanto vale essa barra?",
+                options: ["1 unidade", "1 dezena (ou 10 unidades)", "1 centena (ou 100 unidades)", "1000 unidades"],
+                answer: 1,
+                hint: "10 unidades juntas formam uma palavra que começa com 'DE'."
+            },
+            {
+                tag: "Centenas",
+                question: "A placa do material dourado vale 1 centena completa. Quantos cubinhos soltos existem em 1 placa?",
+                options: ["10 cubinhos", "50 cubinhos", "100 cubinhos", "1000 cubinhos"],
+                answer: 2,
+                hint: "Pense na palavra 'centena'. Ela lembra qual número?"
+            },
+            {
+                tag: "Desafio das Placas",
+                question: "A professora perguntou: se cada placa vale 100 unidades, de quantas placas nós precisamos para formar o número 1.000?",
+                options: ["5 placas", "10 placas", "50 placas", "100 placas"],
+                answer: 1,
+                hint: "Conte de 100 em 100 até chegar a 1.000!"
+            },
+            {
+                tag: "Montando Números",
+                question: "Se você tem 2 placas e 3 barras do material dourado em sua mesa, qual número você formou?",
+                options: ["23", "203", "230", "320"],
+                answer: 2,
+                hint: "Duas placas valem 200, e três barras valem 30."
+            },
+            // Grupos de dez e contagem de 10 em 10 (Págs 2, 3 e 4)
+            {
+                tag: "Contagem de 10 em 10",
+                question: "Vamos contar de 10 em 10! Qual número deve vir logo após o número 40 na sequência: 10, 20, 30, 40...?",
+                options: ["41", "45", "50", "60"],
+                answer: 2,
+                hint: "Adicione mais 10 ao número 40!"
+            },
+            {
+                tag: "Pulo de 10 em 10",
+                question: "O Luquinha está pulando de 10 em 10 em um tabuleiro no chão. Ele começou no número 12. Qual é o próximo número em que ele vai pisar?",
+                options: ["13", "20", "22", "32"],
+                answer: 2,
+                hint: "Adicione 10 unidades ao 12."
+            },
+            {
+                tag: "Pulo do Luquinha",
+                question: "Continuando a brincadeira do Luquinha, ele está no número 42 e pulou mais 10 casas para frente. Onde ele vai parar?",
+                options: ["43", "50", "52", "62"],
+                answer: 2,
+                hint: "A unidade continua sendo 2, mas a dezena aumenta em 1."
+            },
+            {
+                tag: "Calculadora Interativa",
+                question: "No livro digitamos 130 na calculadora e apertamos as teclas '+ 10'. Qual é o número que vai aparecer na tela da calculadora?",
+                options: ["120", "131", "140", "230"],
+                answer: 2,
+                hint: "É como contar de 10 em 10 a partir do 130."
+            },
+            {
+                tag: "Calculadora Interativa",
+                question: "Agora, temos 140 na calculadora e apertamos as teclas '+ 100'. Qual será o novo número na tela?",
+                options: ["150", "240", "440", "1400"],
+                answer: 1,
+                hint: "Aumente 1 centena (100) ao número 140."
+            },
+            // Quadro de ordens e Decomposição (Págs 3, 4 e 6)
+            {
+                tag: "Quadro de Ordens",
+                question: "No Quadro de Ordens de Centena, Dezena e Unidade (C, D, U), o número 145 possui quantas dezenas?",
+                options: ["1 dezena", "4 dezenas", "5 dezenas", "14 dezenas"],
+                answer: 1,
+                hint: "O número 145 tem: 1 centena, 4 dezenas e 5 unidades."
+            },
+            {
+                tag: "Decomposição",
+                question: "Qual das opções abaixo mostra a decomposição correta do número 286 de acordo com o livro?",
+                options: ["200 + 80 + 6", "20 + 80 + 6", "2 + 8 + 6", "200 + 8 + 6"],
+                answer: 0,
+                hint: "Pense em duzentos, mais oitenta, mais seis."
+            },
+            {
+                tag: "Quadro de Ordens",
+                question: "Se um número do livro tem exatamente 5 centenas, 5 dezenas e 5 unidades no quadro de ordens, que número ele representa?",
+                options: ["55", "505", "555", "5550"],
+                answer: 2,
+                hint: "Todos os algarismos desse número de três algarismos são iguais."
+            },
+            {
+                tag: "Adição Completa",
+                question: "Duda fez uma continha somando as peças: 400 + 30 + 5. Qual foi o resultado final que ela encontrou?",
+                options: ["435", "453", "345", "400305"],
+                answer: 0,
+                hint: "Apenas junte as ordens para formar o número direto."
+            },
+            {
+                tag: "Zero na Dezena",
+                question: "Qual número formamos ao juntar 3 centenas e 6 unidades? (Dica: não temos nenhuma dezena no meio!)",
+                options: ["36", "306", "360", "366"],
+                answer: 1,
+                hint: "Se não há dezenas, o algarismo do meio deve ser zero (0)."
+            },
+            // Números Pares e Ímpares (Pág 9)
+            {
+                tag: "Par ou Ímpar",
+                question: "O número da casa do Luquinha termina com o algarismo 8. Esse número é classificado como Par ou Ímpar?",
+                options: ["É um número PAR", "É um número ÍMPAR", "Não é nem par nem ímpar", "É maior que mil"],
+                answer: 0,
+                hint: "Lembre-se: números terminados em 0, 2, 4, 6 e 8 são pares."
+            },
+            {
+                tag: "Par ou Ímpar",
+                question: "Para um número ser classificado como ÍMPAR, com quais algarismos ele deve terminar?",
+                options: ["Terminar em 0, 2, 4, 6 ou 8", "Terminar em 1, 3, 5, 7 ou 9", "Terminar apenas em 0", "Qualquer número terminado em 2"],
+                answer: 1,
+                hint: "Se você fizer pares de cubinhos, vai sobrar 1 cubinho sozinho no final."
+            },
+            {
+                tag: "Identificando Números",
+                question: "O número 307 aparece na trilha colorida do livro de matemática. Que tipo de número ele é?",
+                options: ["Número Par", "Número Ímpar", "Número decimal", "Zero"],
+                answer: 1,
+                hint: "Olhe para o último algarismo do número 307."
+            },
+            {
+                tag: "Quem é o Par?",
+                question: "Qual dos seguintes números da trilha do jogo é um número PAR?",
+                options: ["321", "323", "325", "326"],
+                answer: 3,
+                hint: "Procure o número que termina com 0, 2, 4, 6 ou 8."
+            },
+            {
+                tag: "Brincando com Cubinhos",
+                question: "Se você pegar 3 cubinhos (ímpar) e juntar com mais 3 cubinhos (ímpar), o resultado final (6 cubinhos) será um número:",
+                options: ["Par", "Ímpar", "Zero", "Centena"],
+                answer: 0,
+                hint: "Junte 3 + 3 e veja se todos ganham um parzinho."
+            },
+            // Dinheiro / Sistema Monetário (Págs 7 e 8)
+            {
+                tag: "Valor Posicional / Girafa",
+                question: "O texto sobre as girafas diz que a gestação delas dura 455 dias. Como podemos decompor o número 455 de acordo com as cédulas de dinheiro?",
+                options: ["4 + 5 + 5", "40 + 50 + 5", "400 + 50 + 5", "400 + 55"],
+                answer: 2,
+                hint: "Temos 4 cédulas de 100 reais, 5 cédulas de 10 reais e 5 moedas de 1 real."
+            },
+            {
+                tag: "Dinheiro do Yuri",
+                question: "Yuri (pai da Duda) guardou dinheiro em casa. Ele tem 6 cédulas de 100 reais, 4 cédulas de 10 reais e 5 moedas de 1 real. Quantos reais ele tem?",
+                options: ["64 reais", "546 reais", "645 reais", "654 reais"],
+                answer: 2,
+                hint: "Junte $600 + 40 + 5$ para achar o valor total."
+            },
+            {
+                tag: "Dinheiro da Mariana",
+                question: "Mariana (mãe do Luquinha) tem guardado: 8 cédulas de 100 reais, 3 cédulas de 10 reais e 3 moedas de 1 real. Qual o valor total dela?",
+                options: ["338 reais", "833 reais", "830 reais", "803 reais"],
+                answer: 1,
+                hint: "Junte $800 + 30 + 3$."
+            },
+            {
+                tag: "Dinheiro da Cassandra",
+                question: "Cassandra (mãe da Nina) guardou a quantia indicada por: 5 cédulas de 100 reais, 9 cédulas de 10 reais e 1 moeda de 1 real. Quanto ela possui?",
+                options: ["591 reais", "519 reais", "951 reais", "159 reais"],
+                answer: 0,
+                hint: "Basta juntar as ordens na sequência: 5, depois 9, depois 1."
+            },
+            {
+                tag: "Moedas de Centavos",
+                question: "Quantas moedas de 10 centavos nós precisamos juntar para formar exatamente 1 Real?",
+                options: ["5 moedas", "10 moedas", "50 moedas", "100 moedas"],
+                answer: 1,
+                hint: "Conte de 10 em 10 centavos até chegar a 100 centavos (que vale 1 real)."
+            },
+            // Horas e Relógio (Págs 10, 11, 12 e 13)
+            {
+                tag: "Unidades de Tempo",
+                question: "O relógio serve para medir o tempo. Sabendo que 1 hora tem 60 minutos, quantos minutos tem MEIA HORA?",
+                options: ["10 minutos", "15 minutos", "30 minutos", "50 minutos"],
+                answer: 2,
+                hint: "Pense na metade de 60 minutos!"
+            },
+            {
+                tag: "Passagem do Tempo",
+                question: "O relógio digital está marcando 04:00. O desenho favorito do Luquinha começará exatamente 2 horas depois. Qual será o horário do desenho?",
+                options: ["05:00", "06:00", "07:00", "08:00"],
+                answer: 1,
+                hint: "Adicione 2 horas ao número 4."
+            },
+            {
+                tag: "Caminho da Escola",
+                question: "Nina saiu de casa às 11:00 horas e chegou no portão da escola às 11:10. Quantos minutos ela levou no caminho?",
+                options: ["5 minutos", "10 minutos", "20 minutos", "1 hora"],
+                answer: 1,
+                hint: "Subtraia os minutos de chegada pelos de partida: 10 - 0."
+            },
+            {
+                tag: "Caminhada de Duda",
+                question: "Duda começou a caminhar no parque às 9:20 e terminou às 9:45. Quanto tempo durou a caminhada da Duda com os amigos?",
+                options: ["15 minutos", "20 minutos", "25 minutos", "45 minutos"],
+                answer: 2,
+                hint: "Quantos minutos faltam para sair de 20 e chegar a 45?"
+            },
+            {
+                tag: "Estimativa Diária",
+                question: "De acordo com as estimativas de tempo que estudamos, quanto tempo você gasta para beber um copo cheio de água?",
+                options: ["Aproximadamente 1 hora", "Aproximadamente 2 horas", "Aproximadamente 1 minuto", "Aproximadamente meia hora"],
+                answer: 2,
+                hint: "Beber água é uma ação muito rápida ou demorada?"
             }
+        ];
 
-            function saveState() {
-                localStorage.setItem('unintaManualState', JSON.stringify({ content: state.content, pinnedItems: state.pinnedItems }));
+        let currentQuestionIndex = 0;
+        let selectedOptionIndex = null;
+        let score = 0;
+        let fontSize = 20;
+        let soundEnabled = true;
+
+        // ELEMENTOS DOM
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const questionProgress = document.getElementById('question-progress');
+        const progressBar = document.getElementById('progress-bar');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const confirmBtn = document.getElementById('confirm-btn');
+        const lockStatus = document.getElementById('lock-status');
+        const questionTag = document.getElementById('question-tag');
+
+        // WEB AUDIO API - SONS SINTETIZADOS NATIVAMENTE
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playTone(frequency, type, duration) {
+            if (!soundEnabled) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(frequency, audioCtx.currentTime);
                 
-                saveBtn.innerHTML = `<i data-lucide="check-circle" class="mr-2 h-5 w-5"></i> Salvo!`;
-                lucide.createIcons();
-                setTimeout(() => {
-                    saveBtn.innerHTML = `<i data-lucide="save" class="mr-2 h-5 w-5"></i> Salvar`;
-                    lucide.createIcons();
-                }, 2000);
-            }
-
-            function loadState() {
-                const savedState = localStorage.getItem('unintaManualState');
-                if (savedState) {
-                    const parsedState = JSON.parse(savedState);
-                    state.content = parsedState.content;
-                    state.pinnedItems = parsedState.pinnedItems || [];
-                } else {
-                    state.content = initialData;
-                    state.pinnedItems = [];
-                }
+                // Suavizar início e fim do som
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
                 
-                const savedSidebarPin = localStorage.getItem('sidebarPinned');
-                state.isSidebarPinned = window.innerWidth < 1024 ? false : (savedSidebarPin === null ? true : JSON.parse(savedSidebarPin));
-
-                apiKeyInput.value = localStorage.getItem('geminiApiKey') || '';
-                updateSmartSearchButton();
-
-                render();
-
-                // Esconde o loader e mostra o conteúdo
-                const loader = document.getElementById('loader');
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
                 
-                setTimeout(() => {
-                    loader.classList.add('opacity-0');
-                    appContainer.classList.remove('opacity-0');
-                    // Remove o loader do DOM após a transição
-                    setTimeout(() => loader.style.display = 'none', 500);
-                }, 100); 
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch (e) {
+                console.log("Erro de áudio:", e);
             }
+        }
 
-            function render() {
-                contentSections.innerHTML = '';
-                pinnedContainer.innerHTML = '';
-                menuNavLinks.innerHTML = '';
-                const contentMap = new Map(state.content.map(item => [item.id, item]));
+        function playCorrectSound() {
+            // Arpejo feliz (C5 -> E5 -> G5)
+            playTone(523.25, 'sine', 0.15);
+            setTimeout(() => playTone(659.25, 'sine', 0.15), 100);
+            setTimeout(() => playTone(783.99, 'sine', 0.3), 200);
+        }
 
-                if (state.pinnedItems.length > 0) {
-                    const pinnedHeader = document.createElement('h3');
-                    pinnedHeader.className = "text-xl font-bold text-white mb-4 flex items-center";
-                    pinnedHeader.innerHTML = `<i data-lucide="bookmark-check" class="h-5 w-5 mr-2 text-blue-400"></i> Tópicos Fixados`;
-                    pinnedContainer.appendChild(pinnedHeader);
-                    const pinnedGrid = document.createElement('div');
-                    pinnedGrid.className = 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4';
-                    state.pinnedItems.forEach(id => {
-                        const item = contentMap.get(id);
-                        if (!item) return;
-                        const pinnedClone = pinnedItemTemplate.content.cloneNode(true);
-                        const link = pinnedClone.querySelector('a');
-                        link.textContent = item.title;
-                        link.href = `#${item.id}`;
-                        link.onclick = (e) => { e.preventDefault(); document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth' }); };
-                        pinnedClone.querySelector('.unpin-btn').addEventListener('click', (e) => { e.preventDefault(); toggleContentPin(item.id); });
-                        pinnedGrid.appendChild(pinnedClone);
-                    });
-                    pinnedContainer.appendChild(pinnedGrid);
-                }
+        function playIncorrectSound() {
+            // Som grave e descendente
+            playTone(180, 'sawtooth', 0.25);
+            setTimeout(() => playTone(130, 'sawtooth', 0.35), 150);
+        }
 
-                state.content.forEach(item => {
-                    if (!state.pinnedItems.includes(item.id)) {
-                        const sectionClone = sectionTemplate.content.cloneNode(true);
-                        const sectionEl = sectionClone.querySelector('section');
-                        sectionEl.id = item.id;
-                        sectionEl.dataset.id = item.id;
-                        
-                        const titleEl = sectionEl.querySelector('h2');
-                        titleEl.textContent = item.title;
-                        
-                        const contentEl = sectionEl.querySelector('div[data-editable]');
-                        contentEl.innerHTML = item.content;
-
-                        if (state.areCardsMinimized) {
-                            sectionEl.querySelector('.card-content-wrapper').classList.add('collapsed');
-                        }
-
-                        sectionEl.querySelector('.pin-btn').addEventListener('click', () => toggleContentPin(item.id));
-                        sectionEl.querySelector('.clone-btn').addEventListener('click', () => cloneCard(item.id));
-                        sectionEl.querySelector('.delete-btn').addEventListener('click', () => showDeleteConfirmation(item.id, item.title));
-                        
-                        // Evento para atualizar o título dinamicamente
-                        titleEl.addEventListener('input', () => {
-                            const newTitle = titleEl.innerText;
-                            // Atualiza o título no estado
-                            const stateItem = state.content.find(i => i.id === item.id);
-                            if (stateItem) {
-                                stateItem.title = newTitle;
-                            }
-                            // Atualiza o link no sumário
-                            const sidebarLink = menuNavLinks.querySelector(`a[href="#${item.id}"]`);
-                            if (sidebarLink) {
-                                sidebarLink.textContent = newTitle;
-                            }
-                        });
-
-                        contentSections.appendChild(sectionClone);
-                    }
-                    const menuLink = document.createElement('a');
-                    menuLink.href = `#${item.id}`;
-                    menuLink.textContent = item.title;
-                    menuLink.className = 'block py-2 px-3 rounded-md text-gray-300 hover:bg-gray-700 hover:text-white transition-colors';
-                    menuLink.onclick = (e) => {
-                        e.preventDefault();
-                        document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth' });
-                        if (window.innerWidth < 1024) {
-                            sidebar.classList.add('-translate-x-full');
-                        }
-                    };
-                    menuNavLinks.appendChild(menuLink);
-                });
-                updateAdminUI();
-                updateSidebarUI();
-                lucide.createIcons();
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const soundIcon = document.getElementById('sound-icon');
+            if (soundEnabled) {
+                soundIcon.className = "fas fa-volume-up text-green-400";
+                playTone(440, 'sine', 0.1); // feedback simples
+            } else {
+                soundIcon.className = "fas fa-volume-mute text-red-500";
             }
+        }
+
+        // CONTROLE DE TAMANHO DE FONTE
+        function changeFontSize(amount) {
+            fontSize = Math.max(16, Math.min(32, fontSize + amount));
+            document.body.style.fontSize = fontSize + "px";
+            // Ajustar tamanhos relativos de botões e enunciados
+            questionText.style.fontSize = (fontSize + 4) + "px";
+        }
+
+        // CONTROLADOR DO FLUXO DO QUIZ
+        function startQuiz() {
+            // Iniciar contexto de áudio em navegadores modernos pós-interação do usuário
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            startScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
+            resultScreen.classList.add('hidden');
             
-            function toggleContentPin(id) {
-                const index = state.pinnedItems.indexOf(id);
-                if (index > -1) {
-                    state.pinnedItems.splice(index, 1);
-                } else {
-                    if (state.pinnedItems.length < 5) {
-                        state.pinnedItems.push(id);
-                    } else {
-                        alert('Você pode fixar no máximo 5 tópicos.');
-                        return;
-                    }
-                }
-                saveState();
-                render();
-            }
+            currentQuestionIndex = 0;
+            score = 0;
+            loadQuestion();
+        }
 
-            function updateAdminUI() {
-                const editableElements = document.querySelectorAll('[data-editable]');
-                const sections = document.querySelectorAll('#content-sections section');
-                const deleteButtons = document.querySelectorAll('.delete-btn');
-                const cloneButtons = document.querySelectorAll('.clone-btn');
-
-                if (state.isAdmin) {
-                    saveBtn.classList.remove('hidden');
-                    addCardBtn.classList.remove('hidden');
-                    adminToggleBtn.classList.add('bg-blue-600', 'text-white');
-                    deleteButtons.forEach(btn => btn.classList.remove('hidden'));
-                    cloneButtons.forEach(btn => btn.classList.remove('hidden'));
-                    editableElements.forEach(el => el.setAttribute('contenteditable', 'true'));
-                    sections.forEach(sec => sec.setAttribute('draggable', 'true'));
-                } else {
-                    saveBtn.classList.add('hidden');
-                    addCardBtn.classList.add('hidden');
-                    adminToggleBtn.classList.remove('bg-blue-600', 'text-white');
-                    deleteButtons.forEach(btn => btn.classList.add('hidden'));
-                    cloneButtons.forEach(btn => btn.classList.add('hidden'));
-                    editableElements.forEach(el => el.setAttribute('contenteditable', 'false'));
-                    sections.forEach(sec => sec.setAttribute('draggable', 'false'));
-                }
-            }
+        function loadQuestion() {
+            selectedOptionIndex = null;
             
-            function toggleAdminMode() {
-                if (!state.isAdmin) {
-                    const password = prompt("Digite a senha de administrador:");
-                    if (password !== "123") { alert("Senha incorreta!"); return; }
-                }
-                state.isAdmin = !state.isAdmin;
-                updateAdminUI();
+            // Atualizar Progresso
+            const qNum = currentQuestionIndex + 1;
+            questionProgress.innerText = `Questão ${qNum} de 30`;
+            const progressPercent = (qNum / questions.length) * 100;
+            progressBar.style.width = `${progressPercent}%`;
+
+            // Resetar Botão de confirmação (Trava anti-erro ativada)
+            confirmBtn.disabled = true;
+            confirmBtn.className = "w-full btn-large bg-[#1e293b] text-slate-500 text-xl font-black rounded-xl cursor-not-allowed transition-all flex items-center justify-center gap-3";
+            confirmBtn.innerHTML = '<i class="fas fa-lock"></i> TRAVA ATIVADA';
+            lockStatus.innerHTML = '<i class="fas fa-lock text-yellow-500"></i> Selecione uma resposta para liberar a trava!';
+
+            // Carregar Pergunta
+            const q = questions[currentQuestionIndex];
+            questionTag.innerText = q.tag;
+            questionText.innerText = q.question;
+
+            // Limpar e criar botões de alternativas bem grandes
+            optionsContainer.innerHTML = '';
+            q.options.forEach((opt, idx) => {
+                const button = document.createElement('button');
+                button.className = "option-card w-full p-5 rounded-2xl text-left font-bold transition-all flex items-center gap-4 text-white active:scale-98";
+                button.innerHTML = `
+                    <div class="w-10 h-10 rounded-full bg-slate-800 border-2 border-slate-500 flex items-center justify-center text-xl font-black shrink-0" id="bullet-${idx}">
+                        ${String.fromCharCode(65 + idx)}
+                    </div>
+                    <span class="text-lg md:text-xl leading-relaxed">${opt}</span>
+                `;
+                button.onclick = () => selectOption(idx);
+                optionsContainer.appendChild(button);
+            });
+        }
+
+        function selectOption(idx) {
+            selectedOptionIndex = idx;
+            playTone(350, 'sine', 0.08); // Toque discreto
+
+            // Resetar estilos visuais de todas as opções
+            const cards = optionsContainer.getElementsByTagName('button');
+            for (let i = 0; i < cards.length; i++) {
+                cards[i].classList.remove('selected');
+                const bullet = document.getElementById(`bullet-${i}`);
+                bullet.className = "w-10 h-10 rounded-full bg-slate-800 border-2 border-slate-500 flex items-center justify-center text-xl font-black shrink-0";
+                bullet.innerHTML = String.fromCharCode(65 + i);
             }
 
-            function updateSidebarUI() {
-                const pinIcon = pinSidebarBtn.querySelector('i');
-                if (state.isSidebarPinned) {
-                    sidebar.classList.remove('-translate-x-full');
-                    mainContent.classList.add('lg:ml-64');
-                    adminControls.classList.add('lg:left-72');
-                    openSidebarBtn.classList.add('opacity-0', 'pointer-events-none');
-                    pinIcon.setAttribute('data-lucide', 'pin-off');
-                    pinSidebarBtn.classList.add('bg-blue-600/30', 'text-blue-300');
-                } else {
-                    sidebar.classList.add('-translate-x-full');
-                    mainContent.classList.remove('lg:ml-64');
-                    adminControls.classList.remove('lg:left-72');
-                    openSidebarBtn.classList.remove('opacity-0', 'pointer-events-none');
-                    pinIcon.setAttribute('data-lucide', 'pin');
-                    pinSidebarBtn.classList.remove('bg-blue-600/30', 'text-blue-300');
-                }
-                lucide.createIcons();
-            }
+            // Destacar a selecionada
+            cards[idx].classList.add('selected');
+            const selectedBullet = document.getElementById(`bullet-${idx}`);
+            selectedBullet.className = "w-10 h-10 rounded-full bg-cyan-400 text-slate-950 border-2 border-cyan-400 flex items-center justify-center text-xl font-black shrink-0";
+            selectedBullet.innerHTML = '<i class="fas fa-check"></i>';
 
-            function toggleSidebarPin() {
-                state.isSidebarPinned = !state.isSidebarPinned;
-                localStorage.setItem('sidebarPinned', state.isSidebarPinned);
-                updateSidebarUI();
+            // Destravar o botão de Confirmação (Anti-Erro)
+            confirmBtn.disabled = false;
+            confirmBtn.className = "w-full btn-large bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 text-2xl font-black rounded-xl transition-all flex items-center justify-center gap-3 shadow-[0_0_20px_rgba(16,185,129,0.4)] cursor-pointer";
+            confirmBtn.innerHTML = '<i class="fas fa-unlock"></i> CONFIRMAR MINHA RESPOSTA';
+            lockStatus.innerHTML = '<span class="text-green-400"><i class="fas fa-lock-open mr-2"></i>Tudo certo! Clique abaixo para responder!</span>';
+        }
+
+        function confirmAnswer() {
+            if (selectedOptionIndex === null) return;
+
+            const q = questions[currentQuestionIndex];
+            const isCorrect = (selectedOptionIndex === q.answer);
+
+            if (isCorrect) {
+                score++;
+                playCorrectSound();
+                showOverlayFeedback(true);
+            } else {
+                playIncorrectSound();
+                showOverlayFeedback(false, q.options[q.answer]);
             }
+        }
+
+        // FEEDBACK FLUTUANTE PARA ACERTO / ERRO
+        function showOverlayFeedback(isCorrect, correctAnswerText) {
+            const feedbackOverlay = document.createElement('div');
+            feedbackOverlay.className = "fixed inset-0 flex items-center justify-center z-50 bg-[#0c0f12]/90 p-4 animate-fade-in";
             
-            // --- Novas Funções de Edição ---
-            function addNewCard() {
-                const newId = 'card-' + Date.now();
-                const newCard = {
-                    id: newId,
-                    title: 'Novo Tópico',
-                    content: '<p>Comece a editar este conteúdo...</p>'
-                };
-                state.content.push(newCard);
-                render(); // Re-renderiza a UI com o novo card
-                
-                // Rola a página para o novo card e foca no título para edição
-                const newCardElement = document.getElementById(newId);
-                if (newCardElement) {
-                    newCardElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    setTimeout(() => {
-                        newCardElement.querySelector('h2').focus();
-                    }, 300);
-                }
+            let cardContent = "";
+            if (isCorrect) {
+                cardContent = `
+                    <div class="bg-[#121820] border-4 border-green-500 p-8 rounded-3xl max-w-md w-full text-center space-y-6">
+                        <div class="text-7xl">🎉🌟🎈</div>
+                        <h3 class="text-3xl font-black text-green-400">Muito Bem!</h3>
+                        <p class="text-lg">Você acertou essa questão e provou ser uma fera na matemática!</p>
+                        <button id="next-btn-fb" class="w-full btn-large bg-green-500 text-slate-950 text-xl font-bold rounded-xl active:scale-95 transition-transform flex items-center justify-center gap-2">
+                            PRÓXIMA PERGUNTA <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                `;
+            } else {
+                cardContent = `
+                    <div class="bg-[#121820] border-4 border-red-500 p-8 rounded-3xl max-w-md w-full text-center space-y-6">
+                        <div class="text-7xl">💡💪📚</div>
+                        <h3 class="text-3xl font-black text-red-400">Quase lá!</h3>
+                        <p class="text-lg">Não desanime, errar faz parte do aprendizado!</p>
+                        <div class="bg-[#1a222d] p-4 rounded-xl border border-slate-700 text-left">
+                            <span class="text-xs font-bold text-red-400 uppercase">A resposta certa era:</span>
+                            <p class="text-lg font-bold text-white mt-1">${correctAnswerText}</p>
+                        </div>
+                        <button id="next-btn-fb" class="w-full btn-large bg-red-500 text-white text-xl font-bold rounded-xl active:scale-95 transition-transform flex items-center justify-center gap-2">
+                            CONTINUAR TENTANDO <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                `;
             }
 
-            function cloneCard(id) {
-                const originalCardIndex = state.content.findIndex(item => item.id === id);
-                if (originalCardIndex === -1) return;
+            feedbackOverlay.innerHTML = cardContent;
+            document.body.appendChild(feedbackOverlay);
 
-                const originalCard = state.content[originalCardIndex];
-                const newCard = {
-                    ...originalCard, // Copia todo o conteúdo
-                    id: 'card-' + Date.now(),
-                    title: `Cópia de ${originalCard.title}`
-                };
+            // Focar o botão de avançar para melhorar acessibilidade de teclado/leitores
+            setTimeout(() => {
+                const btn = document.getElementById('next-btn-fb');
+                if (btn) btn.focus();
+            }, 100);
 
-                state.content.splice(originalCardIndex + 1, 0, newCard);
-                render();
+            document.getElementById('next-btn-fb').onclick = () => {
+                feedbackOverlay.remove();
+                goToNextQuestion();
+            };
+        }
+
+        function goToNextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                loadQuestion();
+            } else {
+                showResults();
             }
+        }
 
-            function showDeleteConfirmation(id, title) {
-                modalBackdrop.classList.remove('hidden');
-                confirmModal.classList.remove('hidden');
-                modalConfirmBtn.dataset.deleteId = id;
+        // TELA DE RESULTADOS FINAIS
+        function showResults() {
+            quizScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+
+            const incorrect = questions.length - score;
+            const grade = ((score / questions.length) * 10).toFixed(1);
+
+            // Estatísticas rápidas
+            document.getElementById('stat-correct').innerText = score;
+            document.getElementById('stat-incorrect').innerText = incorrect;
+            document.getElementById('stat-grade').innerText = grade;
+
+            // Determinar Medalha de Conquista
+            const emojiEl = document.getElementById('result-emoji');
+            const titleEl = document.getElementById('result-title');
+            const medalTextEl = document.getElementById('medal-text');
+            const textEl = document.getElementById('result-text');
+
+            if (score === 30) {
+                emojiEl.innerText = "🏆👑💎";
+                titleEl.innerText = "Mestre Perfeito!";
+                medalTextEl.innerText = "Medalha de Diamante 👑💎";
+                textEl.innerText = "UAU! Você gabaritou as 30 questões! Você é o orgulho da sala de aula!";
+                playTone(523, 'sine', 0.1);
+                setTimeout(() => playTone(659, 'sine', 0.1), 150);
+                setTimeout(() => playTone(784, 'sine', 0.1), 300);
+                setTimeout(() => playTone(1046, 'sine', 0.5), 450);
+            } else if (score >= 24) {
+                emojiEl.innerText = "🏅🌟🥇";
+                titleEl.innerText = "Incrível Trabalho!";
+                medalTextEl.innerText = "Medalha de Ouro 🥇⭐";
+                textEl.innerText = "Parabéns! Você domina muito bem a matemática do 2º Ano!";
+            } else if (score >= 15) {
+                emojiEl.innerText = "🥈✨👍";
+                titleEl.innerText = "Muito Bom!";
+                medalTextEl.innerText = "Medalha de Prata 🥈✨";
+                textEl.innerText = "Você foi muito bem e já entende os principais conceitos! Continue estudando!";
+            } else {
+                emojiEl.innerText = "📝🧡🌱";
+                titleEl.innerText = "Bom Começo!";
+                medalTextEl.innerText = "Medalha de Bronze 🥉🌱";
+                textEl.innerText = "Que tal dar mais uma olhada no seu livro e tentar novamente? Você tem todo potencial!";
             }
+        }
 
-            function deleteCard(id) {
-                state.content = state.content.filter(item => item.id !== id);
-                state.pinnedItems = state.pinnedItems.filter(pinnedId => pinnedId !== id);
-                saveState();
-                render();
-            }
-
-            function setupHighlightToolbar() {
-                highlightToolbar.addEventListener('mousedown', (e) => e.preventDefault());
-                document.addEventListener('mouseup', () => {
-                    const selection = window.getSelection();
-                    if (!selection.isCollapsed && state.isAdmin) {
-                        const range = selection.getRangeAt(0);
-                        const rect = range.getBoundingClientRect();
-                        let parent = range.commonAncestorContainer.nodeType === 3 ? range.commonAncestorContainer.parentNode : range.commonAncestorContainer;
-                        if (parent.closest('[contenteditable="true"]')) {
-                            highlightToolbar.style.display = 'flex';
-                            highlightToolbar.style.left = `${rect.left + window.scrollX + rect.width / 2 - highlightToolbar.offsetWidth / 2}px`;
-                            highlightToolbar.style.top = `${rect.top + window.scrollY - highlightToolbar.offsetHeight - 8}px`;
-                        } else {
-                           highlightToolbar.style.display = 'none';
-                        }
-                    } else {
-                        highlightToolbar.style.display = 'none';
-                    }
-                });
-                highlightToolbar.addEventListener('click', (e) => {
-                    const swatch = e.target.closest('.color-swatch');
-                    const removeBtn = e.target.closest('#remove-color-btn');
-                    if (swatch) {
-                        document.execCommand('foreColor', false, swatch.dataset.color);
-                    } else if (removeBtn) {
-                        document.execCommand('removeFormat', false, null);
-                    }
-                    if (swatch || removeBtn) {
-                        highlightToolbar.style.display = 'none';
-                    }
-                });
-            }
-
-            function toggleMinimizeAllCards() {
-                state.areCardsMinimized = !state.areCardsMinimized;
-                const wrappers = document.querySelectorAll('.card-content-wrapper');
-                wrappers.forEach(wrapper => {
-                    wrapper.classList.toggle('collapsed', state.areCardsMinimized);
-                });
-            }
-
-            function handleExport() {
-                updateStateFromDOM(); // Garante que o estado está atualizado com as últimas edições
-                const dataToExport = {
-                    content: state.content,
-                    pinnedItems: state.pinnedItems
-                };
-                const dataStr = JSON.stringify(dataToExport, null, 2);
-                const dataBlob = new Blob([dataStr], {type: "application/json"});
-                const url = URL.createObjectURL(dataBlob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = 'manual-uninta-dados.json';
-                link.click();
-                URL.revokeObjectURL(url);
-            }
-
-            function handleImport() {
-                importFileInput.click();
-            }
-
-            function processImportedFile(event) {
-                const file = event.target.files[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    try {
-                        const importedData = JSON.parse(e.target.result);
-                        if (importedData.content && Array.isArray(importedData.content)) {
-                            state.content = importedData.content;
-                            state.pinnedItems = importedData.pinnedItems || [];
-                            saveState();
-                            render();
-                            alert('Dados importados com sucesso!');
-                        } else {
-                            alert('Arquivo inválido. O formato dos dados não é o esperado.');
-                        }
-                    } catch (error) {
-                        alert('Erro ao ler o arquivo. Verifique se é um arquivo JSON válido.');
-                    }
-                };
-                reader.readAsText(file);
-                importFileInput.value = '';
-            }
-
-            // --- Drag & Drop ---
-            let draggedItem = null;
-            contentSections.addEventListener('dragstart', (e) => {
-                if (!state.isAdmin) return;
-                draggedItem = e.target.closest('section');
-                if (draggedItem) {
-                    setTimeout(() => { draggedItem.classList.add('dragging'); }, 0);
-                    e.dataTransfer.effectAllowed = 'move';
-                }
-            });
-            contentSections.addEventListener('dragend', () => { if (draggedItem) { draggedItem.classList.remove('dragging'); draggedItem = null; } });
-            contentSections.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                if (!state.isAdmin || !draggedItem) return;
-                const target = e.target.closest('section');
-                if (target && target !== draggedItem) {
-                    const rect = target.getBoundingClientRect();
-                    const next = (e.clientY - rect.top) / (rect.bottom - rect.top) > 0.5;
-                    contentSections.insertBefore(draggedItem, next && target.nextSibling || target);
-                }
-            });
-            contentSections.addEventListener('drop', (e) => { 
-                e.preventDefault(); 
-                if (state.isAdmin) { 
-                    updateStateFromDOM();
-                    saveState(); 
-                    render(); 
-                } 
-            });
-
-            // --- Lógica de Busca e IA ---
-            function filterCards(query) {
-                const normalizedQuery = query.toLowerCase().trim();
-                document.querySelectorAll('#content-sections section').forEach(card => {
-                    const cardText = card.innerText.toLowerCase();
-                    if (cardText.includes(normalizedQuery)) {
-                        card.style.display = '';
-                    } else {
-                        card.style.display = 'none';
-                    }
-                });
-            }
-
-            function updateSmartSearchButton() {
-                const apiKey = localStorage.getItem('geminiApiKey');
-                if (apiKey && searchInput.value.trim().length > 0) {
-                    smartSearchBtn.classList.remove('hidden');
-                } else {
-                    smartSearchBtn.classList.add('hidden');
-                }
-            }
-
-            async function performSmartSearch() {
-                const query = searchInput.value.trim();
-                const apiKey = localStorage.getItem('geminiApiKey');
-                if (!query || !apiKey) return;
-
-                smartSearchResult.innerHTML = '<p>Pensando...</p>';
-                modalBackdrop.classList.remove('hidden');
-                smartSearchModal.classList.remove('hidden');
-                
-                let context = "Contexto:\n";
-                state.content.forEach(item => {
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = item.content;
-                    context += `Tópico: ${item.title}\nConteúdo: ${tempDiv.innerText}\n\n`;
-                });
-
-                const prompt = `Com base no contexto fornecido, responda à seguinte pergunta de forma clara e concisa em português:\n\n${context}\n\nPergunta: ${query}`;
-
-                try {
-                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-                    });
-                    if (!response.ok) {
-                        throw new Error(`Erro na API: ${response.statusText}`);
-                    }
-                    const result = await response.json();
-                    const text = result.candidates[0].content.parts[0].text;
-                    smartSearchResult.innerHTML = text.replace(/\n/g, '<br>');
-                } catch (error) {
-                    smartSearchResult.innerHTML = `<p class="text-red-400">Ocorreu um erro. Verifique sua chave de API e a conexão com a internet.</p><p class="text-xs text-gray-400 mt-2">${error.message}</p>`;
-                }
-            }
-
-            // --- EVENT LISTENERS ---
-            adminToggleBtn.addEventListener('click', toggleAdminMode);
-            saveBtn.addEventListener('click', () => {
-                updateStateFromDOM();
-                saveState();
-            });
-            addCardBtn.addEventListener('click', addNewCard);
-            pinSidebarBtn.addEventListener('click', toggleSidebarPin);
-            minimizeAllBtn.addEventListener('click', toggleMinimizeAllCards);
-            openSidebarBtn.addEventListener('click', () => {
-                sidebar.classList.remove('-translate-x-full');
-            });
-            document.addEventListener('click', (e) => {
-                if (window.innerWidth < 1024 && !sidebar.contains(e.target) && !openSidebarBtn.contains(e.target)) {
-                    sidebar.classList.add('-translate-x-full');
-                }
-            });
-            
-            // Modals
-            modalCancelBtn.addEventListener('click', () => {
-                modalBackdrop.classList.add('hidden');
-                confirmModal.classList.add('hidden');
-            });
-            modalConfirmBtn.addEventListener('click', () => {
-                const idToDelete = modalConfirmBtn.dataset.deleteId;
-                if (idToDelete) {
-                    deleteCard(idToDelete);
-                }
-                modalBackdrop.classList.add('hidden');
-                confirmModal.classList.add('hidden');
-            });
-
-            settingsBtn.addEventListener('click', () => {
-                modalBackdrop.classList.remove('hidden');
-                settingsPanel.classList.remove('hidden');
-            });
-            settingsCloseBtn.addEventListener('click', () => {
-                modalBackdrop.classList.add('hidden');
-                settingsPanel.classList.add('hidden');
-            });
-            saveApiKeyBtn.addEventListener('click', () => {
-                localStorage.setItem('geminiApiKey', apiKeyInput.value);
-                updateSmartSearchButton();
-                alert('Chave de API salva!');
-                modalBackdrop.classList.add('hidden');
-                settingsPanel.classList.add('hidden');
-            });
-
-            searchBtn.addEventListener('click', () => {
-                searchInput.classList.toggle('w-0');
-                searchInput.classList.toggle('w-48');
-                searchInput.classList.toggle('px-0');
-                searchInput.classList.toggle('px-2');
-                if (searchInput.classList.contains('w-48')) {
-                    searchInput.focus();
-                } else {
-                    searchInput.value = '';
-                    filterCards('');
-                }
-                updateSmartSearchButton();
-            });
-            searchInput.addEventListener('input', () => {
-                filterCards(searchInput.value);
-                updateSmartSearchButton();
-            });
-            smartSearchBtn.addEventListener('click', performSmartSearch);
-            smartSearchCloseBtn.addEventListener('click', () => {
-                modalBackdrop.classList.add('hidden');
-                smartSearchModal.classList.add('hidden');
-            });
-
-            // Import/Export
-            importBtn.addEventListener('click', handleImport);
-            exportBtn.addEventListener('click', handleExport);
-            importFileInput.addEventListener('change', processImportedFile);
-
-            // --- INICIALIZAÇÃO ---
-            loadState();
-            setupHighlightToolbar();
-            lucide.createIcons();
-        });
+        function restartQuiz() {
+            startQuiz();
+        }
     </script>
 </body>
 </html>
+
+```

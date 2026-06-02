@@ -1,688 +1,1096 @@
 ```html
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Super Simulado de Matemática - 2º Ano</title>
-    <!-- Tailwind CSS para estilização rápida e responsiva -->
+    <title>Super Simulado de História - 2º Ano</title>
+    
+    <!-- Fonte amigável e legível para alfabetização -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS para estilização moderna e responsiva -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome para ícones acessíveis -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Lexend', 'sans-serif'],
+                    },
+                },
+            },
+        }
+    </script>
+    
     <style>
-        body {
-            background-color: #0c0f12;
-            color: #ffffff;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            transition: font-size 0.2s ease;
+        :root {
+            --base-font-size: 1.15rem;
         }
-        /* Cores de alto contraste para baixa visão */
-        .high-contrast-yellow {
-            color: #FFD700;
-        }
-        .high-contrast-bg-yellow {
-            background-color: #FFD700;
-            color: #000000;
+        .accessible-text {
+            font-size: var(--base-font-size);
+            line-height: 1.6;
         }
         .option-card {
-            background-color: #1a222d;
-            border: 3px solid #324354;
             transition: all 0.2s ease;
         }
-        .option-card:hover {
-            border-color: #4a627d;
+        /* Custom scrollbar para acessibilidade */
+        ::-webkit-scrollbar {
+            width: 8px;
         }
-        .option-card.selected {
-            border-color: #00F0FF;
-            background-color: #0f354a;
-            box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+        ::-webkit-scrollbar-track {
+            background: #09090b;
         }
-        /* Botões bem grandes para toque */
-        .btn-large {
-            min-height: 64px;
+        ::-webkit-scrollbar-thumb {
+            background: #27272a;
+            border-radius: 4px;
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between" style="font-size: 20px;">
+<body class="bg-[#09090b] text-zinc-100 font-sans min-h-screen flex flex-col justify-between selection:bg-yellow-400 selection:text-black">
 
-    <!-- BARRA SUPERIOR DE ACESSIBILIDADE E PROGRESSO -->
-    <header class="bg-[#121820] border-b-2 border-[#1e293b] p-4 sticky top-0 z-50">
-        <div class="max-w-4xl mx-auto flex flex-wrap justify-between items-center gap-3">
+    <!-- OVERLAY DE CARREGAMENTO (NUVEM) -->
+    <div id="loading-overlay" class="fixed inset-0 bg-[#09090b] z-50 flex flex-col items-center justify-center p-6 text-center">
+        <div class="w-16 h-16 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <h2 class="text-xl font-bold text-white mb-2">A preparar o teu Simulado...</h2>
+        <p class="text-sm text-zinc-400 max-w-xs">Estamos a conectar de forma segura à nuvem para carregar o teu progresso salvo.</p>
+    </div>
+
+    <!-- NOTIFICAÇÕES TOAST CUSTOMIZADAS -->
+    <div id="toast" class="fixed top-20 left-1/2 -translate-x-1/2 bg-zinc-900 border border-zinc-700 px-4 py-3 rounded-xl shadow-2xl z-50 hidden max-w-sm w-11/12 text-center text-sm font-medium transition-all duration-300">
+        <span id="toast-text">Mensagem do sistema</span>
+    </div>
+
+    <!-- CABEÇALHO COM CONTROLES DE ACESSIBILIDADE -->
+    <header class="bg-[#121214] border-b border-zinc-800 px-4 py-3 sticky top-0 z-40 shadow-lg">
+        <div class="max-w-4xl mx-auto flex flex-wrap items-center justify-between gap-3">
             <div class="flex items-center gap-2">
-                <span class="text-2xl">⚡</span>
-                <h1 class="text-xl font-bold tracking-wide high-contrast-yellow">SUPER MATEMÁTICA</h1>
+                <span class="text-2xl" aria-hidden="true">🎒</span>
+                <div>
+                    <h1 class="text-xs font-black text-yellow-400 tracking-wider uppercase">História - 2º Ano</h1>
+                    <p class="text-xs text-zinc-400">Capítulo 4: Mudanças</p>
+                </div>
             </div>
             
-            <!-- CONTROLES DE ACESSIBILIDADE -->
             <div class="flex items-center gap-3">
-                <!-- Botão de Som -->
-                <button id="toggle-sound-btn" onclick="toggleSound()" class="bg-[#1e293b] hover:bg-[#334155] border-2 border-slate-600 px-3 py-2 rounded-lg text-lg flex items-center gap-2" title="Ligar/Desligar Som">
-                    <i class="fas fa-volume-up text-green-400" id="sound-icon"></i> <span class="text-sm font-semibold">SOM</span>
-                </button>
-                <!-- Tamanho de Fonte -->
-                <div class="flex items-center bg-[#1e293b] rounded-lg border-2 border-slate-600 overflow-hidden">
-                    <button onclick="changeFontSize(-2)" class="px-3 py-2 hover:bg-[#334155] text-lg font-bold border-r border-slate-600" title="Diminuir Letra">A-</button>
-                    <button onclick="changeFontSize(2)" class="px-3 py-2 hover:bg-[#334155] text-lg font-bold" title="Aumentar Letra">A+</button>
+                <!-- Seletor de Tamanho de Fonte -->
+                <div class="flex items-center bg-zinc-950 rounded-lg p-1 border border-zinc-800">
+                    <span class="text-[10px] text-zinc-400 px-2 font-black uppercase">Letra:</span>
+                    <button onclick="changeFontSize('normal')" id="btn-font-normal" class="px-2.5 py-1 text-xs font-bold rounded bg-yellow-400 text-black">A</button>
+                    <button onclick="changeFontSize('large')" id="btn-font-large" class="px-2.5 py-1 text-base font-bold rounded text-zinc-300 hover:text-white">A+</button>
+                    <button onclick="changeFontSize('giant')" id="btn-font-giant" class="px-2.5 py-1 text-lg font-bold rounded text-zinc-300 hover:text-white">A++</button>
                 </div>
+
+                <!-- Botão de Som Mudo/Ativo -->
+                <button onclick="toggleMute()" id="btn-mute" class="bg-zinc-950 border border-zinc-800 p-2 rounded-lg text-yellow-400 hover:bg-zinc-900 transition" title="Ligar/Desligar Sons">
+                    <svg id="icon-sound-on" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                    </svg>
+                    <svg id="icon-sound-off" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zm14.121-11l-8.485 8.485m0-8.485l8.485 8.485" />
+                    </svg>
+                </button>
             </div>
         </div>
     </header>
 
-    <!-- ÁREA PRINCIPAL -->
-    <main class="flex-grow max-w-3xl w-full mx-auto p-4 flex flex-col justify-center">
-        
-        <!-- TELA DE INÍCIO -->
-        <div id="start-screen" class="bg-[#121820] border-4 border-[#FFD700] p-6 rounded-2xl text-center space-y-6 shadow-2xl my-6">
-            <div class="text-6xl">🎒📐🕒</div>
-            <h2 class="text-3xl font-extrabold high-contrast-yellow">Olá, Campeão da Matemática!</h2>
-            <p class="text-lg leading-relaxed">
-                Este é um simulado super divertido preparado especialmente para você treinar tudo o que aprendeu nas suas aulas de matemática do 2º Ano!
-            </p>
-            <div class="bg-[#1a222d] p-4 rounded-xl text-left border-2 border-slate-700 space-y-2">
-                <p class="text-base font-bold text-cyan-400"><i class="fas fa-star mr-2"></i>O QUE VOCÊ VAI REVISAR:</p>
-                <ul class="list-disc pl-5 text-sm space-y-1 text-slate-300">
-                    <li>Sistema de numeração e Material Dourado;</li>
-                    <li>Dezena, Centena e Unidade;</li>
-                    <li>Decomposição de números grandes e Dinheirinho (Reais);</li>
-                    <li>Números Pares e Ímpares;</li>
-                    <li>Horas nos relógios analógico e digital.</li>
-                </ul>
-            </div>
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="flex-grow flex items-center justify-center p-4">
+        <div class="w-full max-w-2xl bg-[#121214] rounded-2xl shadow-2xl border border-zinc-800 p-6 md:p-8">
             
-            <div class="p-4 bg-yellow-950/40 border border-yellow-600 rounded-lg text-left">
-                <p class="text-sm text-yellow-300 font-bold"><i class="fas fa-lock mr-2"></i>TRAVA ANTI-ERRO ATIVADA:</p>
-                <p class="text-xs text-yellow-100 mt-1">
-                    Para garantir que você não clique sem querer, você deve selecionar a opção e depois clicar no grande botão de confirmação verde abaixo das alternativas!
-                </p>
-            </div>
-
-            <button onclick="startQuiz()" class="w-full btn-large high-contrast-bg-yellow text-2xl font-black rounded-xl hover:scale-105 active:scale-95 transition-transform flex items-center justify-center gap-3 shadow-lg">
-                <i class="fas fa-play"></i> COMEÇAR O DESAFIO!
-            </button>
-        </div>
-
-        <!-- TELA DE QUESTÕES -->
-        <div id="quiz-screen" class="hidden space-y-6">
-            <!-- Barra de Progresso Realista -->
-            <div class="bg-[#121820] p-4 rounded-xl border-2 border-slate-800">
-                <div class="flex justify-between items-center mb-2">
-                    <span class="text-sm font-bold text-slate-400">Progresso do Desafio</span>
-                    <span id="question-progress" class="text-lg font-black high-contrast-yellow">Questão 1 de 30</span>
-                </div>
-                <div class="w-full bg-slate-800 rounded-full h-4 overflow-hidden">
-                    <div id="progress-bar" class="bg-gradient-to-r from-yellow-400 to-green-400 h-full transition-all duration-300" style="width: 3.33%;"></div>
-                </div>
-            </div>
-
-            <!-- Card de Questão -->
-            <div class="bg-[#121820] border-2 border-slate-700 p-6 rounded-2xl shadow-xl space-y-6">
-                <!-- Enunciado com letra bem grande e legível -->
-                <div class="space-y-2">
-                    <span class="bg-blue-900 text-blue-200 text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider" id="question-tag">Sistema de Numeração</span>
-                    <p id="question-text" class="text-2xl font-bold leading-normal text-white">
-                        Carregando pergunta de teste...
+            <!-- TELA INICIAL (BOAS-VINDAS & SELECIONAR PROGRESSO) -->
+            <div id="welcome-screen" class="space-y-6">
+                <div class="text-center space-y-4">
+                    <div class="inline-block bg-yellow-400/10 p-4 rounded-full border border-yellow-400/20">
+                        <span class="text-5xl" role="img" aria-label="Troféu">🏆</span>
+                    </div>
+                    <h2 class="text-2xl md:text-3xl font-extrabold text-white">Olá! Vamos Estudar?</h2>
+                    <p class="accessible-text text-zinc-300">
+                        Preparamos um simulado completo com <span class="text-yellow-400 font-bold">20 questões</span> de História sobre tudo o que mudou no teu corpo, na rotina, na tua família e no teu bairro!
                     </p>
                 </div>
 
-                <!-- Lista de Alternativas (Botões Grandes) -->
-                <div id="options-container" class="grid grid-cols-1 gap-4">
-                    <!-- Geradas dinamicamente -->
+                <!-- AVISO DE PROGRESSO SALVO ENCONTRADO -->
+                <div id="resume-container" class="hidden bg-zinc-900 border-2 border-yellow-400/50 p-5 rounded-xl space-y-4 text-center">
+                    <div class="flex items-center justify-center gap-2 text-yellow-400 font-bold">
+                        <span class="text-xl">💾</span>
+                        <span>Progresso Salvo Encontrado!</span>
+                    </div>
+                    <p class="text-sm text-zinc-300" id="resume-text">
+                        Estavas na pergunta X com Y acertos. Desejas continuar de onde paraste?
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <button onclick="resumeQuiz()" class="flex-1 bg-yellow-400 hover:bg-yellow-300 text-black font-black py-3 px-6 rounded-xl shadow-lg transition">
+                            ▶️ Continuar Simulado
+                        </button>
+                        <button onclick="confirmRestart()" class="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3 px-6 rounded-xl transition">
+                            🔄 Recomeçar do Zero
+                        </button>
+                    </div>
+                </div>
+
+                <!-- SEÇÃO PRINCIPAL DE INÍCIO (SE NÃO HOUVER PROGRESSO) -->
+                <div id="normal-start-container" class="space-y-4">
+                    <button onclick="startNewQuiz()" class="w-full bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-black font-black text-lg py-4 px-8 rounded-xl shadow-lg transform active:scale-95 transition">
+                        🚀 INICIAR NOVO SIMULADO
+                    </button>
+                </div>
+
+                <!-- DIRETRIZES DE AJUDA -->
+                <div class="bg-zinc-950 rounded-xl p-4 border border-zinc-850 text-left space-y-2">
+                    <h3 class="font-extrabold text-yellow-400 flex items-center gap-2 text-sm">
+                        <span>💡</span> DICAS IMPORTANTES PARA A PROVA:
+                    </h3>
+                    <ul class="text-xs text-zinc-400 list-disc list-inside space-y-1">
+                        <li>O teu progresso é **salvo automaticamente na nuvem** a cada resposta!</li>
+                        <li>Seleciona uma resposta e clica em **Confirmar** para evitar erros acidentais.</li>
+                        <li>Usa os botões no topo para aumentar as letras se precisares de ver melhor.</li>
+                    </ul>
+                </div>
+
+                <!-- HISTÓRICO DE TENTATIVAS ANTERIORES -->
+                <div id="history-container" class="space-y-3 pt-4 border-t border-zinc-850">
+                    <h3 class="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                        <span>📊</span> O teu Histórico de Tentativas:
+                    </h3>
+                    <div id="history-list" class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                        <!-- Histórico gerado via JS -->
+                        <p class="text-xs text-zinc-500 italic">Ainda não tens tentativas finalizadas. Começa a primeira agora!</p>
+                    </div>
                 </div>
             </div>
 
-            <!-- TRAVA ANTI-ERRO (BOTÃO DE CONFIRMAÇÃO) -->
-            <div class="bg-[#121820] p-4 rounded-xl border-2 border-dashed border-slate-700 text-center">
-                <!-- Estado Bloqueado/Liberado -->
-                <div id="lock-status" class="mb-3 text-sm text-yellow-400 font-bold flex items-center justify-center gap-2">
-                    <i class="fas fa-lock"></i> Escolha uma alternativa acima para destravar!
+            <!-- TELA DE QUESTÕES -->
+            <div id="quiz-screen" class="hidden space-y-6 animate-fadeIn">
+                <!-- Progresso e Pontuação -->
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span id="question-counter" class="text-xs font-black uppercase tracking-wider text-yellow-400">Pergunta 1 de 20</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-zinc-400">Progresso Guardado ☁️</span>
+                            <span id="score-indicator" class="text-xs font-black text-emerald-400">Acertos: 0</span>
+                        </div>
+                    </div>
+                    <div class="w-full bg-zinc-900 h-3 rounded-full overflow-hidden border border-zinc-850">
+                        <div id="progress-bar" class="bg-gradient-to-r from-yellow-400 to-amber-500 h-full w-[5%] transition-all duration-300"></div>
+                    </div>
                 </div>
-                <button id="confirm-btn" disabled onclick="confirmAnswer()" class="w-full btn-large bg-slate-800 text-slate-500 text-xl font-black rounded-xl cursor-not-allowed transition-all flex items-center justify-center gap-3">
-                    <i class="fas fa-check-double"></i> CONFIRMAR MINHA RESPOSTA
-                </button>
+
+                <!-- Pergunta -->
+                <div class="bg-zinc-950 p-5 rounded-xl border border-zinc-850">
+                    <span class="bg-yellow-400/10 text-yellow-400 border border-yellow-400/20 text-[10px] px-2.5 py-1 rounded-full font-black uppercase mb-3 inline-block tracking-widest">HISTÓRIA GERAL</span>
+                    <h3 id="question-text" class="accessible-text font-bold text-white leading-relaxed">
+                        Carregando...
+                    </h3>
+                </div>
+
+                <!-- Opções de resposta -->
+                <div id="options-container" class="space-y-3">
+                    <!-- Gerado dinamicamente -->
+                </div>
+
+                <!-- Trava e Confirmação de Resposta -->
+                <div class="pt-4 border-t border-zinc-850 flex flex-col gap-3">
+                    <p id="lock-warning" class="text-xs text-center text-zinc-500 font-medium">
+                        🔒 Seleciona uma opção acima para desbloquear o envio da resposta.
+                    </p>
+                    <div class="flex gap-2">
+                        <!-- Botão de Sair que salva o progresso -->
+                        <button onclick="exitAndSave()" class="bg-zinc-900 hover:bg-zinc-850 text-zinc-300 font-bold px-4 rounded-xl border border-zinc-800 transition text-sm py-4">
+                            🚪 Sair e Salvar
+                        </button>
+                        <button id="btn-confirm" onclick="handleConfirmation()" disabled class="flex-grow bg-zinc-850 text-zinc-500 font-bold py-4 px-6 rounded-xl cursor-not-allowed text-base transition duration-150 flex items-center justify-center gap-2">
+                            Confirmar Resposta
+                        </button>
+                    </div>
+                </div>
             </div>
+
+            <!-- TELA DE RESULTADOS FINAIS -->
+            <div id="result-screen" class="hidden text-center py-6 space-y-6">
+                <div id="medal-container" class="inline-block animate-bounce">
+                    <!-- Gerado dinamicamente -->
+                </div>
+                <h2 class="text-3xl font-black text-white" id="result-title">Simulado Concluído!</h2>
+                
+                <p id="result-text" class="accessible-text text-zinc-300">
+                    Acabaste de guardar a tua nota na nuvem! Vamos ver o teu resultado detalhado abaixo:
+                </p>
+
+                <!-- Quadro de Notas de Alto Contraste -->
+                <div class="grid grid-cols-2 gap-4 max-w-sm mx-auto">
+                    <div class="bg-zinc-950 border-2 border-emerald-500/50 rounded-xl p-4">
+                        <p class="text-xs text-zinc-400 font-bold uppercase tracking-wider">Acertos</p>
+                        <p id="final-correct" class="text-3xl font-black text-emerald-400">0</p>
+                    </div>
+                    <div class="bg-zinc-950 border-2 border-rose-500/50 rounded-xl p-4">
+                        <p class="text-xs text-zinc-400 font-bold uppercase tracking-wider">Erros</p>
+                        <p id="final-incorrect" class="text-3xl font-black text-rose-400">0</p>
+                    </div>
+                </div>
+
+                <div class="bg-zinc-950 rounded-xl p-5 border border-zinc-850">
+                    <p class="text-xs text-zinc-400 uppercase font-black tracking-widest">A tua nota de História</p>
+                    <p id="final-grade" class="text-5xl font-black text-yellow-400 my-2">0 / 10</p>
+                    <p id="grade-feedback" class="text-sm text-zinc-300 mt-2 font-semibold">Ótimo desempenho!</p>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-3 pt-4">
+                    <button onclick="restartFromZero()" class="flex-1 bg-zinc-900 hover:bg-zinc-850 text-white font-bold py-4 px-6 rounded-xl border border-zinc-800 transition">
+                        🔄 Iniciar Novo Simulado
+                    </button>
+                    <button onclick="toggleReviewMode()" id="btn-review" class="flex-1 bg-yellow-400 hover:bg-yellow-300 text-black font-black py-4 px-6 rounded-xl transition">
+                        📖 Revisar Respostas
+                    </button>
+                </div>
+
+                <!-- Painel de Revisão Pedagógica -->
+                <div id="review-container" class="hidden text-left bg-zinc-950 rounded-xl p-4 border border-zinc-850 space-y-4 max-h-96 overflow-y-auto">
+                    <h3 class="font-extrabold text-yellow-400 text-base border-b border-zinc-850 pb-2 flex items-center gap-2">
+                        <span>📝</span> Explicação de Cada Pergunta:
+                    </h3>
+                    <div id="review-list" class="space-y-4">
+                        <!-- Gerado por JS -->
+                    </div>
+                </div>
+            </div>
+
         </div>
-
-        <!-- TELA DE RESULTADO FINAL -->
-        <div id="result-screen" class="hidden bg-[#121820] border-4 border-green-500 p-6 rounded-2xl text-center space-y-6 shadow-2xl my-6">
-            <div class="text-6xl" id="result-emoji">🏆</div>
-            <h2 class="text-4xl font-extrabold high-contrast-yellow" id="result-title">Incrível Trabalho!</h2>
-            
-            <p id="result-text" class="text-lg text-slate-200">
-                Você concluiu todas as 30 perguntas com muita atenção!
-            </p>
-
-            <!-- Painel de Estatísticas de fácil leitura -->
-            <div class="grid grid-cols-3 gap-3">
-                <div class="bg-green-950/40 border-2 border-green-500 p-3 rounded-xl">
-                    <span class="block text-xs font-bold text-green-400 uppercase">Acertos</span>
-                    <span id="stat-correct" class="text-3xl font-black text-green-300">0</span>
-                </div>
-                <div class="bg-red-950/40 border-2 border-red-500 p-3 rounded-xl">
-                    <span class="block text-xs font-bold text-red-400 uppercase">Erros</span>
-                    <span id="stat-incorrect" class="text-3xl font-black text-red-300">0</span>
-                </div>
-                <div class="bg-blue-950/40 border-2 border-blue-500 p-3 rounded-xl">
-                    <span class="block text-xs font-bold text-blue-400 uppercase">Nota Geral</span>
-                    <span id="stat-grade" class="text-3xl font-black text-blue-300">0.0</span>
-                </div>
-            </div>
-
-            <!-- Quadro de Medalhas -->
-            <div id="medal-panel" class="p-4 bg-slate-900 border-2 border-slate-700 rounded-xl">
-                <p class="text-sm text-slate-400">Sua Medalha de Conquista:</p>
-                <p id="medal-text" class="text-2xl font-black high-contrast-yellow mt-1">Estrela de Ouro ⭐</p>
-            </div>
-
-            <!-- Botão de Reinício Completo -->
-            <button onclick="restartQuiz()" class="w-full btn-large bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-xl font-bold rounded-xl active:scale-95 transition-transform flex items-center justify-center gap-2 text-white">
-                <i class="fas fa-undo"></i> Tentar Novamente!
-            </button>
-        </div>
-
     </main>
 
-    <!-- FOOTER DA MARCA -->
-    <footer class="bg-[#090d12] py-4 text-center text-xs text-slate-500 border-t border-[#121820]">
-        Super Desafio de Matemática 2º Ano • Feito com ❤️ para Baixa Visão
+    <!-- RODAPÉ -->
+    <footer class="bg-[#0c0c0e] border-t border-zinc-900 py-4 px-4 text-center">
+        <div class="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-zinc-500">
+            <p>Criado com carinho para apoiar o estudo de alunos do 2º Ano</p>
+            <p>&copy; 2026 - Educação Acessível</p>
+        </div>
     </footer>
 
-    <!-- SCRIPT DO SIMULADO INTERATIVO -->
-    <script>
-        // BANCO DE 30 QUESTÕES ALINHADAS COM O LIVRO (MATEMÁTICA 2º ANO)
-        const questions = [
-            // Sistema de numeração / Material Dourado (Págs 1, 2 e 3)
+    <!-- INSERÇÃO DAS BIBLIOTECAS FIREBASE VIA CDN (ES MODULES) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // master database das 20 questões contextualizadas do 2º ano
+        const database = [
             {
-                tag: "Material Dourado",
-                question: "No material dourado que estudamos no livro, qual pecinha representa exatamente 1 unidade?",
-                options: ["Cubinho", "Barra", "Placa", "Cédula de 1 Real"],
-                answer: 0,
-                hint: "Ela é a menor pecinha de todas!"
+                id: 1,
+                question: "Quando o Luquinha viu a foto do Torugo quando este era bebé, porque é que ele ficou tão curioso?",
+                options: [
+                    "Porque achou que o Torugo não se parecia nada com o bebé da fotografia.",
+                    "Porque o bebé da fotografia tinha asas e voava.",
+                    "Porque a fotografia estava rasgada e muito suja."
+                ],
+                correctIndex: 0,
+                explanation: "Como o corpo do Torugo cresceu e mudou muito com o tempo, o Luquinha achou que ele nem parecia a mesma pessoa!"
             },
             {
-                tag: "Material Dourado",
-                question: "Se 1 barra é formada por 10 cubinhos unidos, quanto vale essa barra?",
-                options: ["1 unidade", "1 dezena (ou 10 unidades)", "1 centena (ou 100 unidades)", "1000 unidades"],
-                answer: 1,
-                hint: "10 unidades juntas formam uma palavra que começa com 'DE'."
+                id: 2,
+                question: "Além de ficar muito mais alto, o que é que também mudou no Torugo desde que era bebé?",
+                options: [
+                    "O cabelo dele ficou azul-escuro.",
+                    "O seu aspeto físico, o tamanho e o cabelo louro curto mudaram com a idade.",
+                    "Ele não mudou nada e continua igualzinho a um bebé."
+                ],
+                correctIndex: 1,
+                explanation: "O nosso corpo e fisionomia mudam continuamente à medida que o tempo passa e nos tornamos crianças."
             },
             {
-                tag: "Centenas",
-                question: "A placa do material dourado vale 1 centena completa. Quantos cubinhos soltos existem em 1 placa?",
-                options: ["10 cubinhos", "50 cubinhos", "100 cubinhos", "1000 cubinhos"],
-                answer: 2,
-                hint: "Pense na palavra 'centena'. Ela lembra qual número?"
+                id: 3,
+                question: "O livro diz que cada um de nós tem uma história própria. Como é que essa nossa história é formada?",
+                options: [
+                    "Apenas pelos brinquedos novos que compramos no supermercado.",
+                    "Por todos os momentos importantes e experiências que vivemos desde que nascemos.",
+                    "Apenas pelas notas que tiramos nos testes da escola."
+                ],
+                correctIndex: 1,
+                explanation: "A nossa história pessoal é a soma de tudo o que vivemos, incluindo a nossa família, amigos e conquistas."
             },
             {
-                tag: "Desafio das Placas",
-                question: "A professora perguntou: se cada placa vale 100 unidades, de quantas placas nós precisamos para formar o número 1.000?",
-                options: ["5 placas", "10 placas", "50 placas", "100 placas"],
-                answer: 1,
-                hint: "Conte de 100 em 100 até chegar a 1.000!"
+                id: 4,
+                question: "O nosso corpo e as nossas tarefas mudam. O que significa a palavra 'rotina' de uma pessoa?",
+                options: [
+                    "As coisas e atividades normais que fazemos no nosso dia a dia.",
+                    "Uma viagem de avião que fazemos apenas uma vez na vida.",
+                    "Um doce muito antigo que já ninguém come."
+                ],
+                correctIndex: 0,
+                explanation: "A rotina é o conjunto de atividades diárias, como ir à escola, fazer os deveres, brincar e dormir."
             },
             {
-                tag: "Montando Números",
-                question: "Se você tem 2 placas e 3 barras do material dourado em sua mesa, qual número você formou?",
-                options: ["23", "203", "230", "320"],
-                answer: 2,
-                hint: "Duas placas valem 200, e três barras valem 30."
-            },
-            // Grupos de dez e contagem de 10 em 10 (Págs 2, 3 e 4)
-            {
-                tag: "Contagem de 10 em 10",
-                question: "Vamos contar de 10 em 10! Qual número deve vir logo após o número 40 na sequência: 10, 20, 30, 40...?",
-                options: ["41", "45", "50", "60"],
-                answer: 2,
-                hint: "Adicione mais 10 ao número 40!"
+                id: 5,
+                question: "Com o crescimento, também ocorrem mudanças na nossa alimentação. Qual é um exemplo disso?",
+                options: [
+                    "Quando crescemos, passamos a beber apenas leite, exatamente como os recém-nascidos.",
+                    "Deixamos de comer alimentos sólidos para sempre.",
+                    "Passamos a comer alimentos mais variados, sólidos e a conhecer novos sabores."
+                ],
+                correctIndex: 2,
+                explanation: "Os bebés só mamam leite, mas à medida que crescemos, os nossos dentes nascem e podemos comer de tudo!"
             },
             {
-                tag: "Pulo de 10 em 10",
-                question: "O Luquinha está pulando de 10 em 10 em um tabuleiro no chão. Ele começou no número 12. Qual é o próximo número em que ele vai pisar?",
-                options: ["13", "20", "22", "32"],
-                answer: 2,
-                hint: "Adicione 10 unidades ao 12."
+                id: 6,
+                question: "Antigamente (entre os anos de 1908 e 1915), onde é que as crianças costumavam brincar mais?",
+                options: [
+                    "Nas calçadas das ruas, ao ar livre.",
+                    "Dentro de centros comerciais com ar condicionado.",
+                    "Em frente a computadores e salas virtuais."
+                ],
+                correctIndex: 0,
+                explanation: "No passado, as ruas eram mais calmas e seguras, e as crianças passavam horas a brincar juntas ao ar livre."
             },
             {
-                tag: "Pulo do Luquinha",
-                question: "Continuando a brincadeira do Luquinha, ele está no número 42 e pulou mais 10 casas para frente. Onde ele vai parar?",
-                options: ["43", "50", "52", "62"],
-                answer: 2,
-                hint: "A unidade continua sendo 2, mas a dezena aumenta em 1."
+                id: 7,
+                question: "Quais eram os brinquedos e as brincadeiras de rua mais comuns no tempo dos nossos avós?",
+                options: [
+                    "Telemóveis, tablets e óculos de realidade virtual.",
+                    "Bolinhas de gude (berlindes), piões, bambolês e jogo das damas.",
+                    "Carrinhos telecomandados com pilhas e robôs eletrónicos."
+                ],
+                correctIndex: 1,
+                explanation: "As brincadeiras tradicionais como o pião, berlindes e damas eram a principal diversão antigamente."
             },
             {
-                tag: "Calculadora Interativa",
-                question: "No livro digitamos 130 na calculadora e apertamos as teclas '+ 10'. Qual é o número que vai aparecer na tela da calculadora?",
-                options: ["120", "131", "140", "230"],
-                answer: 2,
-                hint: "É como contar de 10 em 10 a partir do 130."
+                id: 8,
+                question: "Se compararmos as salas de aula de antigamente (como em 1892) com as salas de hoje, o que é que mudou?",
+                options: [
+                    "As salas modernas são mais coloridas, têm menos alunos e usam tecnologia para ajudar a aprender.",
+                    "As salas modernas são muito mais rígidas e formais, e as crianças não se podem mexer.",
+                    "As escolas de hoje em dia deixaram de ter professores."
+                ],
+                correctIndex: 0,
+                explanation: "As escolas de antigamente tinham turmas enormes, salas muito austeras e regras extremamente severas."
             },
             {
-                tag: "Calculadora Interativa",
-                question: "Agora, temos 140 na calculadora e apertamos as teclas '+ 100'. Qual será o novo número na tela?",
-                options: ["150", "240", "440", "1400"],
-                answer: 1,
-                hint: "Aumente 1 centena (100) ao número 140."
-            },
-            // Quadro de ordens e Decomposição (Págs 3, 4 e 6)
-            {
-                tag: "Quadro de Ordens",
-                question: "No Quadro de Ordens de Centena, Dezena e Unidade (C, D, U), o número 145 possui quantas dezenas?",
-                options: ["1 dezena", "4 dezenas", "5 dezenas", "14 dezenas"],
-                answer: 1,
-                hint: "O número 145 tem: 1 centena, 4 dezenas e 5 unidades."
+                id: 9,
+                question: "Na brincadeira do quarto da Duda, o que mudou nos móveis do quarto para mostrar que o tempo passou?",
+                options: [
+                    "A sua cama simples de solteiro foi trocada por um beliche para partilhar o quarto.",
+                    "Ela retirou a sua secretária de estudo para colocar uma piscina de plástico.",
+                    "Ela tirou o teto do quarto para ver a chuva."
+                ],
+                correctIndex: 0,
+                explanation: "O beliche permite que duas pessoas partilhem o mesmo quarto de forma confortável, organizando melhor o espaço."
             },
             {
-                tag: "Decomposição",
-                question: "Qual das opções abaixo mostra a decomposição correta do número 286 de acordo com o livro?",
-                options: ["200 + 80 + 6", "20 + 80 + 6", "2 + 8 + 6", "200 + 8 + 6"],
-                answer: 0,
-                hint: "Pense em duzentos, mais oitenta, mais seis."
+                id: 10,
+                question: "No livro 'Tudo Muda' de Anthony Browne, o que o menino Gregório imaginava quando o pai disse que tudo ia mudar?",
+                options: [
+                    "Que o seu quarto se transformaria num campo de futebol gigante.",
+                    "Que objetos comuns mudavam de forma (a chaleira virava gato e a poltrona virava gorila).",
+                    "Que ele ia começar a voar como um super-herói de banda desenhada."
+                ],
+                correctIndex: 1,
+                explanation: "O livro mostra que as crianças usam muito a imaginação quando sabem que uma grande mudança vai acontecer na família."
             },
             {
-                tag: "Quadro de Ordens",
-                question: "Se um número do livro tem exatamente 5 centenas, 5 dezenas e 5 unidades no quadro de ordens, que número ele representa?",
-                options: ["55", "505", "555", "5550"],
-                answer: 2,
-                hint: "Todos os algarismos desse número de três algarismos são iguais."
+                id: 11,
+                question: "Quando uma família precisa de mudar de cidade, que mudanças principais acontecem na vida das crianças?",
+                options: [
+                    "Elas têm de começar a trabalhar para ajudar a pagar as contas da nova casa.",
+                    "Elas mudam de escola, de casa e precisam de fazer novos amigos no novo lugar.",
+                    "Elas deixam de ter família e passam a viver sozinhas."
+                ],
+                correctIndex: 1,
+                explanation: "Mudar de cidade traz muitas novidades e transformações na rotina escolar e pessoal das crianças."
             },
             {
-                tag: "Adição Completa",
-                question: "Duda fez uma continha somando as peças: 400 + 30 + 5. Qual foi o resultado final que ela encontrou?",
-                options: ["435", "453", "345", "400305"],
-                answer: 0,
-                hint: "Apenas junte as ordens para formar o número direto."
+                id: 12,
+                question: "Mudar de casa ou de escola pode dar medo ou parecer difícil no início. Mas por que razão mudar também é bom?",
+                options: [
+                    "Deixamos de ter família e passamos a viver sozinhos.",
+                    "Porque nos permite viver novas experiências e aprender coisas fantásticas.",
+                    "Porque as mudanças acontecem num passe de mágica sem nenhum esforço."
+                ],
+                correctIndex: 1,
+                explanation: "Embora exija adaptação, mudar ajuda-nos a crescer, fazer novas amizades e conhecer novos lugares!"
             },
             {
-                tag: "Zero na Dezena",
-                question: "Qual número formamos ao juntar 3 centenas e 6 unidades? (Dica: não temos nenhuma dezena no meio!)",
-                options: ["36", "306", "360", "366"],
-                answer: 1,
-                hint: "Se não há dezenas, o algarismo do meio deve ser zero (0)."
-            },
-            // Números Pares e Ímpares (Pág 9)
-            {
-                tag: "Par ou Ímpar",
-                question: "O número da casa do Luquinha termina com o algarismo 8. Esse número é classificado como Par ou Ímpar?",
-                options: ["É um número PAR", "É um número ÍMPAR", "Não é nem par nem ímpar", "É maior que mil"],
-                answer: 0,
-                hint: "Lembre-se: números terminados em 0, 2, 4, 6 e 8 são pares."
+                id: 13,
+                question: "Como eram a maioria das famílias de antigamente em comparação com as famílias dos dias de hoje?",
+                options: [
+                    "Antigamente, as famílias viviam isoladas na floresta sem nenhum contacto.",
+                    "Antigamente, era muito comum viverem muitos parentes juntos na mesma casa. Hoje as famílias costumam ser menores.",
+                    "Hoje em dia as famílias são gigantescas e todos os tios vivem sempre na mesma casa."
+                ],
+                correctIndex: 1,
+                explanation: "No passado, avós, tios e primos partilhavam frequentemente a mesma moradia. Hoje em dia, vivem menos pessoas em cada casa."
             },
             {
-                tag: "Par ou Ímpar",
-                question: "Para um número ser classificado como ÍMPAR, com quais algarismos ele deve terminar?",
-                options: ["Terminar em 0, 2, 4, 6 ou 8", "Terminar em 1, 3, 5, 7 ou 9", "Terminar apenas em 0", "Qualquer número terminado em 2"],
-                answer: 1,
-                hint: "Se você fizer pares de cubinhos, vai sobrar 1 cubinho sozinho no final."
+                id: 14,
+                question: "O papel das mulheres na família mudou muito ao longo do tempo. Qual é a realidade mais comum hoje?",
+                options: [
+                    "A maioria das mulheres trabalha fora de casa e as tarefas domésticas e cuidados com os filhos são divididos entre os adultos.",
+                    "As mulheres estão proibidas de sair de casa para trabalhar.",
+                    "As mulheres são as únicas que podem conduzir e os homens cuidam de tudo sozinhos."
+                ],
+                correctIndex: 0,
+                explanation: "Hoje em dia, a responsabilidade de sustentar a casa e cuidar das crianças é partilhada igualmente por todos."
             },
             {
-                tag: "Identificando Números",
-                question: "O número 307 aparece na trilha colorida do livro de matemática. Que tipo de número ele é?",
-                options: ["Número Par", "Número Ímpar", "Número decimal", "Zero"],
-                answer: 1,
-                hint: "Olhe para o último algarismo do número 307."
+                id: 15,
+                question: "Ao olhar para a foto antiga da família europeia de 1885, o que se nota de diferente em relação às fotos atuais?",
+                options: [
+                    "As pessoas vestiam roupas muito informais e desportivas nas fotografias.",
+                    "As pessoas posavam de forma séria, usavam roupas muito formais e as famílias costumavam ser maiores.",
+                    "Estavam todos a saltar, a rir e a brincar em frente à máquina fotográfica."
+                ],
+                correctIndex: 1,
+                explanation: "Tirar fotografias era um evento muito raro e sério antigamente, exigindo roupas elegantes e posturas estáticas."
             },
             {
-                tag: "Quem é o Par?",
-                question: "Qual dos seguintes números da trilha do jogo é um número PAR?",
-                options: ["321", "323", "325", "326"],
-                answer: 3,
-                hint: "Procure o número que termina com 0, 2, 4, 6 ou 8."
+                id: 16,
+                question: "Porque é que a pracinha antiga da foto do avô parecia tão diferente da praça moderna onde as crianças brincam?",
+                options: [
+                    "Porque a praça antiga era no espaço sideral.",
+                    "Seus caminhos de carruagem foram substituídos por escorregas, baloiços e campos de futebol.",
+                    "Porque a praça de hoje está totalmente cheia de areia e árvores gigantes de plástico."
+                ],
+                correctIndex: 1,
+                explanation: "As praças e parques são remodelados com o tempo para incluir novos equipamentos de lazer e diversão."
             },
             {
-                tag: "Brincando com Cubinhos",
-                question: "Se você pegar 3 cubinhos (ímpar) e juntar com mais 3 cubinhos (ímpar), o resultado final (6 cubinhos) será um número:",
-                options: ["Par", "Ímpar", "Zero", "Centena"],
-                answer: 0,
-                hint: "Junte 3 + 3 e veja se todos ganham um parzinho."
-            },
-            // Dinheiro / Sistema Monetário (Págs 7 e 8)
-            {
-                tag: "Valor Posicional / Girafa",
-                question: "O texto sobre as girafas diz que a gestação delas dura 455 dias. Como podemos decompor o número 455 de acordo com as cédulas de dinheiro?",
-                options: ["4 + 5 + 5", "40 + 50 + 5", "400 + 50 + 5", "400 + 55"],
-                answer: 2,
-                hint: "Temos 4 cédulas de 100 reais, 5 cédulas de 10 reais e 5 moedas de 1 real."
+                id: 17,
+                question: "Algumas mudanças nos lugares demoram anos, mas outras acontecem depressa. O que é uma mudança rápida?",
+                options: [
+                    "A construção de um grande edifício de apartamentos ou o asfaltamento de uma rua.",
+                    "O crescimento muito lento de uma pequena árvore na floresta.",
+                    "O desgaste natural de uma rocha por causa da água da chuva ao longo de séculos."
+                ],
+                correctIndex: 0,
+                explanation: "As obras humanas, como construir prédios ou pavimentar estradas com máquinas, transformam a paisagem rapidamente."
             },
             {
-                tag: "Dinheiro do Yuri",
-                question: "Yuri (pai da Duda) guardou dinheiro em casa. Ele tem 6 cédulas de 100 reais, 4 cédulas de 10 reais e 5 moedas de 1 real. Quantos reais ele tem?",
-                options: ["64 reais", "546 reais", "645 reais", "654 reais"],
-                answer: 2,
-                hint: "Junte $600 + 40 + 5$ para achar o valor total."
+                id: 18,
+                question: "O livro diz que cidades como Paraty têm centros históricos tombados como 'Património'. O que significa isto?",
+                options: [
+                    "Que as casas antigas podem ser destruídas a qualquer altura para construir estradas modernas.",
+                    "Que o local é protegido por lei e não pode ser modificado para preservar a história viva do passado.",
+                    "Que é um parque temático moderno com montanhas-russas eletrónicas."
+                ],
+                correctIndex: 1,
+                explanation: "O património histórico é uma herança do passado que a lei protege para que as gerações futuras conheçam a história."
             },
             {
-                tag: "Dinheiro da Mariana",
-                question: "Mariana (mãe do Luquinha) tem guardado: 8 cédulas de 100 reais, 3 cédulas de 10 reais e 3 moedas de 1 real. Qual o valor total dela?",
-                options: ["338 reais", "833 reais", "830 reais", "803 reais"],
-                answer: 1,
-                hint: "Junte $800 + 30 + 3$."
+                id: 19,
+                question: "Comparando a famosa Rua 15 de Novembro em Curitiba de 1896 com 2012, que grande mudança na circulação de pessoas ocorreu?",
+                options: [
+                    "A rua passou de uma via para cavalos e carruagens para um calçadão pedonal seguro, com prédios modernos ao redor.",
+                    "A rua foi inundada e agora só pode ser navegada de barco.",
+                    "A rua deixou de ter edifícios e virou uma floresta selvagem."
+                ],
+                correctIndex: 0,
+                explanation: "A famosa via de Curitiba foi adaptada para priorizar os peões, oferecendo lojas e passeios seguros sem trânsito de carros."
             },
             {
-                tag: "Dinheiro da Cassandra",
-                question: "Cassandra (mãe da Nina) guardou a quantia indicada por: 5 cédulas de 100 reais, 9 cédulas de 10 reais e 1 moeda de 1 real. Quanto ela possui?",
-                options: ["591 reais", "519 reais", "951 reais", "159 reais"],
-                answer: 0,
-                hint: "Basta juntar as ordens na sequência: 5, depois 9, depois 1."
-            },
-            {
-                tag: "Moedas de Centavos",
-                question: "Quantas moedas de 10 centavos nós precisamos juntar para formar exatamente 1 Real?",
-                options: ["5 moedas", "10 moedas", "50 moedas", "100 moedas"],
-                answer: 1,
-                hint: "Conte de 10 em 10 centavos até chegar a 100 centavos (que vale 1 real)."
-            },
-            // Horas e Relógio (Págs 10, 11, 12 e 13)
-            {
-                tag: "Unidades de Tempo",
-                question: "O relógio serve para medir o tempo. Sabendo que 1 hora tem 60 minutos, quantos minutos tem MEIA HORA?",
-                options: ["10 minutos", "15 minutos", "30 minutos", "50 minutos"],
-                answer: 2,
-                hint: "Pense na metade de 60 minutos!"
-            },
-            {
-                tag: "Passagem do Tempo",
-                question: "O relógio digital está marcando 04:00. O desenho favorito do Luquinha começará exatamente 2 horas depois. Qual será o horário do desenho?",
-                options: ["05:00", "06:00", "07:00", "08:00"],
-                answer: 1,
-                hint: "Adicione 2 horas ao número 4."
-            },
-            {
-                tag: "Caminho da Escola",
-                question: "Nina saiu de casa às 11:00 horas e chegou no portão da escola às 11:10. Quantos minutos ela levou no caminho?",
-                options: ["5 minutos", "10 minutos", "20 minutos", "1 hora"],
-                answer: 1,
-                hint: "Subtraia os minutos de chegada pelos de partida: 10 - 0."
-            },
-            {
-                tag: "Caminhada de Duda",
-                question: "Duda começou a caminhar no parque às 9:20 e terminou às 9:45. Quanto tempo durou a caminhada da Duda com os amigos?",
-                options: ["15 minutos", "20 minutos", "25 minutos", "45 minutos"],
-                answer: 2,
-                hint: "Quantos minutos faltam para sair de 20 e chegar a 45?"
-            },
-            {
-                tag: "Estimativa Diária",
-                question: "De acordo com as estimativas de tempo que estudamos, quanto tempo você gasta para beber um copo cheio de água?",
-                options: ["Aproximadamente 1 hora", "Aproximadamente 2 horas", "Aproximadamente 1 minuto", "Aproximadamente meia hora"],
-                answer: 2,
-                hint: "Beber água é uma ação muito rápida ou demorada?"
+                id: 20,
+                question: "Como eram os elétricos (bondes) em Pernambuco em 1951, que hoje foram trocados por transportes modernos?",
+                options: [
+                    "Eram naves espaciais super rápidas que flutuavam.",
+                    "Eram puxados por animais (como cavalos ou burros) para levar as pessoas de um lado para o outro.",
+                    "Eram movidos a pilhas elétricas gigantes e controlados por robôs."
+                ],
+                correctIndex: 1,
+                explanation: "No passado, era muito comum usar a força animal para mover transportes coletivos antes de os motores a combustível se tornarem populares."
             }
         ];
 
+        // VARIÁVEIS DO FIREBASE (FORNECIDAS PELO AMBIENTE)
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        // ESTADO GLOBAL DO SIMULADO
         let currentQuestionIndex = 0;
-        let selectedOptionIndex = null;
         let score = 0;
-        let fontSize = 20;
-        let soundEnabled = true;
+        let selectedOptionIndex = null;
+        let isMuted = false;
+        let questionsOrder = []; // Array de IDs das perguntas na ordem atual
+        let userAnswers = {}; // { [questionIndex]: selectedIndex }
+        let isCurrentConfirmed = false;
+        let user = null;
+        let audioCtx = null;
 
-        // ELEMENTOS DOM
-        const startScreen = document.getElementById('start-screen');
-        const quizScreen = document.getElementById('quiz-screen');
-        const resultScreen = document.getElementById('result-screen');
-        const questionProgress = document.getElementById('question-progress');
-        const progressBar = document.getElementById('progress-bar');
-        const questionText = document.getElementById('question-text');
-        const optionsContainer = document.getElementById('options-container');
-        const confirmBtn = document.getElementById('confirm-btn');
-        const lockStatus = document.getElementById('lock-status');
-        const questionTag = document.getElementById('question-tag');
+        // INICIALIZAÇÃO E MONITORIZAÇÃO DO ESTADO DE AUTENTICAÇÃO (REGRA 3)
+        window.addEventListener('load', () => {
+            const initAuth = async () => {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            };
+            
+            initAuth().then(() => {
+                user = auth.currentUser;
+                if (user) {
+                    // Carregar histórico de tentativas e progresso salvo (se houver)
+                    Promise.all([checkSavedProgress(), loadHistory()]).then(() => {
+                        document.getElementById('loading-overlay').classList.add('hidden');
+                    });
+                }
+            }).catch(err => {
+                console.error("Erro na autenticação:", err);
+                document.getElementById('loading-overlay').classList.add('hidden');
+                showToast("Erro ao conectar ao servidor. Modo offline ativo.");
+            });
+        });
 
-        // WEB AUDIO API - SONS SINTETIZADOS NATIVAMENTE
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-        function playTone(frequency, type, duration) {
-            if (!soundEnabled) return;
-            try {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = type;
-                osc.frequency.setValueAtTime(frequency, audioCtx.currentTime);
-                
-                // Suavizar início e fim do som
-                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
-                
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                
-                osc.start();
-                osc.stop(audioCtx.currentTime + duration);
-            } catch (e) {
-                console.log("Erro de áudio:", e);
+        // ------------------------- SESSÃO DE SOM (WEB AUDIO API) -------------------------
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             }
         }
 
         function playCorrectSound() {
-            // Arpejo feliz (C5 -> E5 -> G5)
-            playTone(523.25, 'sine', 0.15);
-            setTimeout(() => playTone(659.25, 'sine', 0.15), 100);
-            setTimeout(() => playTone(783.99, 'sine', 0.3), 200);
+            if (isMuted) return;
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.type = 'sine';
+                const now = audioCtx.currentTime;
+                osc.frequency.setValueAtTime(523.25, now); // Do5
+                osc.frequency.setValueAtTime(659.25, now + 0.1); // Mi5
+                gain.gain.setValueAtTime(0.08, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                osc.start(now);
+                osc.stop(now + 0.4);
+            } catch(e) {}
         }
 
         function playIncorrectSound() {
-            // Som grave e descendente
-            playTone(180, 'sawtooth', 0.25);
-            setTimeout(() => playTone(130, 'sawtooth', 0.35), 150);
+            if (isMuted) return;
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.type = 'triangle';
+                const now = audioCtx.currentTime;
+                osc.frequency.setValueAtTime(220, now); // La3
+                osc.frequency.linearRampToValueAtTime(110, now + 0.35); // La2 descendente
+                gain.gain.setValueAtTime(0.12, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                osc.start(now);
+                osc.stop(now + 0.4);
+            } catch(e) {}
         }
 
-        function toggleSound() {
-            soundEnabled = !soundEnabled;
-            const soundIcon = document.getElementById('sound-icon');
-            if (soundEnabled) {
-                soundIcon.className = "fas fa-volume-up text-green-400";
-                playTone(440, 'sine', 0.1); // feedback simples
-            } else {
-                soundIcon.className = "fas fa-volume-mute text-red-500";
+        window.toggleMute = function() {
+            isMuted = !isMuted;
+            document.getElementById('icon-sound-on').classList.toggle('hidden', isMuted);
+            document.getElementById('icon-sound-off').classList.toggle('hidden', !isMuted);
+        };
+
+        // ------------------------- PERSISTÊNCIA FIRESTORE (REGRAS 1, 2 & 3) -------------------------
+
+        // Verifica se há progresso salvo no Firestore (REGRA 1 - STRICT PATHS)
+        async function checkSavedProgress() {
+            if (!user) return;
+            try {
+                const progressDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'progress', 'state');
+                const snap = await getDoc(progressDocRef);
+                
+                if (snap.exists()) {
+                    const data = snap.data();
+                    if (data && data.status === 'active') {
+                        // Exibir ecrã de continuar progresso
+                        document.getElementById('resume-container').classList.remove('hidden');
+                        document.getElementById('normal-start-container').classList.add('hidden');
+                        document.getElementById('resume-text').innerHTML = `
+                            Encontrámos um simulado que iniciaste! <br>
+                            Estavas na <strong>Pergunta ${data.currentQuestionIndex + 1} de 20</strong>, com um aproveitamento de <strong>${data.score} acertos</strong>.
+                        `;
+                        // Guardar o estado recuperado temporariamente nas variáveis globais
+                        window.recoveredState = data;
+                    }
+                }
+            } catch (err) {
+                console.error("Erro ao verificar progresso salvo:", err);
             }
         }
 
-        // CONTROLE DE TAMANHO DE FONTE
-        function changeFontSize(amount) {
-            fontSize = Math.max(16, Math.min(32, fontSize + amount));
-            document.body.style.fontSize = fontSize + "px";
-            // Ajustar tamanhos relativos de botões e enunciados
-            questionText.style.fontSize = (fontSize + 4) + "px";
+        // Salva o progresso atual do simulado na nuvem (REGRA 1 - STRICT PATHS)
+        async function saveProgressState(status = 'active') {
+            if (!user) return;
+            try {
+                const progressDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'progress', 'state');
+                await setDoc(progressDocRef, {
+                    status: status,
+                    currentQuestionIndex: currentQuestionIndex,
+                    score: score,
+                    questionsOrder: questionsOrder,
+                    userAnswers: userAnswers,
+                    isCurrentConfirmed: isCurrentConfirmed,
+                    selectedOptionIndex: selectedOptionIndex,
+                    lastUpdated: new Date().toISOString()
+                });
+            } catch (err) {
+                console.error("Erro ao guardar progresso na nuvem:", err);
+            }
         }
 
-        // CONTROLADOR DO FLUXO DO QUIZ
-        function startQuiz() {
-            // Iniciar contexto de áudio em navegadores modernos pós-interação do usuário
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
+        // Remove o progresso ativo atual (usado ao resetar ou finalizar o teste)
+        async function deleteProgressState() {
+            if (!user) return;
+            try {
+                const progressDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'progress', 'state');
+                await deleteDoc(progressDocRef);
+            } catch (err) {
+                console.error("Erro ao limpar estado de progresso:", err);
             }
-            startScreen.classList.add('hidden');
-            quizScreen.classList.remove('hidden');
-            resultScreen.classList.add('hidden');
-            
+        }
+
+        // Salvar Tentativa Completa no Histórico (REGRA 1 - STRICT PATHS)
+        async function saveAttemptToHistory() {
+            if (!user) return;
+            try {
+                const totalQuestions = database.length;
+                const gradeValue = ((score / totalQuestions) * 10).toFixed(1);
+                
+                const attemptsColRef = collection(db, 'artifacts', appId, 'users', user.uid, 'attempts');
+                await addDoc(attemptsColRef, {
+                    score: score,
+                    total: totalQuestions,
+                    grade: parseFloat(gradeValue),
+                    timestamp: new Date().toISOString()
+                });
+                // Recarregar histórico localmente
+                await loadHistory();
+            } catch (err) {
+                console.error("Erro ao salvar histórico de tentativas:", err);
+            }
+        }
+
+        // Carregar Histórico de Tentativas anteriores (REGRA 1 & REGRA 2 - NO COMPLEX QUERIES)
+        async function loadHistory() {
+            if (!user) return;
+            try {
+                const attemptsColRef = collection(db, 'artifacts', appId, 'users', user.uid, 'attempts');
+                const querySnapshot = await getDocs(attemptsColRef);
+                
+                const attempts = [];
+                querySnapshot.forEach(doc => {
+                    attempts.push(doc.data());
+                });
+
+                // Ordenação feita na memória do cliente para respeitar a REGRA 2 (Sem indexadores necessários)
+                attempts.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+                const historyList = document.getElementById('history-list');
+                if (attempts.length === 0) {
+                    historyList.innerHTML = `<p class="text-xs text-zinc-500 italic">Nenhuma tentativa concluída ainda. Começa a primeira agora!</p>`;
+                    return;
+                }
+
+                historyList.innerHTML = attempts.map((attempt, index) => {
+                    const date = new Date(attempt.timestamp).toLocaleDateString('pt-PT', {
+                        day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                    });
+                    const scoreColor = attempt.grade >= 8 ? 'text-emerald-400' : (attempt.grade >= 5 ? 'text-yellow-400' : 'text-rose-400');
+                    return `
+                        <div class="bg-zinc-900/60 p-3 rounded-lg border border-zinc-800 flex justify-between items-center text-xs">
+                            <div class="space-y-1">
+                                <span class="font-bold text-zinc-300">Tentativa #${attempts.length - index}</span>
+                                <p class="text-[10px] text-zinc-500">${date}</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="font-black text-sm ${scoreColor}">${attempt.grade} / 10</span>
+                                <p class="text-[10px] text-zinc-400">Acertos: ${attempt.score}/${attempt.total}</p>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+            } catch (err) {
+                console.error("Erro ao carregar histórico:", err);
+            }
+        }
+
+        // ------------------------- FLUXO DE EXECUÇÃO DO SIMULADO -------------------------
+
+        // Inicializar Novo Simulado do Zero
+        window.startNewQuiz = function() {
+            initAudio();
             currentQuestionIndex = 0;
             score = 0;
-            loadQuestion();
-        }
-
-        function loadQuestion() {
             selectedOptionIndex = null;
+            userAnswers = {};
+            isCurrentConfirmed = false;
+
+            // Criar uma ordem aleatória das perguntas
+            questionsOrder = [...database]
+                .sort(() => Math.random() - 0.5)
+                .map(q => q.id);
+
+            // Guardar o progresso na nuvem
+            saveProgressState('active');
+
+            // Abrir o ecrã de perguntas
+            document.getElementById('welcome-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+
+            loadQuestion();
+        };
+
+        // Retomar Simulado Recuperado
+        window.resumeQuiz = function() {
+            if (!window.recoveredState) return;
+            initAudio();
             
-            // Atualizar Progresso
-            const qNum = currentQuestionIndex + 1;
-            questionProgress.innerText = `Questão ${qNum} de 30`;
-            const progressPercent = (qNum / questions.length) * 100;
-            progressBar.style.width = `${progressPercent}%`;
+            const state = window.recoveredState;
+            currentQuestionIndex = state.currentQuestionIndex;
+            score = state.score;
+            questionsOrder = state.questionsOrder;
+            userAnswers = state.userAnswers || {};
+            isCurrentConfirmed = state.isCurrentConfirmed || false;
+            selectedOptionIndex = state.selectedOptionIndex !== undefined ? state.selectedOptionIndex : null;
 
-            // Resetar Botão de confirmação (Trava anti-erro ativada)
-            confirmBtn.disabled = true;
-            confirmBtn.className = "w-full btn-large bg-[#1e293b] text-slate-500 text-xl font-black rounded-xl cursor-not-allowed transition-all flex items-center justify-center gap-3";
-            confirmBtn.innerHTML = '<i class="fas fa-lock"></i> TRAVA ATIVADA';
-            lockStatus.innerHTML = '<i class="fas fa-lock text-yellow-500"></i> Selecione uma resposta para liberar a trava!';
+            document.getElementById('welcome-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
 
-            // Carregar Pergunta
-            const q = questions[currentQuestionIndex];
-            questionTag.innerText = q.tag;
-            questionText.innerText = q.question;
+            loadQuestion();
+        };
 
-            // Limpar e criar botões de alternativas bem grandes
-            optionsContainer.innerHTML = '';
-            q.options.forEach((opt, idx) => {
-                const button = document.createElement('button');
-                button.className = "option-card w-full p-5 rounded-2xl text-left font-bold transition-all flex items-center gap-4 text-white active:scale-98";
-                button.innerHTML = `
-                    <div class="w-10 h-10 rounded-full bg-slate-800 border-2 border-slate-500 flex items-center justify-center text-xl font-black shrink-0" id="bullet-${idx}">
-                        ${String.fromCharCode(65 + idx)}
-                    </div>
-                    <span class="text-lg md:text-xl leading-relaxed">${opt}</span>
+        // Carregar Pergunta
+        function loadQuestion() {
+            const questionId = questionsOrder[currentQuestionIndex];
+            const questionData = database.find(q => q.id === questionId);
+
+            // Atualizar ecrã
+            document.getElementById('question-counter').innerText = `Pergunta ${currentQuestionIndex + 1} de ${database.length}`;
+            document.getElementById('score-indicator').innerText = `Acertos: ${score}`;
+            
+            const progressPercent = ((currentQuestionIndex) / database.length) * 100;
+            document.getElementById('progress-bar').style.width = `${progressPercent}%`;
+
+            document.getElementById('question-text').innerText = questionData.question;
+
+            // Construir Opções
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+
+            questionData.options.forEach((opt, idx) => {
+                const optBtn = document.createElement('button');
+                optBtn.type = "button";
+                optBtn.className = "option-card w-full text-left bg-zinc-950 hover:bg-zinc-900 border-2 border-zinc-850 rounded-xl p-4 transition duration-150 flex items-start gap-3 select-none active:scale-[0.99]";
+                optBtn.onclick = () => selectOption(idx);
+                optBtn.id = `option-${idx}`;
+
+                const letter = String.fromCharCode(65 + idx);
+                optBtn.innerHTML = `
+                    <span class="indicator-badge bg-zinc-900 text-yellow-400 font-extrabold px-3 py-1.5 rounded-lg border border-zinc-800 text-sm flex-shrink-0">
+                        ${letter}
+                    </span>
+                    <span class="accessible-text text-zinc-200 mt-0.5">${opt}</span>
                 `;
-                button.onclick = () => selectOption(idx);
-                optionsContainer.appendChild(button);
+                container.appendChild(optBtn);
             });
+
+            // Se já foi confirmada anteriormente ao retomar
+            if (isCurrentConfirmed) {
+                renderAnswerFeedback(questionData);
+            } else {
+                // Estado inicial sem confirmação
+                const confirmBtn = document.getElementById('btn-confirm');
+                confirmBtn.disabled = true;
+                confirmBtn.className = "flex-grow bg-zinc-900 text-zinc-600 font-bold py-4 px-6 rounded-xl cursor-not-allowed text-base transition border border-zinc-850";
+                confirmBtn.innerText = "Confirmar Resposta";
+                document.getElementById('lock-warning').classList.remove('hidden');
+
+                if (selectedOptionIndex !== null) {
+                    selectOption(selectedOptionIndex);
+                }
+            }
         }
 
-        function selectOption(idx) {
-            selectedOptionIndex = idx;
-            playTone(350, 'sine', 0.08); // Toque discreto
+        // Selecionar Opção (Destrava botão de Confirmação de forma segura)
+        window.selectOption = function(index) {
+            if (isCurrentConfirmed) return;
 
-            // Resetar estilos visuais de todas as opções
-            const cards = optionsContainer.getElementsByTagName('button');
-            for (let i = 0; i < cards.length; i++) {
-                cards[i].classList.remove('selected');
-                const bullet = document.getElementById(`bullet-${i}`);
-                bullet.className = "w-10 h-10 rounded-full bg-slate-800 border-2 border-slate-500 flex items-center justify-center text-xl font-black shrink-0";
-                bullet.innerHTML = String.fromCharCode(65 + i);
+            selectedOptionIndex = index;
+
+            const options = document.querySelectorAll('.option-card');
+            options.forEach((opt, idx) => {
+                opt.className = "option-card w-full text-left bg-zinc-950 hover:bg-zinc-900 border-2 border-zinc-850 rounded-xl p-4 transition duration-150 flex items-start gap-3 select-none active:scale-[0.99]";
+                const badge = opt.querySelector('.indicator-badge');
+                badge.className = "indicator-badge bg-zinc-900 text-yellow-400 font-extrabold px-3 py-1.5 rounded-lg border border-zinc-800 text-sm flex-shrink-0";
+            });
+
+            // Marcar a selecionada
+            const selectedButton = document.getElementById(`option-${index}`);
+            selectedButton.className = "option-card w-full text-left bg-zinc-950 border-2 border-yellow-400 shadow-lg shadow-yellow-400/5 rounded-xl p-4 transition duration-150 flex items-start gap-3 select-none";
+            const badge = selectedButton.querySelector('.indicator-badge');
+            badge.className = "indicator-badge bg-yellow-400 text-black font-extrabold px-3 py-1.5 rounded-lg border border-yellow-500 text-sm flex-shrink-0";
+
+            // Destravar botão
+            const confirmBtn = document.getElementById('btn-confirm');
+            confirmBtn.removeAttribute('disabled');
+            confirmBtn.className = "flex-grow bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-black font-black py-4 px-6 rounded-xl cursor-pointer text-base shadow-lg shadow-yellow-500/10 active:scale-95 transition";
+            confirmBtn.innerText = "Confirmar Resposta!";
+            
+            document.getElementById('lock-warning').classList.add('hidden');
+        };
+
+        // Confirmar Resposta Selecionada
+        window.handleConfirmation = function() {
+            const confirmBtn = document.getElementById('btn-confirm');
+            const questionId = questionsOrder[currentQuestionIndex];
+            const questionData = database.find(q => q.id === questionId);
+
+            // Ação de avançar
+            if (confirmBtn.innerText.includes("Próxima") || confirmBtn.innerText.includes("Resultado")) {
+                currentQuestionIndex++;
+                selectedOptionIndex = null;
+                isCurrentConfirmed = false;
+                
+                if (currentQuestionIndex < database.length) {
+                    saveProgressState('active').then(() => {
+                        loadQuestion();
+                    });
+                } else {
+                    showFinalResult();
+                }
+                return;
             }
 
-            // Destacar a selecionada
-            cards[idx].classList.add('selected');
-            const selectedBullet = document.getElementById(`bullet-${idx}`);
-            selectedBullet.className = "w-10 h-10 rounded-full bg-cyan-400 text-slate-950 border-2 border-cyan-400 flex items-center justify-center text-xl font-black shrink-0";
-            selectedBullet.innerHTML = '<i class="fas fa-check"></i>';
-
-            // Destravar o botão de Confirmação (Anti-Erro)
-            confirmBtn.disabled = false;
-            confirmBtn.className = "w-full btn-large bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 text-2xl font-black rounded-xl transition-all flex items-center justify-center gap-3 shadow-[0_0_20px_rgba(16,185,129,0.4)] cursor-pointer";
-            confirmBtn.innerHTML = '<i class="fas fa-unlock"></i> CONFIRMAR MINHA RESPOSTA';
-            lockStatus.innerHTML = '<span class="text-green-400"><i class="fas fa-lock-open mr-2"></i>Tudo certo! Clique abaixo para responder!</span>';
-        }
-
-        function confirmAnswer() {
-            if (selectedOptionIndex === null) return;
-
-            const q = questions[currentQuestionIndex];
-            const isCorrect = (selectedOptionIndex === q.answer);
-
+            // Ação de avaliar resposta
+            isCurrentConfirmed = true;
+            userAnswers[currentQuestionIndex] = selectedOptionIndex;
+            
+            const isCorrect = (selectedOptionIndex === questionData.correctIndex);
             if (isCorrect) {
                 score++;
                 playCorrectSound();
-                showOverlayFeedback(true);
             } else {
                 playIncorrectSound();
-                showOverlayFeedback(false, q.options[q.answer]);
             }
-        }
 
-        // FEEDBACK FLUTUANTE PARA ACERTO / ERRO
-        function showOverlayFeedback(isCorrect, correctAnswerText) {
-            const feedbackOverlay = document.createElement('div');
-            feedbackOverlay.className = "fixed inset-0 flex items-center justify-center z-50 bg-[#0c0f12]/90 p-4 animate-fade-in";
+            renderAnswerFeedback(questionData);
             
-            let cardContent = "";
+            // Guardar alteração de confirmação na nuvem imediatamente
+            saveProgressState('active');
+        };
+
+        // Renderiza o feedback colorido da questão na tela
+        function renderAnswerFeedback(questionData) {
+            const isCorrect = (selectedOptionIndex === questionData.correctIndex);
+            
+            const options = document.querySelectorAll('.option-card');
+            options.forEach((opt, idx) => {
+                opt.onclick = null;
+                if (idx === questionData.correctIndex) {
+                    opt.className = "option-card w-full text-left bg-emerald-950/20 border-2 border-emerald-500 rounded-xl p-4 flex items-start gap-3 select-none";
+                    const badge = opt.querySelector('.indicator-badge');
+                    badge.className = "indicator-badge bg-emerald-500 text-black font-extrabold px-3 py-1.5 rounded-lg border border-emerald-600 text-sm flex-shrink-0";
+                } else if (idx === selectedOptionIndex) {
+                    opt.className = "option-card w-full text-left bg-rose-950/20 border-2 border-rose-500 rounded-xl p-4 flex items-start gap-3 select-none";
+                    const badge = opt.querySelector('.indicator-badge');
+                    badge.className = "indicator-badge bg-rose-500 text-white font-extrabold px-3 py-1.5 rounded-lg border border-rose-600 text-sm flex-shrink-0";
+                } else {
+                    opt.className = "option-card w-full text-left bg-zinc-950 border border-zinc-900 rounded-xl p-4 opacity-40 flex items-start gap-3 select-none";
+                }
+            });
+
+            // Criar caixa de feedback pedagógico
+            const container = document.getElementById('options-container');
+            const explanationDiv = document.createElement('div');
             if (isCorrect) {
-                cardContent = `
-                    <div class="bg-[#121820] border-4 border-green-500 p-8 rounded-3xl max-w-md w-full text-center space-y-6">
-                        <div class="text-7xl">🎉🌟🎈</div>
-                        <h3 class="text-3xl font-black text-green-400">Muito Bem!</h3>
-                        <p class="text-lg">Você acertou essa questão e provou ser uma fera na matemática!</p>
-                        <button id="next-btn-fb" class="w-full btn-large bg-green-500 text-slate-950 text-xl font-bold rounded-xl active:scale-95 transition-transform flex items-center justify-center gap-2">
-                            PRÓXIMA PERGUNTA <i class="fas fa-arrow-right"></i>
-                        </button>
-                    </div>
-                `;
+                explanationDiv.className = "mt-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 text-emerald-400 text-sm font-medium animate-fadeIn";
+                explanationDiv.innerHTML = `🌟 <strong>Acertaste! Muito bem!</strong><br>${questionData.explanation}`;
             } else {
-                cardContent = `
-                    <div class="bg-[#121820] border-4 border-red-500 p-8 rounded-3xl max-w-md w-full text-center space-y-6">
-                        <div class="text-7xl">💡💪📚</div>
-                        <h3 class="text-3xl font-black text-red-400">Quase lá!</h3>
-                        <p class="text-lg">Não desanime, errar faz parte do aprendizado!</p>
-                        <div class="bg-[#1a222d] p-4 rounded-xl border border-slate-700 text-left">
-                            <span class="text-xs font-bold text-red-400 uppercase">A resposta certa era:</span>
-                            <p class="text-lg font-bold text-white mt-1">${correctAnswerText}</p>
-                        </div>
-                        <button id="next-btn-fb" class="w-full btn-large bg-red-500 text-white text-xl font-bold rounded-xl active:scale-95 transition-transform flex items-center justify-center gap-2">
-                            CONTINUAR TENTANDO <i class="fas fa-arrow-right"></i>
-                        </button>
+                explanationDiv.className = "mt-3 bg-rose-500/10 border border-rose-500/20 rounded-xl p-4 text-rose-400 text-sm font-medium animate-fadeIn";
+                explanationDiv.innerHTML = `😢 <strong>Quase lá! A alternativa correta está destacada a verde.</strong><br>${questionData.explanation}`;
+            }
+            container.appendChild(explanationDiv);
+
+            // Ajustar o indicador de progresso para a situação atual pós-resposta
+            const progressPercent = ((currentQuestionIndex + 1) / database.length) * 100;
+            document.getElementById('progress-bar').style.width = `${progressPercent}%`;
+            document.getElementById('score-indicator').innerText = `Acertos: ${score}`;
+
+            // Mudar o botão para prosseguir
+            const confirmBtn = document.getElementById('btn-confirm');
+            confirmBtn.className = "flex-grow bg-blue-600 hover:bg-blue-500 text-white font-black py-4 px-6 rounded-xl cursor-pointer text-base shadow-lg active:scale-95 transition";
+            if (currentQuestionIndex === database.length - 1) {
+                confirmBtn.innerText = "Ver Resultado Final 📊";
+            } else {
+                confirmBtn.innerText = "Próxima Pergunta 👉";
+            }
+            document.getElementById('lock-warning').classList.add('hidden');
+        }
+
+        // Mostrar Tela de Resultados
+        async function showFinalResult() {
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+
+            const totalQuestions = database.length;
+            const wrongAnswers = totalQuestions - score;
+            const grade = ((score / totalQuestions) * 10).toFixed(1);
+
+            document.getElementById('final-correct').innerText = score;
+            document.getElementById('final-incorrect').innerText = wrongAnswers;
+            document.getElementById('final-grade').innerText = `${grade} / 10`;
+
+            // Configuração visual de medalhas
+            const medalContainer = document.getElementById('medal-container');
+            const resultTitle = document.getElementById('result-title');
+            const gradeFeedback = document.getElementById('grade-feedback');
+
+            if (score === totalQuestions) {
+                medalContainer.innerHTML = `
+                    <div class="relative inline-block bg-yellow-400/20 p-6 rounded-full border-4 border-yellow-400">
+                        <span class="text-7xl">🥇</span>
                     </div>
                 `;
+                resultTitle.innerText = "Excelente! Nota Máxima!";
+                gradeFeedback.innerText = "Dominas perfeitamente tudo sobre as Mudanças! Estás totalmente preparada para brilhar e tirar nota máxima na prova de História!";
+            } else if (score >= 16) {
+                medalContainer.innerHTML = `
+                    <div class="relative inline-block bg-zinc-300/20 p-6 rounded-full border-4 border-zinc-400">
+                        <span class="text-7xl">🥈</span>
+                    </div>
+                `;
+                resultTitle.innerText = "Incrível! Excelente trabalho!";
+                gradeFeedback.innerText = "Que pontuação maravilhosa! Fizeste um simulado fantástico e com certeza terás uma ótima nota!";
+            } else if (score >= 10) {
+                medalContainer.innerHTML = `
+                    <div class="relative inline-block bg-amber-700/20 p-6 rounded-full border-4 border-amber-600">
+                        <span class="text-7xl">🥉</span>
+                    </div>
+                `;
+                resultTitle.innerText = "Bom Desempenho!";
+                gradeFeedback.innerText = "Fizeste um simulado proveitoso. Se revisares as perguntas erradas antes do teste de História, podes alcançar notas ainda maiores!";
+            } else {
+                medalContainer.innerHTML = `
+                    <div class="relative inline-block bg-zinc-800 p-6 rounded-full border-4 border-zinc-700">
+                        <span class="text-7xl">📚</span>
+                    </div>
+                `;
+                resultTitle.innerText = "Quase lá! Vamos praticar mais?";
+                gradeFeedback.innerText = "Mudar e aprender é um caminho que fazemos passo a passo. Revê o livro de História e tenta o teste novamente!";
             }
 
-            feedbackOverlay.innerHTML = cardContent;
-            document.body.appendChild(feedbackOverlay);
+            // Salvar no histórico e remover progresso temporário da nuvem de forma transacional e limpa
+            await saveAttemptToHistory();
+            await deleteProgressState();
+            window.recoveredState = null;
+            buildReviewList();
+        }
 
-            // Focar o botão de avançar para melhorar acessibilidade de teclado/leitores
+        // Construir Lista de Revisão Pedagógica para Estudo
+        function buildReviewList() {
+            const list = document.getElementById('review-list');
+            list.innerHTML = '';
+
+            questionsOrder.forEach((qId, idx) => {
+                const q = database.find(item => item.id === qId);
+                const item = document.createElement('div');
+                item.className = "bg-[#0c0c0e] p-4 rounded-xl border border-zinc-850 space-y-2";
+                
+                const optionLetters = ['A', 'B', 'C'];
+                const correctLetter = optionLetters[q.correctIndex];
+                const correctText = q.options[q.correctIndex];
+
+                item.innerHTML = `
+                    <p class="text-sm font-extrabold text-zinc-200">Questão ${idx + 1}: ${q.question}</p>
+                    <p class="text-xs text-emerald-400 font-extrabold">👉 Alternativa Correta (${correctLetter}): <span class="font-normal text-zinc-300">${correctText}</span></p>
+                    <p class="text-[11px] text-zinc-500 italic">Porquê? ${q.explanation}</p>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        // Sair e salvar o progresso manualmente
+        window.exitAndSave = function() {
+            saveProgressState('active').then(() => {
+                showToast("Progresso guardado na nuvem! Até já! ☁️");
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
+            });
+        };
+
+        // Confirmar reinício
+        window.confirmRestart = function() {
+            if (confirm("Tens a certeza de que queres apagar o progresso atual e recomeçar do zero?")) {
+                deleteProgressState().then(() => {
+                    window.recoveredState = null;
+                    startNewQuiz();
+                });
+            }
+        };
+
+        // Recomeçar a partir do ecrã de resultados finais
+        window.restartFromZero = function() {
+            deleteProgressState().then(() => {
+                window.recoveredState = null;
+                startNewQuiz();
+            });
+        };
+
+        // Alternar visualização da revisão
+        window.toggleReviewMode = function() {
+            const container = document.getElementById('review-container');
+            const btn = document.getElementById('btn-review');
+            if (container.classList.contains('hidden')) {
+                container.classList.remove('hidden');
+                btn.innerText = "Ocultar Revisão";
+                container.scrollIntoView({ behavior: 'smooth' });
+            } else {
+                container.classList.add('hidden');
+                btn.innerText = "Revisar Respostas";
+            }
+        };
+
+        // ------------------------- UTILITÁRIOS & ACESSIBILIDADE -------------------------
+
+        // Exibir Notificação Temporária Customizada (Anti-Alert)
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-text').innerText = message;
+            toast.classList.remove('hidden');
             setTimeout(() => {
-                const btn = document.getElementById('next-btn-fb');
-                if (btn) btn.focus();
-            }, 100);
-
-            document.getElementById('next-btn-fb').onclick = () => {
-                feedbackOverlay.remove();
-                goToNextQuestion();
-            };
+                toast.classList.add('hidden');
+            }, 3000);
         }
 
-        function goToNextQuestion() {
-            currentQuestionIndex++;
-            if (currentQuestionIndex < questions.length) {
-                loadQuestion();
-            } else {
-                showResults();
+        // Alterar Tamanho de Fonte (Visual Acessível)
+        window.changeFontSize = function(size) {
+            const root = document.documentElement;
+            const btnNormal = document.getElementById('btn-font-normal');
+            const btnLarge = document.getElementById('btn-font-large');
+            const btnGiant = document.getElementById('btn-font-giant');
+
+            [btnNormal, btnLarge, btnGiant].forEach(btn => {
+                btn.className = "px-2.5 py-1 text-sm font-bold rounded text-zinc-300 hover:text-white";
+            });
+
+            if (size === 'normal') {
+                root.style.setProperty('--base-font-size', '1.15rem');
+                btnNormal.className = "px-2.5 py-1 text-xs font-bold rounded bg-yellow-400 text-black";
+            } else if (size === 'large') {
+                root.style.setProperty('--base-font-size', '1.35rem');
+                btnLarge.className = "px-2.5 py-1 text-base font-bold rounded bg-yellow-400 text-black";
+            } else if (size === 'giant') {
+                root.style.setProperty('--base-font-size', '1.65rem');
+                btnGiant.className = "px-2.5 py-1 text-lg font-bold rounded bg-yellow-400 text-black";
             }
-        }
+        };
 
-        // TELA DE RESULTADOS FINAIS
-        function showResults() {
-            quizScreen.classList.add('hidden');
-            resultScreen.classList.remove('hidden');
-
-            const incorrect = questions.length - score;
-            const grade = ((score / questions.length) * 10).toFixed(1);
-
-            // Estatísticas rápidas
-            document.getElementById('stat-correct').innerText = score;
-            document.getElementById('stat-incorrect').innerText = incorrect;
-            document.getElementById('stat-grade').innerText = grade;
-
-            // Determinar Medalha de Conquista
-            const emojiEl = document.getElementById('result-emoji');
-            const titleEl = document.getElementById('result-title');
-            const medalTextEl = document.getElementById('medal-text');
-            const textEl = document.getElementById('result-text');
-
-            if (score === 30) {
-                emojiEl.innerText = "🏆👑💎";
-                titleEl.innerText = "Mestre Perfeito!";
-                medalTextEl.innerText = "Medalha de Diamante 👑💎";
-                textEl.innerText = "UAU! Você gabaritou as 30 questões! Você é o orgulho da sala de aula!";
-                playTone(523, 'sine', 0.1);
-                setTimeout(() => playTone(659, 'sine', 0.1), 150);
-                setTimeout(() => playTone(784, 'sine', 0.1), 300);
-                setTimeout(() => playTone(1046, 'sine', 0.5), 450);
-            } else if (score >= 24) {
-                emojiEl.innerText = "🏅🌟🥇";
-                titleEl.innerText = "Incrível Trabalho!";
-                medalTextEl.innerText = "Medalha de Ouro 🥇⭐";
-                textEl.innerText = "Parabéns! Você domina muito bem a matemática do 2º Ano!";
-            } else if (score >= 15) {
-                emojiEl.innerText = "🥈✨👍";
-                titleEl.innerText = "Muito Bom!";
-                medalTextEl.innerText = "Medalha de Prata 🥈✨";
-                textEl.innerText = "Você foi muito bem e já entende os principais conceitos! Continue estudando!";
-            } else {
-                emojiEl.innerText = "📝🧡🌱";
-                titleEl.innerText = "Bom Começo!";
-                medalTextEl.innerText = "Medalha de Bronze 🥉🌱";
-                textEl.innerText = "Que tal dar mais uma olhada no seu livro e tentar novamente? Você tem todo potencial!";
-            }
-        }
-
-        function restartQuiz() {
-            startQuiz();
-        }
     </script>
 </body>
 </html>

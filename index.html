@@ -1,12 +1,12 @@
 ```html
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Super Simulado de História - 2º Ano</title>
     
-    <!-- Fonte amigável e legível para alfabetização -->
+    <!-- Fonte amigável e de excelente leitura para crianças em fase de alfabetização -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -26,6 +26,7 @@
     </script>
     
     <style>
+        /* Variável dinâmica para acessibilidade do tamanho do texto */
         :root {
             --base-font-size: 1.15rem;
         }
@@ -36,7 +37,7 @@
         .option-card {
             transition: all 0.2s ease;
         }
-        /* Custom scrollbar para acessibilidade */
+        /* Barra de rolagem personalizada em alto contraste */
         ::-webkit-scrollbar {
             width: 8px;
         }
@@ -51,19 +52,12 @@
 </head>
 <body class="bg-[#09090b] text-zinc-100 font-sans min-h-screen flex flex-col justify-between selection:bg-yellow-400 selection:text-black">
 
-    <!-- OVERLAY DE CARREGAMENTO (NUVEM) -->
-    <div id="loading-overlay" class="fixed inset-0 bg-[#09090b] z-50 flex flex-col items-center justify-center p-6 text-center">
-        <div class="w-16 h-16 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <h2 class="text-xl font-bold text-white mb-2">A preparar o teu Simulado...</h2>
-        <p class="text-sm text-zinc-400 max-w-xs">Estamos a conectar de forma segura à nuvem para carregar o teu progresso salvo.</p>
-    </div>
-
-    <!-- NOTIFICAÇÕES TOAST CUSTOMIZADAS -->
+    <!-- NOTIFICAÇÕES NO ECRÃ (TOAST PERSONALIZADO SEM ARROMBAR FLUXO COM ALERT) -->
     <div id="toast" class="fixed top-20 left-1/2 -translate-x-1/2 bg-zinc-900 border border-zinc-700 px-4 py-3 rounded-xl shadow-2xl z-50 hidden max-w-sm w-11/12 text-center text-sm font-medium transition-all duration-300">
         <span id="toast-text">Mensagem do sistema</span>
     </div>
 
-    <!-- CABEÇALHO COM CONTROLES DE ACESSIBILIDADE -->
+    <!-- CABEÇALHO COM CONTROLOS DE ACESSIBILIDADE -->
     <header class="bg-[#121214] border-b border-zinc-800 px-4 py-3 sticky top-0 z-40 shadow-lg">
         <div class="max-w-4xl mx-auto flex flex-wrap items-center justify-between gap-3">
             <div class="flex items-center gap-2">
@@ -75,7 +69,7 @@
             </div>
             
             <div class="flex items-center gap-3">
-                <!-- Seletor de Tamanho de Fonte -->
+                <!-- Seletor de Tamanho de Letra para utilizadores com dificuldades de visão -->
                 <div class="flex items-center bg-zinc-950 rounded-lg p-1 border border-zinc-800">
                     <span class="text-[10px] text-zinc-400 px-2 font-black uppercase">Letra:</span>
                     <button onclick="changeFontSize('normal')" id="btn-font-normal" class="px-2.5 py-1 text-xs font-bold rounded bg-yellow-400 text-black">A</button>
@@ -83,8 +77,8 @@
                     <button onclick="changeFontSize('giant')" id="btn-font-giant" class="px-2.5 py-1 text-lg font-bold rounded text-zinc-300 hover:text-white">A++</button>
                 </div>
 
-                <!-- Botão de Som Mudo/Ativo -->
-                <button onclick="toggleMute()" id="btn-mute" class="bg-zinc-950 border border-zinc-800 p-2 rounded-lg text-yellow-400 hover:bg-zinc-900 transition" title="Ligar/Desligar Sons">
+                <!-- Botão para Ligar/Desligar Efeitos Sonoros -->
+                <button onclick="toggleMute()" id="btn-mute" class="bg-zinc-950 border border-zinc-800 p-2 rounded-lg text-yellow-400 hover:bg-zinc-900 transition" title="Ligar/Desligar Som">
                     <svg id="icon-sound-on" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
                     </svg>
@@ -96,80 +90,85 @@
         </div>
     </header>
 
-    <!-- CONTEÚDO PRINCIPAL -->
+    <!-- CONTEÚDO PRINCIPAL DA APLICAÇÃO -->
     <main class="flex-grow flex items-center justify-center p-4">
         <div class="w-full max-w-2xl bg-[#121214] rounded-2xl shadow-2xl border border-zinc-800 p-6 md:p-8">
             
-            <!-- TELA INICIAL (BOAS-VINDAS & SELECIONAR PROGRESSO) -->
+            <!-- ECRÃ DE BOAS-VINDAS & SELECÇÃO DE PROGRESSO LOCAL -->
             <div id="welcome-screen" class="space-y-6">
                 <div class="text-center space-y-4">
                     <div class="inline-block bg-yellow-400/10 p-4 rounded-full border border-yellow-400/20">
                         <span class="text-5xl" role="img" aria-label="Troféu">🏆</span>
                     </div>
-                    <h2 class="text-2xl md:text-3xl font-extrabold text-white">Olá! Vamos Estudar?</h2>
+                    <h2 class="text-2xl md:text-3xl font-extrabold text-white">Olá! Pronta para Estudar?</h2>
                     <p class="accessible-text text-zinc-300">
-                        Preparamos um simulado completo com <span class="text-yellow-400 font-bold">20 questões</span> de História sobre tudo o que mudou no teu corpo, na rotina, na tua família e no teu bairro!
+                        Preparámos um super simulado com <span class="text-yellow-400 font-bold">20 perguntas</span> de História para estares preparadíssima para tirar nota máxima na tua prova!
                     </p>
                 </div>
 
-                <!-- AVISO DE PROGRESSO SALVO ENCONTRADO -->
+                <!-- ALERTA DE PROGRESSO DETECTADO LOCALMENTE -->
                 <div id="resume-container" class="hidden bg-zinc-900 border-2 border-yellow-400/50 p-5 rounded-xl space-y-4 text-center">
                     <div class="flex items-center justify-center gap-2 text-yellow-400 font-bold">
                         <span class="text-xl">💾</span>
-                        <span>Progresso Salvo Encontrado!</span>
+                        <span>Tens um progresso guardado!</span>
                     </div>
                     <p class="text-sm text-zinc-300" id="resume-text">
-                        Estavas na pergunta X com Y acertos. Desejas continuar de onde paraste?
+                        Estavas na pergunta X com Y acertos. Queres continuar a jogar de onde paraste?
                     </p>
                     <div class="flex flex-col sm:flex-row gap-3">
                         <button onclick="resumeQuiz()" class="flex-1 bg-yellow-400 hover:bg-yellow-300 text-black font-black py-3 px-6 rounded-xl shadow-lg transition">
-                            ▶️ Continuar Simulado
+                            ▶️ Continuar de Onde Parei
                         </button>
                         <button onclick="confirmRestart()" class="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3 px-6 rounded-xl transition">
-                            🔄 Recomeçar do Zero
+                            🔄 Apagar e Começar do Zero
                         </button>
                     </div>
                 </div>
 
-                <!-- SEÇÃO PRINCIPAL DE INÍCIO (SE NÃO HOUVER PROGRESSO) -->
+                <!-- SEÇÃO CASO NÃO EXISTA PROGRESSO GUARDADO -->
                 <div id="normal-start-container" class="space-y-4">
                     <button onclick="startNewQuiz()" class="w-full bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-black font-black text-lg py-4 px-8 rounded-xl shadow-lg transform active:scale-95 transition">
                         🚀 INICIAR NOVO SIMULADO
                     </button>
                 </div>
 
-                <!-- DIRETRIZES DE AJUDA -->
+                <!-- CAIXA DE INFORMAÇÕES AUXILIARES -->
                 <div class="bg-zinc-950 rounded-xl p-4 border border-zinc-850 text-left space-y-2">
                     <h3 class="font-extrabold text-yellow-400 flex items-center gap-2 text-sm">
-                        <span>💡</span> DICAS IMPORTANTES PARA A PROVA:
+                        <span>💡</span> COMO FUNCIONA O SIMULADO?
                     </h3>
                     <ul class="text-xs text-zinc-400 list-disc list-inside space-y-1">
-                        <li>O teu progresso é **salvo automaticamente na nuvem** a cada resposta!</li>
-                        <li>Seleciona uma resposta e clica em **Confirmar** para evitar erros acidentais.</li>
-                        <li>Usa os botões no topo para aumentar as letras se precisares de ver melhor.</li>
+                        <li>O teu progresso é **guardado automaticamente** no teu telemóvel a cada pergunta.</li>
+                        <li>Podes fechar esta janela e voltar mais tarde sem perder as tuas respostas!</li>
+                        <li>Lembra-te de selecionar a opção e depois clicar em **Confirmar Resposta**.</li>
                     </ul>
                 </div>
 
-                <!-- HISTÓRICO DE TENTATIVAS ANTERIORES -->
+                <!-- HISTÓRICO DE TENTATIVAS ANTERIORES DO DISPOSITIVO -->
                 <div id="history-container" class="space-y-3 pt-4 border-t border-zinc-850">
-                    <h3 class="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
-                        <span>📊</span> O teu Histórico de Tentativas:
-                    </h3>
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                            <span>📊</span> As Tuas Notas Anteriores:
+                        </h3>
+                        <!-- Opção de limpar todo o histórico local -->
+                        <button onclick="clearHistory()" id="btn-clear-history" class="text-[10px] text-zinc-500 hover:text-red-400 font-bold transition hidden">
+                            🗑️ Limpar Notas
+                        </button>
+                    </div>
                     <div id="history-list" class="space-y-2 max-h-48 overflow-y-auto pr-1">
-                        <!-- Histórico gerado via JS -->
-                        <p class="text-xs text-zinc-500 italic">Ainda não tens tentativas finalizadas. Começa a primeira agora!</p>
+                        <p class="text-xs text-zinc-500 italic">Ainda não tens nenhuma tentativa finalizada. Começa a primeira!</p>
                     </div>
                 </div>
             </div>
 
-            <!-- TELA DE QUESTÕES -->
-            <div id="quiz-screen" class="hidden space-y-6 animate-fadeIn">
-                <!-- Progresso e Pontuação -->
+            <!-- ECRÃ DE PERGUNTAS -->
+            <div id="quiz-screen" class="hidden space-y-6">
+                <!-- Barra de Progresso e Indicador de Acertos -->
                 <div>
                     <div class="flex justify-between items-center mb-2">
                         <span id="question-counter" class="text-xs font-black uppercase tracking-wider text-yellow-400">Pergunta 1 de 20</span>
                         <div class="flex items-center gap-2">
-                            <span class="text-xs text-zinc-400">Progresso Guardado ☁️</span>
+                            <span class="text-xs text-zinc-500">Progresso Guardado Localmente 💾</span>
                             <span id="score-indicator" class="text-xs font-black text-emerald-400">Acertos: 0</span>
                         </div>
                     </div>
@@ -178,48 +177,48 @@
                     </div>
                 </div>
 
-                <!-- Pergunta -->
+                <!-- Pergunta Baseada no Material -->
                 <div class="bg-zinc-950 p-5 rounded-xl border border-zinc-850">
-                    <span class="bg-yellow-400/10 text-yellow-400 border border-yellow-400/20 text-[10px] px-2.5 py-1 rounded-full font-black uppercase mb-3 inline-block tracking-widest">HISTÓRIA GERAL</span>
+                    <span class="bg-yellow-400/10 text-yellow-400 border border-yellow-400/20 text-[10px] px-2.5 py-1 rounded-full font-black uppercase mb-3 inline-block tracking-widest">HISTÓRIA - 2º ANO</span>
                     <h3 id="question-text" class="accessible-text font-bold text-white leading-relaxed">
                         Carregando...
                     </h3>
                 </div>
 
-                <!-- Opções de resposta -->
+                <!-- Opções de resposta (Completamente seguras contra toques acidentais) -->
                 <div id="options-container" class="space-y-3">
-                    <!-- Gerado dinamicamente -->
+                    <!-- Gerado dinamicamente via JS -->
                 </div>
 
-                <!-- Trava e Confirmação de Resposta -->
+                <!-- Painel de Confirmação e Saída com Salvamento -->
                 <div class="pt-4 border-t border-zinc-850 flex flex-col gap-3">
                     <p id="lock-warning" class="text-xs text-center text-zinc-500 font-medium">
-                        🔒 Seleciona uma opção acima para desbloquear o envio da resposta.
+                        🔒 Seleciona uma opção acima para desbloquear o botão de confirmação.
                     </p>
                     <div class="flex gap-2">
-                        <!-- Botão de Sair que salva o progresso -->
-                        <button onclick="exitAndSave()" class="bg-zinc-900 hover:bg-zinc-850 text-zinc-300 font-bold px-4 rounded-xl border border-zinc-800 transition text-sm py-4">
-                            🚪 Sair e Salvar
+                        <!-- Botão de Sair e Salvar Localmente -->
+                        <button onclick="exitAndSave()" class="bg-zinc-900 hover:bg-zinc-850 text-zinc-300 font-bold px-4 rounded-xl border border-zinc-800 transition text-sm py-4" title="Guarda o estado e regressa ao início">
+                            🚪 Sair e Guardar
                         </button>
-                        <button id="btn-confirm" onclick="handleConfirmation()" disabled class="flex-grow bg-zinc-850 text-zinc-500 font-bold py-4 px-6 rounded-xl cursor-not-allowed text-base transition duration-150 flex items-center justify-center gap-2">
+                        <button id="btn-confirm" onclick="handleConfirmation()" disabled class="flex-grow bg-zinc-850 text-zinc-500 font-bold py-4 px-6 rounded-xl cursor-not-allowed text-base transition flex items-center justify-center gap-2">
                             Confirmar Resposta
                         </button>
                     </div>
                 </div>
             </div>
 
-            <!-- TELA DE RESULTADOS FINAIS -->
+            <!-- ECRÃ DE RESULTADOS FINAIS -->
             <div id="result-screen" class="hidden text-center py-6 space-y-6">
-                <div id="medal-container" class="inline-block animate-bounce">
+                <div id="medal-container" class="inline-block">
                     <!-- Gerado dinamicamente -->
                 </div>
                 <h2 class="text-3xl font-black text-white" id="result-title">Simulado Concluído!</h2>
                 
                 <p id="result-text" class="accessible-text text-zinc-300">
-                    Acabaste de guardar a tua nota na nuvem! Vamos ver o teu resultado detalhado abaixo:
+                    O teu resultado foi guardado nas tuas notas locais com sucesso!
                 </p>
 
-                <!-- Quadro de Notas de Alto Contraste -->
+                <!-- Quadro de Resultados de Alto Contraste -->
                 <div class="grid grid-cols-2 gap-4 max-w-sm mx-auto">
                     <div class="bg-zinc-950 border-2 border-emerald-500/50 rounded-xl p-4">
                         <p class="text-xs text-zinc-400 font-bold uppercase tracking-wider">Acertos</p>
@@ -231,25 +230,26 @@
                     </div>
                 </div>
 
+                <!-- Quadro de Notas de História -->
                 <div class="bg-zinc-950 rounded-xl p-5 border border-zinc-850">
                     <p class="text-xs text-zinc-400 uppercase font-black tracking-widest">A tua nota de História</p>
                     <p id="final-grade" class="text-5xl font-black text-yellow-400 my-2">0 / 10</p>
-                    <p id="grade-feedback" class="text-sm text-zinc-300 mt-2 font-semibold">Ótimo desempenho!</p>
+                    <p id="grade-feedback" class="text-sm text-zinc-300 mt-2 font-semibold">Incrível!</p>
                 </div>
 
                 <div class="flex flex-col sm:flex-row gap-3 pt-4">
                     <button onclick="restartFromZero()" class="flex-1 bg-zinc-900 hover:bg-zinc-850 text-white font-bold py-4 px-6 rounded-xl border border-zinc-800 transition">
-                        🔄 Iniciar Novo Simulado
+                        🔄 Fazer Novo Teste
                     </button>
                     <button onclick="toggleReviewMode()" id="btn-review" class="flex-1 bg-yellow-400 hover:bg-yellow-300 text-black font-black py-4 px-6 rounded-xl transition">
-                        📖 Revisar Respostas
+                        📖 Rever Respostas
                     </button>
                 </div>
 
-                <!-- Painel de Revisão Pedagógica -->
+                <!-- Quadro de Revisão Pedagógica das Perguntas -->
                 <div id="review-container" class="hidden text-left bg-zinc-950 rounded-xl p-4 border border-zinc-850 space-y-4 max-h-96 overflow-y-auto">
                     <h3 class="font-extrabold text-yellow-400 text-base border-b border-zinc-850 pb-2 flex items-center gap-2">
-                        <span>📝</span> Explicação de Cada Pergunta:
+                        <span>📝</span> Explicação de Cada Pergunta para Estudo:
                     </h3>
                     <div id="review-list" class="space-y-4">
                         <!-- Gerado por JS -->
@@ -260,21 +260,17 @@
         </div>
     </main>
 
-    <!-- RODAPÉ -->
+    <!-- RODAPÉ DA PÁGINA -->
     <footer class="bg-[#0c0c0e] border-t border-zinc-900 py-4 px-4 text-center">
         <div class="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-zinc-500">
-            <p>Criado com carinho para apoiar o estudo de alunos do 2º Ano</p>
+            <p>Criado com amor para apoiar o estudo autónomo de História do 2º Ano</p>
             <p>&copy; 2026 - Educação Acessível</p>
         </div>
     </footer>
 
-    <!-- INSERÇÃO DAS BIBLIOTECAS FIREBASE VIA CDN (ES MODULES) -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // master database das 20 questões contextualizadas do 2º ano
+    <!-- SCRIPT DE EXECUÇÃO TOTALMENTE LOCAL (LOCALSTORAGE & WEB AUDIO API) -->
+    <script>
+        // 1. Base de dados de 20 questões lúdicas e ricas baseadas rigorosamente no PDF
         const database = [
             {
                 id: 1,
@@ -347,7 +343,7 @@
                 question: "Quais eram os brinquedos e as brincadeiras de rua mais comuns no tempo dos nossos avós?",
                 options: [
                     "Telemóveis, tablets e óculos de realidade virtual.",
-                    "Bolinhas de gude (berlindes), piões, bambolês e jogo das damas.",
+                    "Berlindes (bolinhas de gude), piões, bambolês e jogo das damas.",
                     "Carrinhos telecomandados com pilhas e robôs eletrónicos."
                 ],
                 correctIndex: 1,
@@ -450,7 +446,7 @@
                     "Porque a praça de hoje está totalmente cheia de areia e árvores gigantes de plástico."
                 ],
                 correctIndex: 1,
-                explanation: "As praças e parques são remodelados com o tempo para incluir novos equipamentos de lazer e diversão."
+                explanation: "As praças e parques são remodelados com o tempo para include novos equipamentos de lazer e diversão."
             },
             {
                 id: 17,
@@ -498,50 +494,23 @@
             }
         ];
 
-        // VARIÁVEIS DO FIREBASE (FORNECIDAS PELO AMBIENTE)
-        const firebaseConfig = JSON.parse(__firebase_config);
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-
-        // ESTADO GLOBAL DO SIMULADO
+        // CONFIGURAÇÕES DO ESTADO DA APLICAÇÃO
         let currentQuestionIndex = 0;
         let score = 0;
         let selectedOptionIndex = null;
         let isMuted = false;
-        let questionsOrder = []; // Array de IDs das perguntas na ordem atual
-        let userAnswers = {}; // { [questionIndex]: selectedIndex }
+        let questionsOrder = []; // Ordem dos IDs a serem exibidos
+        let userAnswers = {}; // Armazena { index: selectedIndex }
         let isCurrentConfirmed = false;
-        let user = null;
         let audioCtx = null;
 
-        // INICIALIZAÇÃO E MONITORIZAÇÃO DO ESTADO DE AUTENTICAÇÃO (REGRA 3)
+        // Ao carregar a página: inicializa do LocalStorage
         window.addEventListener('load', () => {
-            const initAuth = async () => {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-            };
-            
-            initAuth().then(() => {
-                user = auth.currentUser;
-                if (user) {
-                    // Carregar histórico de tentativas e progresso salvo (se houver)
-                    Promise.all([checkSavedProgress(), loadHistory()]).then(() => {
-                        document.getElementById('loading-overlay').classList.add('hidden');
-                    });
-                }
-            }).catch(err => {
-                console.error("Erro na autenticação:", err);
-                document.getElementById('loading-overlay').classList.add('hidden');
-                showToast("Erro ao conectar ao servidor. Modo offline ativo.");
-            });
+            checkSavedProgress();
+            loadHistory();
         });
 
-        // ------------------------- SESSÃO DE SOM (WEB AUDIO API) -------------------------
+        // ------------------------- ÁUDIO INDEPENDENTE (WEB AUDIO API NATIVA) -------------------------
         function initAudio() {
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -561,10 +530,10 @@
                 osc.frequency.setValueAtTime(523.25, now); // Do5
                 osc.frequency.setValueAtTime(659.25, now + 0.1); // Mi5
                 gain.gain.setValueAtTime(0.08, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
                 osc.start(now);
-                osc.stop(now + 0.4);
-            } catch(e) {}
+                osc.stop(now + 0.35);
+            } catch (e) {}
         }
 
         function playIncorrectSound() {
@@ -578,12 +547,12 @@
                 osc.type = 'triangle';
                 const now = audioCtx.currentTime;
                 osc.frequency.setValueAtTime(220, now); // La3
-                osc.frequency.linearRampToValueAtTime(110, now + 0.35); // La2 descendente
+                osc.frequency.linearRampToValueAtTime(110, now + 0.3); // La2 descendente
                 gain.gain.setValueAtTime(0.12, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
                 osc.start(now);
-                osc.stop(now + 0.4);
-            } catch(e) {}
+                osc.stop(now + 0.35);
+            } catch (e) {}
         }
 
         window.toggleMute = function() {
@@ -592,40 +561,33 @@
             document.getElementById('icon-sound-off').classList.toggle('hidden', !isMuted);
         };
 
-        // ------------------------- PERSISTÊNCIA FIRESTORE (REGRAS 1, 2 & 3) -------------------------
+        // ------------------------- LÓGICA DE SALVAMENTO LOCAL (LOCALSTORAGE) -------------------------
 
-        // Verifica se há progresso salvo no Firestore (REGRA 1 - STRICT PATHS)
-        async function checkSavedProgress() {
-            if (!user) return;
+        // Verifica se há progresso inacabado guardado no telemóvel
+        function checkSavedProgress() {
             try {
-                const progressDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'progress', 'state');
-                const snap = await getDoc(progressDocRef);
-                
-                if (snap.exists()) {
-                    const data = snap.data();
+                const saved = localStorage.getItem('simulado_progresso_2ano');
+                if (saved) {
+                    const data = JSON.parse(saved);
                     if (data && data.status === 'active') {
-                        // Exibir ecrã de continuar progresso
                         document.getElementById('resume-container').classList.remove('hidden');
                         document.getElementById('normal-start-container').classList.add('hidden');
                         document.getElementById('resume-text').innerHTML = `
-                            Encontrámos um simulado que iniciaste! <br>
-                            Estavas na <strong>Pergunta ${data.currentQuestionIndex + 1} de 20</strong>, com um aproveitamento de <strong>${data.score} acertos</strong>.
+                            Paraste na <strong>Pergunta ${data.currentQuestionIndex + 1} de 20</strong>, com um resultado de <strong>${data.score} acertos</strong>.
                         `;
-                        // Guardar o estado recuperado temporariamente nas variáveis globais
+                        // Guardar o progresso recuperado na memória temporária para utilização
                         window.recoveredState = data;
                     }
                 }
             } catch (err) {
-                console.error("Erro ao verificar progresso salvo:", err);
+                console.error("Erro ao carregar progresso local:", err);
             }
         }
 
-        // Salva o progresso atual do simulado na nuvem (REGRA 1 - STRICT PATHS)
-        async function saveProgressState(status = 'active') {
-            if (!user) return;
+        // Guarda o estado de forma transparente em tempo real no localStorage
+        function saveProgressState(status = 'active') {
             try {
-                const progressDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'progress', 'state');
-                await setDoc(progressDocRef, {
+                const state = {
                     status: status,
                     currentQuestionIndex: currentQuestionIndex,
                     score: score,
@@ -634,74 +596,73 @@
                     isCurrentConfirmed: isCurrentConfirmed,
                     selectedOptionIndex: selectedOptionIndex,
                     lastUpdated: new Date().toISOString()
-                });
+                };
+                localStorage.setItem('simulado_progresso_2ano', JSON.stringify(state));
             } catch (err) {
-                console.error("Erro ao guardar progresso na nuvem:", err);
+                console.error("Erro ao guardar dados locais:", err);
             }
         }
 
-        // Remove o progresso ativo atual (usado ao resetar ou finalizar o teste)
-        async function deleteProgressState() {
-            if (!user) return;
+        // Limpa o progresso atual do telemóvel (ao completar ou reiniciar do zero)
+        function deleteProgressState() {
             try {
-                const progressDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'progress', 'state');
-                await deleteDoc(progressDocRef);
+                localStorage.removeItem('simulado_progresso_2ano');
             } catch (err) {
-                console.error("Erro ao limpar estado de progresso:", err);
+                console.error("Erro ao remover dados locais:", err);
             }
         }
 
-        // Salvar Tentativa Completa no Histórico (REGRA 1 - STRICT PATHS)
-        async function saveAttemptToHistory() {
-            if (!user) return;
+        // Guarda a classificação final no histórico permanente do dispositivo
+        function saveAttemptToHistory() {
             try {
                 const totalQuestions = database.length;
                 const gradeValue = ((score / totalQuestions) * 10).toFixed(1);
                 
-                const attemptsColRef = collection(db, 'artifacts', appId, 'users', user.uid, 'attempts');
-                await addDoc(attemptsColRef, {
+                const historyRaw = localStorage.getItem('simulado_historico_2ano');
+                const history = historyRaw ? JSON.parse(historyRaw) : [];
+
+                history.push({
                     score: score,
                     total: totalQuestions,
                     grade: parseFloat(gradeValue),
                     timestamp: new Date().toISOString()
                 });
-                // Recarregar histórico localmente
-                await loadHistory();
+
+                localStorage.setItem('simulado_historico_2ano', JSON.stringify(history));
+                loadHistory(); // Atualiza a lista visual
             } catch (err) {
-                console.error("Erro ao salvar histórico de tentativas:", err);
+                console.error("Erro ao guardar histórico de tentativas:", err);
             }
         }
 
-        // Carregar Histórico de Tentativas anteriores (REGRA 1 & REGRA 2 - NO COMPLEX QUERIES)
-        async function loadHistory() {
-            if (!user) return;
+        // Carrega as tentativas guardadas localmente e preenche a lista
+        function loadHistory() {
             try {
-                const attemptsColRef = collection(db, 'artifacts', appId, 'users', user.uid, 'attempts');
-                const querySnapshot = await getDocs(attemptsColRef);
-                
-                const attempts = [];
-                querySnapshot.forEach(doc => {
-                    attempts.push(doc.data());
-                });
+                const historyRaw = localStorage.getItem('simulado_historico_2ano');
+                const history = historyRaw ? JSON.parse(historyRaw) : [];
 
-                // Ordenação feita na memória do cliente para respeitar a REGRA 2 (Sem indexadores necessários)
-                attempts.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                // Ordenar da mais recente para a mais antiga na memória do cliente
+                history.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
                 const historyList = document.getElementById('history-list');
-                if (attempts.length === 0) {
-                    historyList.innerHTML = `<p class="text-xs text-zinc-500 italic">Nenhuma tentativa concluída ainda. Começa a primeira agora!</p>`;
+                const btnClear = document.getElementById('btn-clear-history');
+
+                if (history.length === 0) {
+                    historyList.innerHTML = `<p class="text-xs text-zinc-500 italic">Ainda não tens nenhuma tentativa finalizada. Começa a primeira!</p>`;
+                    btnClear.classList.add('hidden');
                     return;
                 }
 
-                historyList.innerHTML = attempts.map((attempt, index) => {
+                btnClear.classList.remove('hidden');
+                historyList.innerHTML = history.map((attempt, index) => {
                     const date = new Date(attempt.timestamp).toLocaleDateString('pt-PT', {
                         day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
                     });
-                    const scoreColor = attempt.grade >= 8 ? 'text-emerald-400' : (attempt.grade >= 5 ? 'text-yellow-400' : 'text-rose-400');
+                    const scoreColor = attempt.grade >= 8.0 ? 'text-emerald-400' : (attempt.grade >= 5.0 ? 'text-yellow-400' : 'text-rose-400');
                     return `
-                        <div class="bg-zinc-900/60 p-3 rounded-lg border border-zinc-800 flex justify-between items-center text-xs">
+                        <div class="bg-zinc-900/60 p-3 rounded-lg border border-zinc-800 flex justify-between items-center text-xs animate-fadeIn">
                             <div class="space-y-1">
-                                <span class="font-bold text-zinc-300">Tentativa #${attempts.length - index}</span>
+                                <span class="font-bold text-zinc-300">Tentativa #${history.length - index}</span>
                                 <p class="text-[10px] text-zinc-500">${date}</p>
                             </div>
                             <div class="text-right">
@@ -713,13 +674,26 @@
                 }).join('');
 
             } catch (err) {
-                console.error("Erro ao carregar histórico:", err);
+                console.error("Erro ao processar histórico:", err);
             }
         }
 
+        // Limpar o Histórico Completo de notas locais
+        window.clearHistory = function() {
+            if (confirm("Queres mesmo apagar todas as tuas notas anteriores guardadas neste dispositivo?")) {
+                try {
+                    localStorage.removeItem('simulado_historico_2ano');
+                    loadHistory();
+                    showToast("Histórico de tentativas limpo com sucesso! 🗑️");
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+        };
+
         // ------------------------- FLUXO DE EXECUÇÃO DO SIMULADO -------------------------
 
-        // Inicializar Novo Simulado do Zero
+        // Iniciar novo simulado do zero de forma limpa
         window.startNewQuiz = function() {
             initAudio();
             currentQuestionIndex = 0;
@@ -728,15 +702,13 @@
             userAnswers = {};
             isCurrentConfirmed = false;
 
-            // Criar uma ordem aleatória das perguntas
+            // Embaralhar as 20 questões de forma aleatória
             questionsOrder = [...database]
                 .sort(() => Math.random() - 0.5)
                 .map(q => q.id);
 
-            // Guardar o progresso na nuvem
             saveProgressState('active');
 
-            // Abrir o ecrã de perguntas
             document.getElementById('welcome-screen').classList.add('hidden');
             document.getElementById('result-screen').classList.add('hidden');
             document.getElementById('quiz-screen').classList.remove('hidden');
@@ -744,11 +716,11 @@
             loadQuestion();
         };
 
-        // Retomar Simulado Recuperado
+        // Continuar progresso existente recuperado
         window.resumeQuiz = function() {
             if (!window.recoveredState) return;
             initAudio();
-            
+
             const state = window.recoveredState;
             currentQuestionIndex = state.currentQuestionIndex;
             score = state.score;
@@ -769,7 +741,7 @@
             const questionId = questionsOrder[currentQuestionIndex];
             const questionData = database.find(q => q.id === questionId);
 
-            // Atualizar ecrã
+            // Atualização do cabeçalho de progresso
             document.getElementById('question-counter').innerText = `Pergunta ${currentQuestionIndex + 1} de ${database.length}`;
             document.getElementById('score-indicator').innerText = `Acertos: ${score}`;
             
@@ -799,11 +771,11 @@
                 container.appendChild(optBtn);
             });
 
-            // Se já foi confirmada anteriormente ao retomar
+            // Se já foi respondida e guardada anteriormente
             if (isCurrentConfirmed) {
                 renderAnswerFeedback(questionData);
             } else {
-                // Estado inicial sem confirmação
+                // Estado inicial desbloqueado de confirmação
                 const confirmBtn = document.getElementById('btn-confirm');
                 confirmBtn.disabled = true;
                 confirmBtn.className = "flex-grow bg-zinc-900 text-zinc-600 font-bold py-4 px-6 rounded-xl cursor-not-allowed text-base transition border border-zinc-850";
@@ -816,7 +788,7 @@
             }
         }
 
-        // Selecionar Opção (Destrava botão de Confirmação de forma segura)
+        // Selecionar Opção (Apenas seleciona visualmente sem avançar por acidente)
         window.selectOption = function(index) {
             if (isCurrentConfirmed) return;
 
@@ -829,13 +801,13 @@
                 badge.className = "indicator-badge bg-zinc-900 text-yellow-400 font-extrabold px-3 py-1.5 rounded-lg border border-zinc-800 text-sm flex-shrink-0";
             });
 
-            // Marcar a selecionada
+            // Destacar a selecionada de forma chamativa
             const selectedButton = document.getElementById(`option-${index}`);
             selectedButton.className = "option-card w-full text-left bg-zinc-950 border-2 border-yellow-400 shadow-lg shadow-yellow-400/5 rounded-xl p-4 transition duration-150 flex items-start gap-3 select-none";
             const badge = selectedButton.querySelector('.indicator-badge');
             badge.className = "indicator-badge bg-yellow-400 text-black font-extrabold px-3 py-1.5 rounded-lg border border-yellow-500 text-sm flex-shrink-0";
 
-            // Destravar botão
+            // Destravar o botão de envio
             const confirmBtn = document.getElementById('btn-confirm');
             confirmBtn.removeAttribute('disabled');
             confirmBtn.className = "flex-grow bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-black font-black py-4 px-6 rounded-xl cursor-pointer text-base shadow-lg shadow-yellow-500/10 active:scale-95 transition";
@@ -844,29 +816,28 @@
             document.getElementById('lock-warning').classList.add('hidden');
         };
 
-        // Confirmar Resposta Selecionada
+        // Confirmar Resposta
         window.handleConfirmation = function() {
             const confirmBtn = document.getElementById('btn-confirm');
             const questionId = questionsOrder[currentQuestionIndex];
             const questionData = database.find(q => q.id === questionId);
 
-            // Ação de avançar
+            // Se o botão já for para avançar
             if (confirmBtn.innerText.includes("Próxima") || confirmBtn.innerText.includes("Resultado")) {
                 currentQuestionIndex++;
                 selectedOptionIndex = null;
                 isCurrentConfirmed = false;
                 
                 if (currentQuestionIndex < database.length) {
-                    saveProgressState('active').then(() => {
-                        loadQuestion();
-                    });
+                    saveProgressState('active');
+                    loadQuestion();
                 } else {
                     showFinalResult();
                 }
                 return;
             }
 
-            // Ação de avaliar resposta
+            // Validar resposta
             isCurrentConfirmed = true;
             userAnswers[currentQuestionIndex] = selectedOptionIndex;
             
@@ -880,11 +851,11 @@
 
             renderAnswerFeedback(questionData);
             
-            // Guardar alteração de confirmação na nuvem imediatamente
+            // Guardar alteração imediatamente no localStorage
             saveProgressState('active');
         };
 
-        // Renderiza o feedback colorido da questão na tela
+        // Renderizar feedback visual após confirmação
         function renderAnswerFeedback(questionData) {
             const isCorrect = (selectedOptionIndex === questionData.correctIndex);
             
@@ -892,19 +863,22 @@
             options.forEach((opt, idx) => {
                 opt.onclick = null;
                 if (idx === questionData.correctIndex) {
+                    // Resposta correta sempre fica verde brilhante
                     opt.className = "option-card w-full text-left bg-emerald-950/20 border-2 border-emerald-500 rounded-xl p-4 flex items-start gap-3 select-none";
                     const badge = opt.querySelector('.indicator-badge');
                     badge.className = "indicator-badge bg-emerald-500 text-black font-extrabold px-3 py-1.5 rounded-lg border border-emerald-600 text-sm flex-shrink-0";
                 } else if (idx === selectedOptionIndex) {
+                    // Se a selecionada do utilizador for incorreta, fica vermelha
                     opt.className = "option-card w-full text-left bg-rose-950/20 border-2 border-rose-500 rounded-xl p-4 flex items-start gap-3 select-none";
                     const badge = opt.querySelector('.indicator-badge');
                     badge.className = "indicator-badge bg-rose-500 text-white font-extrabold px-3 py-1.5 rounded-lg border border-rose-600 text-sm flex-shrink-0";
                 } else {
+                    // Outras opções apagadas
                     opt.className = "option-card w-full text-left bg-zinc-950 border border-zinc-900 rounded-xl p-4 opacity-40 flex items-start gap-3 select-none";
                 }
             });
 
-            // Criar caixa de feedback pedagógico
+            // Adicionar explicação pedagógica do livro de História
             const container = document.getElementById('options-container');
             const explanationDiv = document.createElement('div');
             if (isCorrect) {
@@ -916,12 +890,12 @@
             }
             container.appendChild(explanationDiv);
 
-            // Ajustar o indicador de progresso para a situação atual pós-resposta
+            // Avançar barra de progresso
             const progressPercent = ((currentQuestionIndex + 1) / database.length) * 100;
             document.getElementById('progress-bar').style.width = `${progressPercent}%`;
             document.getElementById('score-indicator').innerText = `Acertos: ${score}`;
 
-            // Mudar o botão para prosseguir
+            // Configurar botão de progresso do simulado
             const confirmBtn = document.getElementById('btn-confirm');
             confirmBtn.className = "flex-grow bg-blue-600 hover:bg-blue-500 text-white font-black py-4 px-6 rounded-xl cursor-pointer text-base shadow-lg active:scale-95 transition";
             if (currentQuestionIndex === database.length - 1) {
@@ -932,8 +906,8 @@
             document.getElementById('lock-warning').classList.add('hidden');
         }
 
-        // Mostrar Tela de Resultados
-        async function showFinalResult() {
+        // Mostrar Ecrã de Resultados Finais
+        function showFinalResult() {
             document.getElementById('quiz-screen').classList.add('hidden');
             document.getElementById('result-screen').classList.remove('hidden');
 
@@ -945,27 +919,27 @@
             document.getElementById('final-incorrect').innerText = wrongAnswers;
             document.getElementById('final-grade').innerText = `${grade} / 10`;
 
-            // Configuração visual de medalhas
             const medalContainer = document.getElementById('medal-container');
             const resultTitle = document.getElementById('result-title');
             const gradeFeedback = document.getElementById('grade-feedback');
 
+            // Feedback dinâmico e lúdico de acordo com a pontuação obtida
             if (score === totalQuestions) {
                 medalContainer.innerHTML = `
-                    <div class="relative inline-block bg-yellow-400/20 p-6 rounded-full border-4 border-yellow-400">
+                    <div class="relative inline-block bg-yellow-400/20 p-6 rounded-full border-4 border-yellow-400 animate-bounce">
                         <span class="text-7xl">🥇</span>
                     </div>
                 `;
                 resultTitle.innerText = "Excelente! Nota Máxima!";
-                gradeFeedback.innerText = "Dominas perfeitamente tudo sobre as Mudanças! Estás totalmente preparada para brilhar e tirar nota máxima na prova de História!";
+                gradeFeedback.innerText = "Estudaste muitíssimo bem! Tens um conhecimento fantástico sobre a passagem do tempo e as mudanças de História!";
             } else if (score >= 16) {
                 medalContainer.innerHTML = `
                     <div class="relative inline-block bg-zinc-300/20 p-6 rounded-full border-4 border-zinc-400">
                         <span class="text-7xl">🥈</span>
                     </div>
                 `;
-                resultTitle.innerText = "Incrível! Excelente trabalho!";
-                gradeFeedback.innerText = "Que pontuação maravilhosa! Fizeste um simulado fantástico e com certeza terás uma ótima nota!";
+                resultTitle.innerText = "Excelente Trabalho!";
+                gradeFeedback.innerText = "Parabéns! Realizaste um excelente teste de História. Vais sair-te lindamente na escola!";
             } else if (score >= 10) {
                 medalContainer.innerHTML = `
                     <div class="relative inline-block bg-amber-700/20 p-6 rounded-full border-4 border-amber-600">
@@ -973,25 +947,25 @@
                     </div>
                 `;
                 resultTitle.innerText = "Bom Desempenho!";
-                gradeFeedback.innerText = "Fizeste um simulado proveitoso. Se revisares as perguntas erradas antes do teste de História, podes alcançar notas ainda maiores!";
+                gradeFeedback.innerText = "Bom esforço! Com uma pequena revisão das respostas incorretas, podes tirar uma nota ainda mais alta no próximo teste!";
             } else {
                 medalContainer.innerHTML = `
                     <div class="relative inline-block bg-zinc-800 p-6 rounded-full border-4 border-zinc-700">
                         <span class="text-7xl">📚</span>
                     </div>
                 `;
-                resultTitle.innerText = "Quase lá! Vamos praticar mais?";
-                gradeFeedback.innerText = "Mudar e aprender é um caminho que fazemos passo a passo. Revê o livro de História e tenta o teste novamente!";
+                resultTitle.innerText = "Pratica mais um pouco!";
+                gradeFeedback.innerText = "Estudar é uma caminhada com várias etapas! Revê as páginas do teu livro de História e tenta de novo.";
             }
 
-            // Salvar no histórico e remover progresso temporário da nuvem de forma transacional e limpa
-            await saveAttemptToHistory();
-            await deleteProgressState();
+            // Gravar tentativa permanentemente no dispositivo e limpar progresso atual pendente
+            saveAttemptToHistory();
+            deleteProgressState();
             window.recoveredState = null;
             buildReviewList();
         }
 
-        // Construir Lista de Revisão Pedagógica para Estudo
+        // Montar Lista de Revisão Pedagógica para Estudo
         function buildReviewList() {
             const list = document.getElementById('review-list');
             list.innerHTML = '';
@@ -1007,42 +981,39 @@
 
                 item.innerHTML = `
                     <p class="text-sm font-extrabold text-zinc-200">Questão ${idx + 1}: ${q.question}</p>
-                    <p class="text-xs text-emerald-400 font-extrabold">👉 Alternativa Correta (${correctLetter}): <span class="font-normal text-zinc-300">${correctText}</span></p>
+                    <p class="text-xs text-emerald-400 font-extrabold">👉 Opção Correta (${correctLetter}): <span class="font-normal text-zinc-300">${correctText}</span></p>
                     <p class="text-[11px] text-zinc-500 italic">Porquê? ${q.explanation}</p>
                 `;
                 list.appendChild(item);
             });
         }
 
-        // Sair e salvar o progresso manualmente
+        // Sair e guardar o progresso manualmente
         window.exitAndSave = function() {
-            saveProgressState('active').then(() => {
-                showToast("Progresso guardado na nuvem! Até já! ☁️");
-                setTimeout(() => {
-                    location.reload();
-                }, 1500);
-            });
+            saveProgressState('active');
+            showToast("Progresso guardado no teu dispositivo! Até já! 💾");
+            setTimeout(() => {
+                location.reload();
+            }, 1200);
         };
 
         // Confirmar reinício
         window.confirmRestart = function() {
-            if (confirm("Tens a certeza de que queres apagar o progresso atual e recomeçar do zero?")) {
-                deleteProgressState().then(() => {
-                    window.recoveredState = null;
-                    startNewQuiz();
-                });
+            if (confirm("Queres mesmo apagar o progresso atual e recomeçar um novo simulado do zero?")) {
+                deleteProgressState();
+                window.recoveredState = null;
+                startNewQuiz();
             }
         };
 
-        // Recomeçar a partir do ecrã de resultados finais
+        // Recomeçar do zero após terminar o teste
         window.restartFromZero = function() {
-            deleteProgressState().then(() => {
-                window.recoveredState = null;
-                startNewQuiz();
-            });
+            deleteProgressState();
+            window.recoveredState = null;
+            startNewQuiz();
         };
 
-        // Alternar visualização da revisão
+        // Alternar visualização da revisão pedagógica no ecrã final
         window.toggleReviewMode = function() {
             const container = document.getElementById('review-container');
             const btn = document.getElementById('btn-review');
@@ -1056,9 +1027,9 @@
             }
         };
 
-        // ------------------------- UTILITÁRIOS & ACESSIBILIDADE -------------------------
+        // ------------------------- UTILITÁRIOS DA INTERFACE (TOAST E TAMANHO DE FONTES) -------------------------
 
-        // Exibir Notificação Temporária Customizada (Anti-Alert)
+        // Exibir Notificação Temporária Customizada (Evita arrombar o layout em iframes)
         function showToast(message) {
             const toast = document.getElementById('toast');
             document.getElementById('toast-text').innerText = message;
@@ -1068,7 +1039,7 @@
             }, 3000);
         }
 
-        // Alterar Tamanho de Fonte (Visual Acessível)
+        // Alterar Tamanho de Letra para Acessibilidade Visual do Utilizador
         window.changeFontSize = function(size) {
             const root = document.documentElement;
             const btnNormal = document.getElementById('btn-font-normal');
@@ -1090,7 +1061,6 @@
                 btnGiant.className = "px-2.5 py-1 text-lg font-bold rounded bg-yellow-400 text-black";
             }
         };
-
     </script>
 </body>
 </html>

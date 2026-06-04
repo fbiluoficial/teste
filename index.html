@@ -1,1066 +1,875 @@
-```html
+
 <!DOCTYPE html>
-<html lang="pt-PT">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Super Simulado de História - 2º Ano</title>
-    
-    <!-- Fonte amigável e de excelente leitura para crianças em fase de alfabetização -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;700;800&display=swap" rel="stylesheet">
-    
+    <title>Super Simulado de Ciências - 2º Ano</title>
     <!-- Tailwind CSS para estilização moderna e responsiva -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Lexend', 'sans-serif'],
-                    },
-                },
-            },
-        }
-    </script>
-    
     <style>
-        /* Variável dinâmica para acessibilidade do tamanho do texto */
+        /* Variáveis de acessibilidade controladas por JS */
         :root {
-            --base-font-size: 1.15rem;
+            --font-scale: 1rem; /* Base size */
         }
+        
+        body {
+            font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+            background-color: #0f172a; /* Slate 900 */
+            color: #f8fafc;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Classes de tamanho de fonte customizadas */
         .accessible-text {
-            font-size: var(--base-font-size);
+            font-size: calc(var(--font-scale) * 1.1);
             line-height: 1.6;
         }
-        .option-card {
-            transition: all 0.2s ease;
+        .accessible-title {
+            font-size: calc(var(--font-scale) * 1.4);
+            font-weight: 800;
         }
-        /* Barra de rolagem personalizada em alto contraste */
-        ::-webkit-scrollbar {
-            width: 8px;
+        .accessible-option {
+            font-size: calc(var(--font-scale) * 1.1);
         }
-        ::-webkit-scrollbar-track {
-            background: #09090b;
+        .accessible-badge {
+            font-size: calc(var(--font-scale) * 0.9);
         }
-        ::-webkit-scrollbar-thumb {
-            background: #27272a;
-            border-radius: 4px;
+
+        /* Modo de contraste extremo para baixa visão */
+        body.extreme-contrast {
+            background-color: #000000 !important;
+            color: #ffffff !important;
+        }
+        body.extreme-contrast .card-bg {
+            background-color: #000000 !important;
+            border: 3px solid #ffff00 !important;
+        }
+        body.extreme-contrast .btn-option {
+            background-color: #121212 !important;
+            border: 2px solid #ffffff !important;
+            color: #ffffff !important;
+        }
+        body.extreme-contrast .btn-option.selected {
+            background-color: #ffff00 !important;
+            color: #000000 !important;
+            border-color: #ffff00 !important;
+        }
+        body.extreme-contrast .text-highlight {
+            color: #ffff00 !important;
+        }
+
+        /* Efeito de pulsação suave para botões principais */
+        @keyframes pulse-soft {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+        .btn-confirm {
+            animation: pulse-soft 2s infinite;
         }
     </style>
 </head>
-<body class="bg-[#09090b] text-zinc-100 font-sans min-h-screen flex flex-col justify-between selection:bg-yellow-400 selection:text-black">
+<body class="min-h-screen flex flex-col items-center p-2 sm:p-4 select-none">
 
-    <!-- NOTIFICAÇÕES NO ECRÃ (TOAST PERSONALIZADO SEM ARROMBAR FLUXO COM ALERT) -->
-    <div id="toast" class="fixed top-20 left-1/2 -translate-x-1/2 bg-zinc-900 border border-zinc-700 px-4 py-3 rounded-xl shadow-2xl z-50 hidden max-w-sm w-11/12 text-center text-sm font-medium transition-all duration-300">
-        <span id="toast-text">Mensagem do sistema</span>
-    </div>
-
-    <!-- CABEÇALHO COM CONTROLOS DE ACESSIBILIDADE -->
-    <header class="bg-[#121214] border-b border-zinc-800 px-4 py-3 sticky top-0 z-40 shadow-lg">
-        <div class="max-w-4xl mx-auto flex flex-wrap items-center justify-between gap-3">
+    <!-- Container Centralizado -->
+    <main class="w-full max-w-2xl flex-grow flex flex-col justify-between py-2 px-1">
+        
+        <!-- CABEÇALHO COM CONTROLES DE ACESSIBILIDADE -->
+        <header class="bg-slate-800 card-bg rounded-2xl p-3 mb-4 border border-slate-700 shadow-xl flex flex-wrap items-center justify-between gap-2">
             <div class="flex items-center gap-2">
-                <span class="text-2xl" aria-hidden="true">🎒</span>
+                <!-- Ícone Cientista -->
+                <span class="text-3xl">🔬</span>
                 <div>
-                    <h1 class="text-xs font-black text-yellow-400 tracking-wider uppercase">História - 2º Ano</h1>
-                    <p class="text-xs text-zinc-400">Capítulo 4: Mudanças</p>
+                    <h1 class="font-extrabold text-amber-400 text-highlight tracking-wide text-lg sm:text-xl">Super Ciências!</h1>
+                    <p class="text-xs text-slate-300">2º Ano do Ensino Fundamental</p>
                 </div>
             </div>
             
-            <div class="flex items-center gap-3">
-                <!-- Seletor de Tamanho de Letra para utilizadores com dificuldades de visão -->
-                <div class="flex items-center bg-zinc-950 rounded-lg p-1 border border-zinc-800">
-                    <span class="text-[10px] text-zinc-400 px-2 font-black uppercase">Letra:</span>
-                    <button onclick="changeFontSize('normal')" id="btn-font-normal" class="px-2.5 py-1 text-xs font-bold rounded bg-yellow-400 text-black">A</button>
-                    <button onclick="changeFontSize('large')" id="btn-font-large" class="px-2.5 py-1 text-base font-bold rounded text-zinc-300 hover:text-white">A+</button>
-                    <button onclick="changeFontSize('giant')" id="btn-font-giant" class="px-2.5 py-1 text-lg font-bold rounded text-zinc-300 hover:text-white">A++</button>
+            <!-- Barra de Ferramentas de Acessibilidade -->
+            <div class="flex items-center gap-2 bg-slate-900/60 p-1.5 rounded-xl">
+                <!-- Som -->
+                <button id="toggle-sound" onclick="toggleMute()" class="p-2 rounded-lg bg-slate-700 hover:bg-slate-600 transition text-base" title="Ativar/Desativar Som">
+                    🔊
+                </button>
+                <!-- Tamanho de Fonte -->
+                <div class="flex items-center gap-1 border-l border-slate-700 pl-2">
+                    <button onclick="setFontScale(1)" class="px-2.5 py-1 rounded bg-slate-700 text-xs font-bold hover:bg-slate-600" title="Fonte Padrão">A</button>
+                    <button onclick="setFontScale(1.3)" class="px-2.5 py-1 rounded bg-slate-700 text-base font-bold hover:bg-slate-600" title="Fonte Grande">A+</button>
+                    <button onclick="setFontScale(1.6)" class="px-2.5 py-1 rounded bg-slate-700 text-xl font-bold hover:bg-slate-600" title="Fonte Gigante">A++</button>
                 </div>
-
-                <!-- Botão para Ligar/Desligar Efeitos Sonoros -->
-                <button onclick="toggleMute()" id="btn-mute" class="bg-zinc-950 border border-zinc-800 p-2 rounded-lg text-yellow-400 hover:bg-zinc-900 transition" title="Ligar/Desligar Som">
-                    <svg id="icon-sound-on" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-                    </svg>
-                    <svg id="icon-sound-off" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zm14.121-11l-8.485 8.485m0-8.485l8.485 8.485" />
-                    </svg>
+                <!-- Alto Contraste -->
+                <button onclick="toggleExtremeContrast()" class="p-2 rounded-lg bg-yellow-500 hover:bg-yellow-400 text-slate-900 font-extrabold text-xs ml-1" title="Contraste Extremo">
+                    🌓 Contraste
                 </button>
             </div>
-        </div>
-    </header>
+        </header>
 
-    <!-- CONTEÚDO PRINCIPAL DA APLICAÇÃO -->
-    <main class="flex-grow flex items-center justify-center p-4">
-        <div class="w-full max-w-2xl bg-[#121214] rounded-2xl shadow-2xl border border-zinc-800 p-6 md:p-8">
+        <!-- TELA INICIAL / BOAS-VINDAS -->
+        <section id="start-screen" class="bg-slate-800 card-bg rounded-2xl p-6 border border-slate-700 shadow-2xl text-center my-auto">
+            <div class="mb-4 flex justify-center">
+                <!-- SVG Ilustrativo: Planeta Terra Sorridente com Folha -->
+                <svg class="w-32 h-32" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="45" fill="#38bdf8" />
+                    <!-- Continentes simples -->
+                    <path d="M25 40 Q35 30 50 35 T75 30 T80 60 Q60 70 45 55 T20 50 Z" fill="#4ade80" />
+                    <path d="M30 75 Q45 80 55 70 T70 75" fill="#4ade80" />
+                    <!-- Rostinho feliz -->
+                    <circle cx="40" cy="48" r="4" fill="#0f172a" />
+                    <circle cx="60" cy="48" r="4" fill="#0f172a" />
+                    <path d="M43 58 Q50 64 57 58" stroke="#0f172a" stroke-width="3" stroke-linecap="round" fill="none" />
+                    <!-- Folhinha fofa na lateral -->
+                    <path d="M15 25 Q5 15 12 5 Q22 12 15 25 Z" fill="#22c55e" transform="rotate(-15, 15, 25)" />
+                </svg>
+            </div>
             
-            <!-- ECRÃ DE BOAS-VINDAS & SELECÇÃO DE PROGRESSO LOCAL -->
-            <div id="welcome-screen" class="space-y-6">
-                <div class="text-center space-y-4">
-                    <div class="inline-block bg-yellow-400/10 p-4 rounded-full border border-yellow-400/20">
-                        <span class="text-5xl" role="img" aria-label="Troféu">🏆</span>
-                    </div>
-                    <h2 class="text-2xl md:text-3xl font-extrabold text-white">Olá! Pronta para Estudar?</h2>
-                    <p class="accessible-text text-zinc-300">
-                        Preparámos um super simulado com <span class="text-yellow-400 font-bold">20 perguntas</span> de História para estares preparadíssima para tirar nota máxima na tua prova!
-                    </p>
-                </div>
-
-                <!-- ALERTA DE PROGRESSO DETECTADO LOCALMENTE -->
-                <div id="resume-container" class="hidden bg-zinc-900 border-2 border-yellow-400/50 p-5 rounded-xl space-y-4 text-center">
-                    <div class="flex items-center justify-center gap-2 text-yellow-400 font-bold">
-                        <span class="text-xl">💾</span>
-                        <span>Tens um progresso guardado!</span>
-                    </div>
-                    <p class="text-sm text-zinc-300" id="resume-text">
-                        Estavas na pergunta X com Y acertos. Queres continuar a jogar de onde paraste?
-                    </p>
-                    <div class="flex flex-col sm:flex-row gap-3">
-                        <button onclick="resumeQuiz()" class="flex-1 bg-yellow-400 hover:bg-yellow-300 text-black font-black py-3 px-6 rounded-xl shadow-lg transition">
-                            ▶️ Continuar de Onde Parei
-                        </button>
-                        <button onclick="confirmRestart()" class="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3 px-6 rounded-xl transition">
-                            🔄 Apagar e Começar do Zero
-                        </button>
-                    </div>
-                </div>
-
-                <!-- SEÇÃO CASO NÃO EXISTA PROGRESSO GUARDADO -->
-                <div id="normal-start-container" class="space-y-4">
-                    <button onclick="startNewQuiz()" class="w-full bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-black font-black text-lg py-4 px-8 rounded-xl shadow-lg transform active:scale-95 transition">
-                        🚀 INICIAR NOVO SIMULADO
-                    </button>
-                </div>
-
-                <!-- CAIXA DE INFORMAÇÕES AUXILIARES -->
-                <div class="bg-zinc-950 rounded-xl p-4 border border-zinc-850 text-left space-y-2">
-                    <h3 class="font-extrabold text-yellow-400 flex items-center gap-2 text-sm">
-                        <span>💡</span> COMO FUNCIONA O SIMULADO?
-                    </h3>
-                    <ul class="text-xs text-zinc-400 list-disc list-inside space-y-1">
-                        <li>O teu progresso é **guardado automaticamente** no teu telemóvel a cada pergunta.</li>
-                        <li>Podes fechar esta janela e voltar mais tarde sem perder as tuas respostas!</li>
-                        <li>Lembra-te de selecionar a opção e depois clicar em **Confirmar Resposta**.</li>
-                    </ul>
-                </div>
-
-                <!-- HISTÓRICO DE TENTATIVAS ANTERIORES DO DISPOSITIVO -->
-                <div id="history-container" class="space-y-3 pt-4 border-t border-zinc-850">
-                    <div class="flex items-center justify-between">
-                        <h3 class="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
-                            <span>📊</span> As Tuas Notas Anteriores:
-                        </h3>
-                        <!-- Opção de limpar todo o histórico local -->
-                        <button onclick="clearHistory()" id="btn-clear-history" class="text-[10px] text-zinc-500 hover:text-red-400 font-bold transition hidden">
-                            🗑️ Limpar Notas
-                        </button>
-                    </div>
-                    <div id="history-list" class="space-y-2 max-h-48 overflow-y-auto pr-1">
-                        <p class="text-xs text-zinc-500 italic">Ainda não tens nenhuma tentativa finalizada. Começa a primeira!</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ECRÃ DE PERGUNTAS -->
-            <div id="quiz-screen" class="hidden space-y-6">
-                <!-- Barra de Progresso e Indicador de Acertos -->
-                <div>
-                    <div class="flex justify-between items-center mb-2">
-                        <span id="question-counter" class="text-xs font-black uppercase tracking-wider text-yellow-400">Pergunta 1 de 20</span>
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs text-zinc-500">Progresso Guardado Localmente 💾</span>
-                            <span id="score-indicator" class="text-xs font-black text-emerald-400">Acertos: 0</span>
-                        </div>
-                    </div>
-                    <div class="w-full bg-zinc-900 h-3 rounded-full overflow-hidden border border-zinc-850">
-                        <div id="progress-bar" class="bg-gradient-to-r from-yellow-400 to-amber-500 h-full w-[5%] transition-all duration-300"></div>
-                    </div>
-                </div>
-
-                <!-- Pergunta Baseada no Material -->
-                <div class="bg-zinc-950 p-5 rounded-xl border border-zinc-850">
-                    <span class="bg-yellow-400/10 text-yellow-400 border border-yellow-400/20 text-[10px] px-2.5 py-1 rounded-full font-black uppercase mb-3 inline-block tracking-widest">HISTÓRIA - 2º ANO</span>
-                    <h3 id="question-text" class="accessible-text font-bold text-white leading-relaxed">
-                        Carregando...
-                    </h3>
-                </div>
-
-                <!-- Opções de resposta (Completamente seguras contra toques acidentais) -->
-                <div id="options-container" class="space-y-3">
-                    <!-- Gerado dinamicamente via JS -->
-                </div>
-
-                <!-- Painel de Confirmação e Saída com Salvamento -->
-                <div class="pt-4 border-t border-zinc-850 flex flex-col gap-3">
-                    <p id="lock-warning" class="text-xs text-center text-zinc-500 font-medium">
-                        🔒 Seleciona uma opção acima para desbloquear o botão de confirmação.
-                    </p>
-                    <div class="flex gap-2">
-                        <!-- Botão de Sair e Salvar Localmente -->
-                        <button onclick="exitAndSave()" class="bg-zinc-900 hover:bg-zinc-850 text-zinc-300 font-bold px-4 rounded-xl border border-zinc-800 transition text-sm py-4" title="Guarda o estado e regressa ao início">
-                            🚪 Sair e Guardar
-                        </button>
-                        <button id="btn-confirm" onclick="handleConfirmation()" disabled class="flex-grow bg-zinc-850 text-zinc-500 font-bold py-4 px-6 rounded-xl cursor-not-allowed text-base transition flex items-center justify-center gap-2">
-                            Confirmar Resposta
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ECRÃ DE RESULTADOS FINAIS -->
-            <div id="result-screen" class="hidden text-center py-6 space-y-6">
-                <div id="medal-container" class="inline-block">
-                    <!-- Gerado dinamicamente -->
-                </div>
-                <h2 class="text-3xl font-black text-white" id="result-title">Simulado Concluído!</h2>
-                
-                <p id="result-text" class="accessible-text text-zinc-300">
-                    O teu resultado foi guardado nas tuas notas locais com sucesso!
+            <h2 class="accessible-title text-amber-300 font-black mb-3">Olá, pequeno Cientista! 🌟</h2>
+            <p class="accessible-text text-slate-200 mb-6 max-w-md mx-auto">
+                Vamos fazer um desafio super divertido de Ciências? São <strong class="text-amber-400 text-highlight">30 perguntinhas</strong> fáceis sobre animais, plantas e o nosso lindo planeta Terra!
+            </p>
+            
+            <!-- Caixa informativa de acessibilidade -->
+            <div class="bg-slate-900/50 p-3 rounded-xl border border-slate-700 mb-6 text-left max-w-md mx-auto">
+                <p class="text-xs sm:text-sm text-amber-200">
+                    💡 <strong>Dica visual:</strong> Você pode clicar nos botões <strong>A+</strong> lá em cima para deixar as letras bem grandonas e fáceis de ler!
                 </p>
+            </div>
 
-                <!-- Quadro de Resultados de Alto Contraste -->
-                <div class="grid grid-cols-2 gap-4 max-w-sm mx-auto">
-                    <div class="bg-zinc-950 border-2 border-emerald-500/50 rounded-xl p-4">
-                        <p class="text-xs text-zinc-400 font-bold uppercase tracking-wider">Acertos</p>
-                        <p id="final-correct" class="text-3xl font-black text-emerald-400">0</p>
-                    </div>
-                    <div class="bg-zinc-950 border-2 border-rose-500/50 rounded-xl p-4">
-                        <p class="text-xs text-zinc-400 font-bold uppercase tracking-wider">Erros</p>
-                        <p id="final-incorrect" class="text-3xl font-black text-rose-400">0</p>
-                    </div>
+            <button onclick="startQuiz()" class="w-full sm:w-auto px-10 py-5 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white font-extrabold rounded-2xl shadow-lg transition transform hover:-translate-y-1 text-xl tracking-wide">
+                🚀 COMEÇAR O SIMULADO
+            </button>
+        </section>
+
+        <!-- TELA DO QUESTIONÁRIO -->
+        <section id="quiz-screen" class="hidden flex-col justify-between flex-grow">
+            <!-- Progresso -->
+            <div class="mb-4">
+                <div class="flex justify-between items-center mb-1.5 px-1">
+                    <span id="question-index-badge" class="accessible-badge font-bold text-amber-400 text-highlight bg-slate-800 card-bg px-3 py-1 rounded-full border border-slate-700">
+                        Pergunta 1 de 30
+                    </span>
+                    <span id="points-badge" class="accessible-badge font-bold text-emerald-400 bg-slate-800 card-bg px-3 py-1 rounded-full border border-slate-700">
+                        Acertos: 0
+                    </span>
                 </div>
-
-                <!-- Quadro de Notas de História -->
-                <div class="bg-zinc-950 rounded-xl p-5 border border-zinc-850">
-                    <p class="text-xs text-zinc-400 uppercase font-black tracking-widest">A tua nota de História</p>
-                    <p id="final-grade" class="text-5xl font-black text-yellow-400 my-2">0 / 10</p>
-                    <p id="grade-feedback" class="text-sm text-zinc-300 mt-2 font-semibold">Incrível!</p>
-                </div>
-
-                <div class="flex flex-col sm:flex-row gap-3 pt-4">
-                    <button onclick="restartFromZero()" class="flex-1 bg-zinc-900 hover:bg-zinc-850 text-white font-bold py-4 px-6 rounded-xl border border-zinc-800 transition">
-                        🔄 Fazer Novo Teste
-                    </button>
-                    <button onclick="toggleReviewMode()" id="btn-review" class="flex-1 bg-yellow-400 hover:bg-yellow-300 text-black font-black py-4 px-6 rounded-xl transition">
-                        📖 Rever Respostas
-                    </button>
-                </div>
-
-                <!-- Quadro de Revisão Pedagógica das Perguntas -->
-                <div id="review-container" class="hidden text-left bg-zinc-950 rounded-xl p-4 border border-zinc-850 space-y-4 max-h-96 overflow-y-auto">
-                    <h3 class="font-extrabold text-yellow-400 text-base border-b border-zinc-850 pb-2 flex items-center gap-2">
-                        <span>📝</span> Explicação de Cada Pergunta para Estudo:
-                    </h3>
-                    <div id="review-list" class="space-y-4">
-                        <!-- Gerado por JS -->
-                    </div>
+                <!-- Barra de Progresso Visual -->
+                <div class="w-full bg-slate-800 rounded-full h-3 border border-slate-700 overflow-hidden">
+                    <div id="progress-bar" class="bg-gradient-to-r from-amber-400 to-emerald-500 h-full rounded-full transition-all duration-300" style="width: 3.3%"></div>
                 </div>
             </div>
 
-        </div>
+            <!-- Card Principal da Questão -->
+            <div class="bg-slate-800 card-bg rounded-3xl p-4 sm:p-6 border-2 border-slate-700 shadow-2xl flex-grow flex flex-col justify-between gap-4">
+                
+                <!-- Área do Enunciado e Ilustração -->
+                <div class="flex flex-col items-center gap-3">
+                    <!-- Espaço para Ilustração Dinâmica (SVG pequeno) -->
+                    <div id="illustration-container" class="bg-slate-900/60 p-3 rounded-2xl border border-slate-700 flex justify-center items-center shadow-inner h-24 w-24">
+                        <!-- Gerado por JS para cada pergunta -->
+                    </div>
+
+                    <!-- Enunciado da Pergunta -->
+                    <h3 id="question-text" class="accessible-title font-black text-center text-white text-highlight leading-relaxed">
+                        Carregando pergunta...
+                    </h3>
+                </div>
+
+                <!-- Lista de Alternativas -->
+                <div id="options-container" class="grid grid-cols-1 gap-3 my-2">
+                    <!-- Gerado por JS -->
+                </div>
+
+                <!-- TRAVA DE SEGURANÇA E FEEDBACK -->
+                <div class="mt-2 min-h-[90px] flex flex-col justify-center items-center">
+                    
+                    <!-- Estado 1: Botão para Confirmar Escolha (A TRAVA) -->
+                    <button id="btn-confirm-selection" onclick="confirmAnswer()" class="hidden btn-confirm w-full py-4 bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 font-black rounded-2xl shadow-xl transition transform hover:scale-[1.02] text-lg sm:text-xl border-2 border-amber-300">
+                        🎯 CONFIRMAR MINHA RESPOSTA
+                    </button>
+
+                    <!-- Estado 2: Dica amigável antes de selecionar -->
+                    <p id="selection-tip" class="text-sm text-slate-400 text-center italic">
+                        Clique em uma das respostas acima para escolher! Depois, clique no botão de confirmar para ver se acertou.
+                    </p>
+
+                    <!-- Estado 3: Resposta Correta / Errada com Explicação Simples -->
+                    <div id="feedback-panel" class="hidden w-full bg-slate-900/80 p-4 rounded-2xl border-2 text-center flex flex-col gap-2">
+                        <div class="flex items-center justify-center gap-2">
+                            <span id="feedback-emoji" class="text-3xl">🎉</span>
+                            <h4 id="feedback-title" class="accessible-title font-black">Muito bem!</h4>
+                        </div>
+                        <p id="feedback-explanation" class="accessible-text text-slate-200">
+                            Explicação simplificada aqui.
+                        </p>
+                        <button onclick="nextQuestion()" class="mt-2 px-8 py-3 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-extrabold rounded-xl transition text-base tracking-wider self-center">
+                            PROSSEGUIR 👉
+                        </button>
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+
+        <!-- TELA DE RESULTADOS FINAIS -->
+        <section id="result-screen" class="hidden bg-slate-800 card-bg rounded-2xl p-6 border border-slate-700 shadow-2xl text-center my-auto">
+            <h2 class="accessible-title text-amber-300 font-black mb-1">🎉 Simulado Concluído! 🎉</h2>
+            <p class="text-sm text-slate-300 mb-6">Você chegou ao final, parabéns!</p>
+
+            <!-- Placar -->
+            <div class="bg-slate-900/80 border border-slate-700 rounded-3xl p-6 max-w-md mx-auto mb-6 shadow-inner">
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div class="bg-emerald-950/50 border border-emerald-500/30 p-3 rounded-2xl">
+                        <span class="text-3xl block">✅</span>
+                        <strong class="text-xs uppercase text-emerald-400">Acertos</strong>
+                        <p id="final-correct" class="text-3xl font-black text-emerald-300">0</p>
+                    </div>
+                    <div class="bg-rose-950/50 border border-rose-500/30 p-3 rounded-2xl">
+                        <span class="text-3xl block">❌</span>
+                        <strong class="text-xs uppercase text-rose-400">Erros</strong>
+                        <p id="final-incorrect" class="text-3xl font-black text-rose-300">0</p>
+                    </div>
+                </div>
+
+                <!-- Nota do Aluno -->
+                <div class="border-t border-slate-700 pt-4">
+                    <span class="text-sm text-slate-400 uppercase tracking-widest block">Sua Nota Final</span>
+                    <div class="text-5xl font-black text-amber-400 text-highlight my-1" id="final-grade">0 / 10</div>
+                    <p id="final-message" class="accessible-text text-slate-100 font-semibold mt-2 px-2">
+                        Mensagem de motivação.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Botões de ação pós-quiz -->
+            <div class="flex flex-col sm:flex-row justify-center gap-3 max-w-md mx-auto">
+                <button onclick="restartQuiz()" class="px-8 py-4 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white font-extrabold rounded-xl shadow-lg transition text-lg w-full">
+                    🔄 Tentar Novamente
+                </button>
+            </div>
+        </section>
+
     </main>
 
-    <!-- RODAPÉ DA PÁGINA -->
-    <footer class="bg-[#0c0c0e] border-t border-zinc-900 py-4 px-4 text-center">
-        <div class="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-zinc-500">
-            <p>Criado com amor para apoiar o estudo autónomo de História do 2º Ano</p>
-            <p>&copy; 2026 - Educação Acessível</p>
-        </div>
+    <!-- FOOTER SUTIL -->
+    <footer class="mt-4 text-center text-xs text-slate-500">
+        Simulado Científico do 2º Ano • Conteúdo adaptado do material oficial.
     </footer>
 
-    <!-- SCRIPT DE EXECUÇÃO TOTALMENTE LOCAL (LOCALSTORAGE & WEB AUDIO API) -->
+    <!-- LOGIC SYSTEM & QUESTION DATABASE -->
     <script>
-        // 1. Base de dados de 20 questões lúdicas e ricas baseadas rigorosamente no PDF
-        const database = [
+        // --- ILUSTRAÇÕES EM SVG DE ALTO CONTRASTE ---
+        const SVGS = {
+            biodiversity: `<svg viewBox="0 0 100 100" class="w-full h-full"><circle cx="50" cy="50" r="40" fill="#22c55e"/><circle cx="50" cy="50" r="30" fill="#3b82f6"/><path d="M40 30 Q50 20 60 30 T80 40" stroke="#facc15" stroke-width="4" fill="none"/><path d="M20 60 Q50 80 80 60" stroke="#ffffff" stroke-width="4" fill="none"/></svg>`,
+            globe: `<svg viewBox="0 0 100 100" class="w-full h-full"><circle cx="50" cy="50" r="40" fill="#0284c7"/><path d="M25 45 C35 35, 65 35, 75 45 C65 65, 35 65, 25 45 Z" fill="#22c55e"/><circle cx="45" cy="45" r="3" fill="#ffffff"/><circle cx="55" cy="45" r="3" fill="#ffffff"/></svg>`,
+            bee: `<svg viewBox="0 0 100 100" class="w-full h-full"><circle cx="50" cy="50" r="30" fill="#eab308"/><path d="M50 20 C60 10, 80 30, 50 50 Z" fill="#93c5fd" opacity="0.8"/><path d="M50 20 C40 10, 20 30, 50 50 Z" fill="#93c5fd" opacity="0.8"/><rect x="30" y="45" width="40" height="8" fill="#0f172a"/><rect x="35" y="35" width="30" height="6" fill="#0f172a"/><circle cx="42" cy="30" r="3" fill="#0f172a"/><circle cx="58" cy="30" r="3" fill="#0f172a"/></svg>`,
+            flower: `<svg viewBox="0 0 100 100" class="w-full h-full"><circle cx="50" cy="50" r="15" fill="#facc15"/><circle cx="50" cy="25" r="12" fill="#ec4899"/><circle cx="50" cy="75" r="12" fill="#ec4899"/><circle cx="25" cy="50" r="12" fill="#ec4899"/><circle cx="75" cy="50" r="12" fill="#ec4899"/></svg>`,
+            pollen: `<svg viewBox="0 0 100 100" class="w-full h-full"><circle cx="30" cy="30" r="6" fill="#facc15"/><circle cx="70" cy="40" r="8" fill="#facc15"/><circle cx="40" cy="70" r="5" fill="#facc15"/><circle cx="55" cy="25" r="7" fill="#fbbf24"/><circle cx="65" cy="75" r="6" fill="#fbbf24"/><line x1="50" y1="50" x2="30" y2="30" stroke="#facc15" stroke-dasharray="3"/><line x1="50" y1="50" x2="70" y2="40" stroke="#facc15" stroke-dasharray="3"/></svg>`,
+            honey: `<svg viewBox="0 0 100 100" class="w-full h-full"><path d="M30 40 L70 40 L65 80 C60 90, 40 90, 35 80 Z" fill="#d97706"/><ellipse cx="50" cy="40" rx="20" ry="8" fill="#f59e0b"/><path d="M50 48 Q40 55 50 62 Q60 70 50 78" stroke="#facc15" stroke-width="5" stroke-linecap="round" fill="none"/></svg>`,
+            extinction: `<svg viewBox="0 0 100 100" class="w-full h-full"><circle cx="50" cy="50" r="35" fill="#334155" stroke="#f43f5e" stroke-width="4"/><line x1="25" y1="25" x2="75" y2="75" stroke="#f43f5e" stroke-width="6"/><line x1="75" y1="25" x2="25" y2="75" stroke="#f43f5e" stroke-width="6"/></svg>`,
+            cactus: `<svg viewBox="0 0 100 100" class="w-full h-full"><rect x="42" y="30" width="16" height="50" rx="8" fill="#15803d"/><rect x="25" y="45" width="20" height="8" fill="#15803d"/><rect x="25" y="35" width="8" height="18" fill="#15803d"/><rect x="55" y="52" width="20" height="8" fill="#15803d"/><rect x="67" y="42" width="8" height="18" fill="#15803d"/><line x1="50" y1="25" x2="50" y2="28" stroke="#facc15" stroke-width="2"/><line x1="42" y1="40" x2="38" y2="40" stroke="#ffffff" stroke-width="1.5"/><line x1="58" y1="50" x2="62" y2="50" stroke="#ffffff" stroke-width="1.5"/></svg>`,
+            sun: `<svg viewBox="0 0 100 100" class="w-full h-full"><circle cx="50" cy="50" r="22" fill="#ea580c"/><circle cx="50" cy="50" r="18" fill="#eab308"/><line x1="50" y1="10" x2="50" y2="22" stroke="#eab308" stroke-width="4" stroke-linecap="round"/><line x1="50" y1="78" x2="50" y2="90" stroke="#eab308" stroke-width="4" stroke-linecap="round"/><line x1="10" y1="50" x2="22" y2="50" stroke="#eab308" stroke-width="4" stroke-linecap="round"/><line x1="78" y1="50" x2="90" y2="50" stroke="#eab308" stroke-width="4" stroke-linecap="round"/></svg>`,
+            water: `<svg viewBox="0 0 100 100" class="w-full h-full"><path d="M50 15 C50 15 80 55 80 70 C80 85 66 90 50 90 C34 90 20 85 20 70 C20 55 50 15 50 15 Z" fill="#38bdf8"/></svg>`,
+            tree: `<svg viewBox="0 0 100 100" class="w-full h-full"><rect x="45" y="60" width="10" height="25" fill="#78350f"/><circle cx="50" cy="45" r="25" fill="#16a34a"/><circle cx="38" cy="40" r="18" fill="#15803d"/><circle cx="62" cy="40" r="18" fill="#15803d"/></svg>`,
+            fish: `<svg viewBox="0 0 100 100" class="w-full h-full"><path d="M20 50 C40 30, 80 35, 90 50 C80 65, 40 70, 20 50 Z" fill="#f97316"/><path d="M15 35 L30 50 L15 65 Z" fill="#f97316"/><path d="M45 40 L45 60" stroke="#ffffff" stroke-width="6"/><path d="M65 42 L65 58" stroke="#ffffff" stroke-width="6"/><circle cx="78" cy="46" r="3.5" fill="#000000"/><circle cx="80" cy="44" r="1" fill="#ffffff"/></svg>`,
+            elephant: `<svg viewBox="0 0 100 100" class="w-full h-full"><circle cx="50" cy="50" r="28" fill="#64748b"/><circle cx="23" cy="40" r="14" fill="#64748b"/><circle cx="77" cy="40" r="14" fill="#64748b"/><rect x="44" y="55" width="12" height="25" rx="6" fill="#64748b"/><path d="M38 52 L34 65" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/><path d="M62 52 L66 65" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/></svg>`,
+            aquatic_plant: `<svg viewBox="0 0 100 100" class="w-full h-full"><ellipse cx="50" cy="65" rx="35" ry="12" fill="#16a34a"/><path d="M48 65 Q50 30 52 15" stroke="#db2777" stroke-width="3" fill="none"/><circle cx="52" cy="15" r="4" fill="#db2777"/><path d="M15 65 Q50 80 85 65" stroke="#38bdf8" stroke-width="4" fill="none"/></svg>`,
+            interdependencia: `<svg viewBox="0 0 100 100" class="w-full h-full"><circle cx="35" cy="50" r="18" fill="#fb923c"/><circle cx="65" cy="50" r="18" fill="#38bdf8"/><path d="M42 45 C46 38, 54 38, 58 45" stroke="#ffffff" stroke-width="3" fill="none"/><path d="M58 55 C54 62, 46 62, 42 55" stroke="#ffffff" stroke-width="3" fill="none"/></svg>`
+        };
+
+        // --- BANCO DE DADOS DE 30 QUESTÕES DO LIVRO (LINGUAGEM DE 2º ANO) ---
+        const questions = [
             {
-                id: 1,
-                question: "Quando o Luquinha viu a foto do Torugo quando este era bebé, porque é que ele ficou tão curioso?",
+                question: "O que chamamos de 'biodiversidade'?",
+                svg: SVGS.biodiversity,
                 options: [
-                    "Porque achou que o Torugo não se parecia nada com o bebé da fotografia.",
-                    "Porque o bebé da fotografia tinha asas e voava.",
-                    "Porque a fotografia estava rasgada e muito suja."
+                    "É o conjunto de todas as espécies de seres vivos que moram num lugar.",
+                    "É um tipo de brinquedo eletrônico muito rápido.",
+                    "É quando chove muito forte e o vento leva as folhas."
                 ],
                 correctIndex: 0,
-                explanation: "Como o corpo do Torugo cresceu e mudou muito com o tempo, o Luquinha achou que ele nem parecia a mesma pessoa!"
+                explanation: "Muito bem! Biodiversidade é a mistura de todas as formas de vida do nosso planeta, como bichinhos, plantas e fungos dividindo o mesmo espaço."
             },
             {
-                id: 2,
-                question: "Além de ficar muito mais alto, o que é que também mudou no Torugo desde que era bebé?",
+                question: "Onde podemos encontrar a biodiversidade no nosso planeta?",
+                svg: SVGS.globe,
                 options: [
-                    "O cabelo dele ficou azul-escuro.",
-                    "O seu aspeto físico, o tamanho e o cabelo louro curto mudaram com a idade.",
-                    "Ele não mudou nada e continua igualzinho a um bebé."
+                    "Apenas nos zoológicos e florestas grandes.",
+                    "Em quase todo lugar do planeta, até no fundo do mar ou no deserto.",
+                    "Apenas dentro das nossas casas."
                 ],
                 correctIndex: 1,
-                explanation: "O nosso corpo e fisionomia mudam continuamente à medida que o tempo passa e nos tornamos crianças."
+                explanation: "Isso aí! Em cada cantinho da Terra, seja na areia quente do deserto ou na água fria do oceano, existem seres vivos diferentes!"
             },
             {
-                id: 3,
-                question: "O livro diz que cada um de nós tem uma história própria. Como é que essa nossa história é formada?",
+                question: "Por que a diversidade de espécies é importante para o planeta Terra?",
+                svg: SVGS.globe,
                 options: [
-                    "Apenas pelos brinquedos novos que compramos no supermercado.",
-                    "Por todos os momentos importantes e experiências que vivemos desde que nascemos.",
-                    "Apenas pelas notas que tiramos nos testes da escola."
-                ],
-                correctIndex: 1,
-                explanation: "A nossa história pessoal é a soma de tudo o que vivemos, incluindo a nossa família, amigos e conquistas."
-            },
-            {
-                id: 4,
-                question: "O nosso corpo e as nossas tarefas mudam. O que significa a palavra 'rotina' de uma pessoa?",
-                options: [
-                    "As coisas e atividades normais que fazemos no nosso dia a dia.",
-                    "Uma viagem de avião que fazemos apenas uma vez na vida.",
-                    "Um doce muito antigo que já ninguém come."
+                    "Para o planeta ficar em equilíbrio e a vida continuar.",
+                    "Para o chão ficar mais colorido de plástico.",
+                    "Não tem importância nenhuma, os seres vivos não precisam de outros."
                 ],
                 correctIndex: 0,
-                explanation: "A rotina é o conjunto de atividades diárias, como ir à escola, fazer os deveres, brincar e dormir."
+                explanation: "Exatamente! Cada ser vivo ajuda a cuidar do planeta. Se faltar um, outros podem ficar sem alimento ou sem casa."
             },
             {
-                id: 5,
-                question: "Com o crescimento, também ocorrem mudanças na nossa alimentação. Qual é um exemplo disso?",
+                question: "Quando as plantas e os animais precisam uns dos outros para continuar vivendo, chamamos isso de:",
+                svg: SVGS.interdependencia,
                 options: [
-                    "Quando crescemos, passamos a beber apenas leite, exatamente como os recém-nascidos.",
-                    "Deixamos de comer alimentos sólidos para sempre.",
-                    "Passamos a comer alimentos mais variados, sólidos e a conhecer novos sabores."
+                    "Relação de interdependência.",
+                    "Falta de educação.",
+                    "Briga na floresta."
+                ],
+                correctIndex: 0,
+                explanation: "Perfeito! Interdependência significa 'depender um do outro'. Como nós dependemos da comida do planeta e as plantas do calor do sol!"
+            },
+            {
+                question: "Como as flores ajudam as abelhas nessa bonita amizade?",
+                svg: SVGS.flower,
+                options: [
+                    "Dando folhas secas para as abelhas brincarem.",
+                    "Fornecendo néctar, que serve de alimento para as abelhas.",
+                    "As flores ensinam as abelhas a voar rápido."
+                ],
+                correctIndex: 1,
+                explanation: "Correto! As abelhas visitam as flores para comer o néctar docinho que elas produzem."
+            },
+            {
+                question: "O que é o pólen das flores?",
+                svg: SVGS.pollen,
+                options: [
+                    "Folhas roxas que caem no inverno.",
+                    "Pedrinhas que as plantas pegam do chão.",
+                    "Estruturas muito pequenas que servem para a reprodução das plantas."
                 ],
                 correctIndex: 2,
-                explanation: "Os bebés só mamam leite, mas à medida que crescemos, os nossos dentes nascem e podemos comer de tudo!"
+                explanation: "Certinho! O pólen parece um pozinho amarelo muito fino e leve, vital para nascerem novas plantinhas."
             },
             {
-                id: 6,
-                question: "Antigamente (entre os anos de 1908 e 1915), onde é que as crianças costumavam brincar mais?",
+                question: "Como a abelha ajuda a planta ao carregar o pólen?",
+                svg: SVGS.bee,
                 options: [
-                    "Nas calçadas das ruas, ao ar livre.",
-                    "Dentro de centros comerciais com ar condicionado.",
-                    "Em frente a computadores e salas virtuais."
+                    "Ela faz o processo de polinização, ajudando a criar novas sementes.",
+                    "Ela esconde o pólen na terra para ninguém achar.",
+                    "Ela limpa a flor para que ela não fique amarela."
                 ],
                 correctIndex: 0,
-                explanation: "No passado, as ruas eram mais calmas e seguras, e as crianças passavam horas a brincar juntas ao ar livre."
+                explanation: "Isso! A abelha leva o pozinho de uma flor para outra. É assim que nascem as frutinhas e sementes!"
             },
             {
-                id: 7,
-                question: "Quais eram os brinquedos e as brincadeiras de rua mais comuns no tempo dos nossos avós?",
+                question: "O que é o processo de 'polinização'?",
+                svg: SVGS.pollen,
                 options: [
-                    "Telemóveis, tablets e óculos de realidade virtual.",
-                    "Berlindes (bolinhas de gude), piões, bambolês e jogo das damas.",
-                    "Carrinhos telecomandados com pilhas e robôs eletrónicos."
-                ],
-                correctIndex: 1,
-                explanation: "As brincadeiras tradicionais como o pião, berlindes e damas eram a principal diversão antigamente."
-            },
-            {
-                id: 8,
-                question: "Se compararmos as salas de aula de antigamente (como em 1892) com as salas de hoje, o que é que mudou?",
-                options: [
-                    "As salas modernas são mais coloridas, têm menos alunos e usam tecnologia para ajudar a aprender.",
-                    "As salas modernas são muito mais rígidas e formais, e as crianças não se podem mexer.",
-                    "As escolas de hoje em dia deixaram de ter professores."
+                    "Quando o pólen é levado de uma flor à outra para produzir sementes.",
+                    "É o barulho que as abelhas fazem com as asas.",
+                    "É o ato de plantar sementes na terra fofa."
                 ],
                 correctIndex: 0,
-                explanation: "As escolas de antigamente tinham turmas enormes, salas muito austeras e regras extremamente severas."
+                explanation: "Show de bola! A polinização é a viagem mágica que o pólen faz, geralmente com a ajuda de insetos, vento ou passarinhos."
             },
             {
-                id: 9,
-                question: "Na brincadeira do quarto da Duda, o que mudou nos móveis do quarto para mostrar que o tempo passou?",
+                question: "Além de polinizar, que alimento delicioso as abelhas fazem dentro da colmeia?",
+                svg: SVGS.honey,
                 options: [
-                    "A sua cama simples de solteiro foi trocada por um beliche para partilhar o quarto.",
-                    "Ela retirou a sua secretária de estudo para colocar uma piscina de plástico.",
-                    "Ela tirou o teto do quarto para ver a chuva."
+                    "Chocolate quente.",
+                    "O mel.",
+                    "Suco de uva."
+                ],
+                correctIndex: 1,
+                explanation: "Delícia! As abelhas usam o néctar das flores para fazer o mel que muita gente adora comer."
+            },
+            {
+                question: "As abelhas e outros polinizadores ajudam a produzir quais destes alimentos?",
+                svg: SVGS.flower,
+                options: [
+                    "Apenas pipoca e pirulito.",
+                    "Laranja, goiaba, soja e café.",
+                    "Nenhum alimento que a gente consiga comer."
+                ],
+                correctIndex: 1,
+                explanation: "Isso mesmo! Sem as abelhas, muitas frutas gostosas como a laranja e a goiaba desapareceriam dos mercados."
+            },
+            {
+                question: "Por que algumas abelhas estão correndo risco de extinção?",
+                svg: SVGS.extinction,
+                options: [
+                    "Porque elas esqueceram como se voa.",
+                    "Por causa da poluição e do uso de pesticidas perigosos.",
+                    "Porque elas decidiram morar no espaço sideral."
+                ],
+                correctIndex: 1,
+                explanation: "Infelizmente é verdade! A poluição e os venenos colocados nas plantações machucam e matam as abelhinhas."
+            },
+            {
+                question: "O que significa dizer que um animal está em risco de 'extinção'?",
+                svg: SVGS.extinction,
+                options: [
+                    "Que existem poucos no mundo e eles correm risco de sumir do planeta.",
+                    "Que eles estão com muito sono e querem dormir.",
+                    "Que eles mudaram de cor e ficaram invisíveis."
                 ],
                 correctIndex: 0,
-                explanation: "O beliche permite que duas pessoas partilhem o mesmo quarto de forma confortável, organizando melhor o espaço."
+                explanation: "Correto! Extinção é quando todos os membros de uma espécie morrem, e ela some da Terra para sempre."
             },
             {
-                id: 10,
-                question: "No livro 'Tudo Muda' de Anthony Browne, o que o menino Gregório imaginava quando o pai disse que tudo ia mudar?",
+                question: "O que são 'pesticidas'?",
+                svg: SVGS.cactus,
                 options: [
-                    "Que o seu quarto se transformaria num campo de futebol gigante.",
-                    "Que objetos comuns mudavam de forma (a chaleira virava gato e a poltrona virava gorila).",
-                    "Que ele ia começar a voar como um super-herói de banda desenhada."
+                    "Adubo natural feito com casca de banana.",
+                    "Substâncias químicas usadas para evitar pragas nas plantações.",
+                    "Ferramentas de ferro usadas para cavar terra."
                 ],
                 correctIndex: 1,
-                explanation: "O livro mostra que as crianças usam muito a imaginação quando sabem que uma grande mudança vai acontecer na família."
+                explanation: "Isso! Os pesticidas são venenos usados para afastar insetos que comem as folhas das plantações, mas eles também afetam bichos bons como as abelhas."
             },
             {
-                id: 11,
-                question: "Quando uma família precisa de mudar de cidade, que mudanças principais acontecem na vida das crianças?",
+                question: "De quais recursos básicos os animais precisam para viver?",
+                svg: SVGS.water,
                 options: [
-                    "Elas têm de começar a trabalhar para ajudar a pagar as contas da nova casa.",
-                    "Elas mudam de escola, de casa e precisam de fazer novos amigos no novo lugar.",
-                    "Elas deixam de ter família e passam a viver sozinhas."
+                    "Brinquedos de plástico e roupas quentes.",
+                    "Ar para respirar, água para beber, alimento e abrigo.",
+                    "Apenas de vento e pedras."
                 ],
                 correctIndex: 1,
-                explanation: "Mudar de cidade traz muitas novidades e transformações na rotina escolar e pessoal das crianças."
+                explanation: "Muito bem! Sem água limpa, comida saudável, ar puro e um lugar para se proteger do frio ou calor, nenhum bicho consegue viver."
             },
             {
-                id: 12,
-                question: "Mudar de casa ou de escola pode dar medo ou parecer difícil no início. Mas por que razão mudar também é bom?",
+                question: "Por que a luz do sol é tão importante para as plantas?",
+                svg: SVGS.sun,
                 options: [
-                    "Deixamos de ter família e passamos a viver sozinhos.",
-                    "Porque nos permite viver novas experiências e aprender coisas fantásticas.",
-                    "Porque as mudanças acontecem num passe de mágica sem nenhum esforço."
-                ],
-                correctIndex: 1,
-                explanation: "Embora exija adaptação, mudar ajuda-nos a crescer, fazer novas amizades e conhecer novos lugares!"
-            },
-            {
-                id: 13,
-                question: "Como eram a maioria das famílias de antigamente em comparação com as famílias dos dias de hoje?",
-                options: [
-                    "Antigamente, as famílias viviam isoladas na floresta sem nenhum contacto.",
-                    "Antigamente, era muito comum viverem muitos parentes juntos na mesma casa. Hoje as famílias costumam ser menores.",
-                    "Hoje em dia as famílias são gigantescas e todos os tios vivem sempre na mesma casa."
-                ],
-                correctIndex: 1,
-                explanation: "No passado, avós, tios e primos partilhavam frequentemente a mesma moradia. Hoje em dia, vivem menos pessoas em cada casa."
-            },
-            {
-                id: 14,
-                question: "O papel das mulheres na família mudou muito ao longo do tempo. Qual é a realidade mais comum hoje?",
-                options: [
-                    "A maioria das mulheres trabalha fora de casa e as tarefas domésticas e cuidados com os filhos são divididos entre os adultos.",
-                    "As mulheres estão proibidas de sair de casa para trabalhar.",
-                    "As mulheres são as únicas que podem conduzir e os homens cuidam de tudo sozinhos."
+                    "Elas precisam de sol para produzir o próprio alimento.",
+                    "Elas usam o sol para secar suas folhas e ficar amarelas.",
+                    "As plantas não precisam de sol, gostam apenas do escuro."
                 ],
                 correctIndex: 0,
-                explanation: "Hoje em dia, a responsabilidade de sustentar a casa e cuidar das crianças é partilhada igualmente por todos."
+                explanation: "Perfeito! A planta capta a luz do sol e, junto com a água e o gás carbônico do ar, faz seu próprio papá!"
             },
             {
-                id: 15,
-                question: "Ao olhar para a foto antiga da família europeia de 1885, o que se nota de diferente em relação às fotos atuais?",
+                question: "Como o calor do sol ajuda os animais?",
+                svg: SVGS.sun,
                 options: [
-                    "As pessoas vestiam roupas muito informais e desportivas nas fotografias.",
-                    "As pessoas posavam de forma séria, usavam roupas muito formais e as famílias costumavam ser maiores.",
-                    "Estavam todos a saltar, a rir e a brincar em frente à máquina fotográfica."
+                    "Dando energia para que eles possam correr sem parar.",
+                    "Apenas para mudar a cor de seus pelos.",
+                    "Mantendo seus corpos aquecidos no clima frio."
+                ],
+                correctIndex: 2,
+                explanation: "Isso mesmo! O calor do sol aquece o corpo dos bichinhos, dando conforto e saúde."
+            },
+            {
+                question: "De onde as plantas retiram a água e os nutrientes para se manterem vivas?",
+                svg: SVGS.tree,
+                options: [
+                    "Direto das nuvens de chuva com suas folhas gigantes.",
+                    "Do solo, através de suas raízes.",
+                    "Elas compram no mercado de plantas."
                 ],
                 correctIndex: 1,
-                explanation: "Tirar fotografias era um evento muito raro e sério antigamente, exigindo roupas elegantes e posturas estáticas."
+                explanation: "Correto! As raízes das plantas funcionam como canudinhos que sugam a água e a comidinha que estão guardadas na terra."
             },
             {
-                id: 16,
-                question: "Porque é que a pracinha antiga da foto do avô parecia tão diferente da praça moderna onde as crianças brincam?",
+                question: "O que é necessário para que ocorra a germinação (o nascimento) de uma semente?",
+                svg: SVGS.water,
                 options: [
-                    "Porque a praça antiga era no espaço sideral.",
-                    "Seus caminhos de carruagem foram substituídos por escorregas, baloiços e campos de futebol.",
-                    "Porque a praça de hoje está totalmente cheia de areia e árvores gigantes de plástico."
-                ],
-                correctIndex: 1,
-                explanation: "As praças e parques são remodelados com o tempo para include novos equipamentos de lazer e diversão."
-            },
-            {
-                id: 17,
-                question: "Algumas mudanças nos lugares demoram anos, mas outras acontecem depressa. O que é uma mudança rápida?",
-                options: [
-                    "A construção de um grande edifício de apartamentos ou o asfaltamento de uma rua.",
-                    "O crescimento muito lento de uma pequena árvore na floresta.",
-                    "O desgaste natural de uma rocha por causa da água da chuva ao longo de séculos."
+                    "A semente precisa de água.",
+                    "A semente precisa ser pintada de azul.",
+                    "A semente precisa ficar dentro de uma gaveta fechada."
                 ],
                 correctIndex: 0,
-                explanation: "As obras humanas, como construir prédios ou pavimentar estradas com máquinas, transformam a paisagem rapidamente."
+                explanation: "Certinho! A sementinha só acorda e começa a crescer quando ganha bastante água na terra fofa!"
             },
             {
-                id: 18,
-                question: "O livro diz que cidades como Paraty têm centros históricos tombados como 'Património'. O que significa isto?",
+                question: "O que ajuda o cacto a sobreviver em locais muito secos e com pouca água?",
+                svg: SVGS.cactus,
                 options: [
-                    "Que as casas antigas podem ser destruídas a qualquer altura para construir estradas modernas.",
-                    "Que o local é protegido por lei e não pode ser modificado para preservar a história viva do passado.",
-                    "Que é um parque temático moderno com montanhas-russas eletrónicas."
+                    "Suas pétalas cheirosas que atraem muita água da chuva.",
+                    "Os espinhos e o seu corpo suculento que guarda água.",
+                    "Eles usam guarda-chuva para não pegar sol."
                 ],
                 correctIndex: 1,
-                explanation: "O património histórico é uma herança do passado que a lei protege para que as gerações futuras conheçam a história."
+                explanation: "Muito bem! O cacto não tem folhas comuns (ele tem espinhos para não perder água) e gordinho ele armazena líquido por meses."
             },
             {
-                id: 19,
-                question: "Comparando a famosa Rua 15 de Novembro em Curitiba de 1896 com 2012, que grande mudança na circulação de pessoas ocorreu?",
+                question: "Qual formato da flor roxa mostrada no livro chamou a atenção do estudante?",
+                svg: SVGS.flower,
                 options: [
-                    "A rua passou de uma via para cavalos e carruagens para um calçadão pedonal seguro, com prédios modernos ao redor.",
-                    "A rua foi inundada e agora só pode ser navegada de barco.",
-                    "A rua deixou de ter edifícios e virou uma floresta selvagem."
+                    "Formato de prato raso quadrado.",
+                    "Formato de uma estrela de cinco pontas retas.",
+                    "Formato de uma tigela redonda."
+                ],
+                correctIndex: 2,
+                explanation: "Exatamente! No livro, o estudante notou que a flor parecia uma pequena tigela que se abre para o céu."
+            },
+            {
+                question: "As plantas podem ser divididas em dois grupos principais de acordo com onde moram. Quais são?",
+                svg: SVGS.tree,
+                options: [
+                    "Plantas terrestres e plantas aquáticas.",
+                    "Plantas voadoras e plantas saltadoras.",
+                    "Plantas que comem carne e plantas de brinquedo."
                 ],
                 correctIndex: 0,
-                explanation: "A famosa via de Curitiba foi adaptada para priorizar os peões, oferecendo lojas e passeios seguros sem trânsito de carros."
+                explanation: "Ótimo! Terrestres são as que vivem na terra firme, e aquáticas são as que moram na água de rios e mares."
             },
             {
-                id: 20,
-                question: "Como eram os elétricos (bondes) em Pernambuco em 1951, que hoje foram trocados por transportes modernos?",
+                question: "Como são chamadas as plantas que vivem na terra, fora da água, como nas florestas?",
+                svg: SVGS.tree,
                 options: [
-                    "Eram naves espaciais super rápidas que flutuavam.",
-                    "Eram puxados por animais (como cavalos ou burros) para levar as pessoas de um lado para o outro.",
-                    "Eram movidos a pilhas elétricas gigantes e controlados por robôs."
+                    "Plantas aquáticas.",
+                    "Plantas terrestres.",
+                    "Plantas espaciais."
                 ],
                 correctIndex: 1,
-                explanation: "No passado, era muito comum usar a força animal para mover transportes coletivos antes de os motores a combustível se tornarem populares."
+                explanation: "Isso aí! Árvores, roseiras, grama e cactos são ótimos exemplos de plantas terrestres."
+            },
+            {
+                question: "A plantinha Elódea vive totalmente embaixo da água (submersa). Ela é uma planta:",
+                svg: SVGS.aquatic_plant,
+                options: [
+                    "Planta terrestre da areia do deserto.",
+                    "Planta aquática.",
+                    "Planta que não gosta de água."
+                ],
+                correctIndex: 1,
+                explanation: "Correto! A Elódea vive feliz e verdinha completamente debaixo d'água, no fundo de lagos."
+            },
+            {
+                question: "A Vitória-régia tem folhas gigantes que flutuam na água dos rios da Amazônia. Que tipo de planta ela é?",
+                svg: SVGS.aquatic_plant,
+                options: [
+                    "Planta aquática.",
+                    "Planta terrestre.",
+                    "Ela é um animal, não uma planta."
+                ],
+                correctIndex: 0,
+                explanation: "Perfeito! A Vitória-régia tem suas raízes presas no fundo do rio, mas suas folhas grandonas e redondas flutuam na superfície da água."
+            },
+            {
+                question: "Quais são alguns exemplos de animais terrestres (que vivem na terra)?",
+                svg: SVGS.elephant,
+                options: [
+                    "Golfinho, baleia e tubarão.",
+                    "Zebra, elefante, cachorro, gato e girafa.",
+                    "Peixe-palhaço e caranguejo."
+                ],
+                correctIndex: 1,
+                explanation: "Certinho! Esses animais andam, correm ou saltam no solo firme da terra."
+            },
+            {
+                question: "Qual é o maior animal terrestre que vive no nosso planeta hoje?",
+                svg: SVGS.elephant,
+                options: [
+                    "A girafa gigante.",
+                    "O elefante-africano.",
+                    "O dinossauro T-Rex."
+                ],
+                correctIndex: 1,
+                explanation: "Isso aí! O elefante-africano é o campeão de tamanho e peso na terra hoje em dia!"
+            },
+            {
+                question: "Só a tromba de um elefante-africano adulto pode pesar até quantos quilos?",
+                svg: SVGS.elephant,
+                options: [
+                    "Até 2 quilos, igual a um pacote de açúcar.",
+                    "Até 20 quilos, como uma mochila de escola super cheia.",
+                    "Até 200 quilos! Quase o peso de dois homens adultos."
+                ],
+                correctIndex: 2,
+                explanation: "Impressionante, né? A tromba do elefante é forte e pesada, cheia de músculos para ajudar ele a pegar comida e respirar."
+            },
+            {
+                question: "O filhote do elefante-africano já nasce muito pesado! Qual é o peso dele ao nascer?",
+                svg: SVGS.elephant,
+                options: [
+                    "Mais de 100 quilos!",
+                    "Apenas 2 quilos, bem pequenininho.",
+                    "Ele nasce pesando o mesmo que um bebê humano (3 quilos)."
+                ],
+                correctIndex: 0,
+                explanation: "Uau! O bebê elefante já nasce gigante e pesando mais de 100 quilos. É muita fofura!"
+            },
+            {
+                question: "Golfinho, peixe-palhaço e tartaruga-marinha são exemplos de animais:",
+                svg: SVGS.fish,
+                options: [
+                    "Animais aquáticos.",
+                    "Animais terrestres.",
+                    "Animais que voam nas nuvens."
+                ],
+                correctIndex: 0,
+                explanation: "Isso! Eles vivem nas águas salgadas ou doces e têm corpos preparados para nadar."
+            },
+            {
+                question: "Onde vivem as espécies de animais aquáticos do nosso planeta?",
+                svg: SVGS.water,
+                options: [
+                    "Embaixo de pedras secas no meio da rua.",
+                    "Em oceanos, rios e lagos.",
+                    "Apenas em piscinas de parque de diversão."
+                ],
+                correctIndex: 1,
+                explanation: "Excelente! Os animais aquáticos habitam as águas da natureza para conseguir seu oxigênio e comida."
             }
         ];
 
-        // CONFIGURAÇÕES DO ESTADO DA APLICAÇÃO
+        // --- SISTEMA DE ESTADO DA APLICAÇÃO ---
         let currentQuestionIndex = 0;
         let score = 0;
         let selectedOptionIndex = null;
         let isMuted = false;
-        let questionsOrder = []; // Ordem dos IDs a serem exibidos
-        let userAnswers = {}; // Armazena { index: selectedIndex }
-        let isCurrentConfirmed = false;
-        let audioCtx = null;
 
-        // Ao carregar a página: inicializa do LocalStorage
-        window.addEventListener('load', () => {
-            checkSavedProgress();
-            loadHistory();
-        });
+        // Elementos DOM
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const illustrationContainer = document.getElementById('illustration-container');
+        const btnConfirmSelection = document.getElementById('btn-confirm-selection');
+        const selectionTip = document.getElementById('selection-tip');
+        const feedbackPanel = document.getElementById('feedback-panel');
+        const feedbackEmoji = document.getElementById('feedback-emoji');
+        const feedbackTitle = document.getElementById('feedback-title');
+        const feedbackExplanation = document.getElementById('feedback-explanation');
+        const pointsBadge = document.getElementById('points-badge');
+        const questionIndexBadge = document.getElementById('question-index-badge');
+        const progressBar = document.getElementById('progress-bar');
 
-        // ------------------------- ÁUDIO INDEPENDENTE (WEB AUDIO API NATIVA) -------------------------
-        function initAudio() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-        }
-
-        function playCorrectSound() {
+        // Sintetizador de áudio nativo (Web Audio API)
+        function playAudioTone(isSuccess) {
             if (isMuted) return;
             try {
-                initAudio();
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.type = 'sine';
-                const now = audioCtx.currentTime;
-                osc.frequency.setValueAtTime(523.25, now); // Do5
-                osc.frequency.setValueAtTime(659.25, now + 0.1); // Mi5
-                gain.gain.setValueAtTime(0.08, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
-                osc.start(now);
-                osc.stop(now + 0.35);
-            } catch (e) {}
-        }
-
-        function playIncorrectSound() {
-            if (isMuted) return;
-            try {
-                initAudio();
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.type = 'triangle';
-                const now = audioCtx.currentTime;
-                osc.frequency.setValueAtTime(220, now); // La3
-                osc.frequency.linearRampToValueAtTime(110, now + 0.3); // La2 descendente
-                gain.gain.setValueAtTime(0.12, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
-                osc.start(now);
-                osc.stop(now + 0.35);
-            } catch (e) {}
-        }
-
-        window.toggleMute = function() {
-            isMuted = !isMuted;
-            document.getElementById('icon-sound-on').classList.toggle('hidden', isMuted);
-            document.getElementById('icon-sound-off').classList.toggle('hidden', !isMuted);
-        };
-
-        // ------------------------- LÓGICA DE SALVAMENTO LOCAL (LOCALSTORAGE) -------------------------
-
-        // Verifica se há progresso inacabado guardado no telemóvel
-        function checkSavedProgress() {
-            try {
-                const saved = localStorage.getItem('simulado_progresso_2ano');
-                if (saved) {
-                    const data = JSON.parse(saved);
-                    if (data && data.status === 'active') {
-                        document.getElementById('resume-container').classList.remove('hidden');
-                        document.getElementById('normal-start-container').classList.add('hidden');
-                        document.getElementById('resume-text').innerHTML = `
-                            Paraste na <strong>Pergunta ${data.currentQuestionIndex + 1} de 20</strong>, com um resultado de <strong>${data.score} acertos</strong>.
-                        `;
-                        // Guardar o progresso recuperado na memória temporária para utilização
-                        window.recoveredState = data;
-                    }
-                }
-            } catch (err) {
-                console.error("Erro ao carregar progresso local:", err);
-            }
-        }
-
-        // Guarda o estado de forma transparente em tempo real no localStorage
-        function saveProgressState(status = 'active') {
-            try {
-                const state = {
-                    status: status,
-                    currentQuestionIndex: currentQuestionIndex,
-                    score: score,
-                    questionsOrder: questionsOrder,
-                    userAnswers: userAnswers,
-                    isCurrentConfirmed: isCurrentConfirmed,
-                    selectedOptionIndex: selectedOptionIndex,
-                    lastUpdated: new Date().toISOString()
-                };
-                localStorage.setItem('simulado_progresso_2ano', JSON.stringify(state));
-            } catch (err) {
-                console.error("Erro ao guardar dados locais:", err);
-            }
-        }
-
-        // Limpa o progresso atual do telemóvel (ao completar ou reiniciar do zero)
-        function deleteProgressState() {
-            try {
-                localStorage.removeItem('simulado_progresso_2ano');
-            } catch (err) {
-                console.error("Erro ao remover dados locais:", err);
-            }
-        }
-
-        // Guarda a classificação final no histórico permanente do dispositivo
-        function saveAttemptToHistory() {
-            try {
-                const totalQuestions = database.length;
-                const gradeValue = ((score / totalQuestions) * 10).toFixed(1);
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                const audioCtx = new AudioContext();
                 
-                const historyRaw = localStorage.getItem('simulado_historico_2ano');
-                const history = historyRaw ? JSON.parse(historyRaw) : [];
-
-                history.push({
-                    score: score,
-                    total: totalQuestions,
-                    grade: parseFloat(gradeValue),
-                    timestamp: new Date().toISOString()
-                });
-
-                localStorage.setItem('simulado_historico_2ano', JSON.stringify(history));
-                loadHistory(); // Atualiza a lista visual
-            } catch (err) {
-                console.error("Erro ao guardar histórico de tentativas:", err);
+                if (isSuccess) {
+                    // Som de Acerto: alegre, duplo tom agudo (C5 -> E5)
+                    const osc1 = audioCtx.createOscillator();
+                    const gain1 = audioCtx.createGain();
+                    osc1.type = 'sine';
+                    osc1.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                    osc1.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); // E5
+                    gain1.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                    gain1.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+                    
+                    osc1.connect(gain1);
+                    gain1.connect(audioCtx.destination);
+                    osc1.start();
+                    osc1.stop(audioCtx.currentTime + 0.3);
+                } else {
+                    // Som de Erro: tom grave descendente tipo "buzzer" (180Hz -> 100Hz)
+                    const osc2 = audioCtx.createOscillator();
+                    const gain2 = audioCtx.createGain();
+                    osc2.type = 'triangle';
+                    osc2.frequency.setValueAtTime(180, audioCtx.currentTime);
+                    osc2.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.35);
+                    gain2.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                    gain2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+                    
+                    osc2.connect(gain2);
+                    gain2.connect(audioCtx.destination);
+                    osc2.start();
+                    osc2.stop(audioCtx.currentTime + 0.35);
+                }
+            } catch (e) {
+                console.log("Audio API não suportada ou bloqueada por políticas do navegador.");
             }
         }
 
-        // Carrega as tentativas guardadas localmente e preenche a lista
-        function loadHistory() {
-            try {
-                const historyRaw = localStorage.getItem('simulado_historico_2ano');
-                const history = historyRaw ? JSON.parse(historyRaw) : [];
+        // --- CONTROLES DE ACESSIBILIDADE ---
+        function setFontScale(scale) {
+            document.documentElement.style.setProperty('--font-scale', scale + 'rem');
+        }
 
-                // Ordenar da mais recente para a mais antiga na memória do cliente
-                history.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        function toggleExtremeContrast() {
+            document.body.classList.toggle('extreme-contrast');
+        }
 
-                const historyList = document.getElementById('history-list');
-                const btnClear = document.getElementById('btn-clear-history');
-
-                if (history.length === 0) {
-                    historyList.innerHTML = `<p class="text-xs text-zinc-500 italic">Ainda não tens nenhuma tentativa finalizada. Começa a primeira!</p>`;
-                    btnClear.classList.add('hidden');
-                    return;
-                }
-
-                btnClear.classList.remove('hidden');
-                historyList.innerHTML = history.map((attempt, index) => {
-                    const date = new Date(attempt.timestamp).toLocaleDateString('pt-PT', {
-                        day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
-                    });
-                    const scoreColor = attempt.grade >= 8.0 ? 'text-emerald-400' : (attempt.grade >= 5.0 ? 'text-yellow-400' : 'text-rose-400');
-                    return `
-                        <div class="bg-zinc-900/60 p-3 rounded-lg border border-zinc-800 flex justify-between items-center text-xs animate-fadeIn">
-                            <div class="space-y-1">
-                                <span class="font-bold text-zinc-300">Tentativa #${history.length - index}</span>
-                                <p class="text-[10px] text-zinc-500">${date}</p>
-                            </div>
-                            <div class="text-right">
-                                <span class="font-black text-sm ${scoreColor}">${attempt.grade} / 10</span>
-                                <p class="text-[10px] text-zinc-400">Acertos: ${attempt.score}/${attempt.total}</p>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-
-            } catch (err) {
-                console.error("Erro ao processar histórico:", err);
+        function toggleMute() {
+            isMuted = !isMuted;
+            const btn = document.getElementById('toggle-sound');
+            if (isMuted) {
+                btn.innerText = "🔇";
+                btn.classList.add('bg-red-900/50');
+            } else {
+                btn.innerText = "🔊";
+                btn.classList.remove('bg-red-900/50');
             }
         }
 
-        // Limpar o Histórico Completo de notas locais
-        window.clearHistory = function() {
-            if (confirm("Queres mesmo apagar todas as tuas notas anteriores guardadas neste dispositivo?")) {
-                try {
-                    localStorage.removeItem('simulado_historico_2ano');
-                    loadHistory();
-                    showToast("Histórico de tentativas limpo com sucesso! 🗑️");
-                } catch (e) {
-                    console.error(e);
-                }
-            }
-        };
-
-        // ------------------------- FLUXO DE EXECUÇÃO DO SIMULADO -------------------------
-
-        // Iniciar novo simulado do zero de forma limpa
-        window.startNewQuiz = function() {
-            initAudio();
+        // --- NAVEGAÇÃO E FLUXO DO JOGO ---
+        function startQuiz() {
+            startScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
+            quizScreen.classList.add('flex');
             currentQuestionIndex = 0;
             score = 0;
-            selectedOptionIndex = null;
-            userAnswers = {};
-            isCurrentConfirmed = false;
-
-            // Embaralhar as 20 questões de forma aleatória
-            questionsOrder = [...database]
-                .sort(() => Math.random() - 0.5)
-                .map(q => q.id);
-
-            saveProgressState('active');
-
-            document.getElementById('welcome-screen').classList.add('hidden');
-            document.getElementById('result-screen').classList.add('hidden');
-            document.getElementById('quiz-screen').classList.remove('hidden');
-
             loadQuestion();
-        };
-
-        // Continuar progresso existente recuperado
-        window.resumeQuiz = function() {
-            if (!window.recoveredState) return;
-            initAudio();
-
-            const state = window.recoveredState;
-            currentQuestionIndex = state.currentQuestionIndex;
-            score = state.score;
-            questionsOrder = state.questionsOrder;
-            userAnswers = state.userAnswers || {};
-            isCurrentConfirmed = state.isCurrentConfirmed || false;
-            selectedOptionIndex = state.selectedOptionIndex !== undefined ? state.selectedOptionIndex : null;
-
-            document.getElementById('welcome-screen').classList.add('hidden');
-            document.getElementById('result-screen').classList.add('hidden');
-            document.getElementById('quiz-screen').classList.remove('hidden');
-
-            loadQuestion();
-        };
-
-        // Carregar Pergunta
-        function loadQuestion() {
-            const questionId = questionsOrder[currentQuestionIndex];
-            const questionData = database.find(q => q.id === questionId);
-
-            // Atualização do cabeçalho de progresso
-            document.getElementById('question-counter').innerText = `Pergunta ${currentQuestionIndex + 1} de ${database.length}`;
-            document.getElementById('score-indicator').innerText = `Acertos: ${score}`;
-            
-            const progressPercent = ((currentQuestionIndex) / database.length) * 100;
-            document.getElementById('progress-bar').style.width = `${progressPercent}%`;
-
-            document.getElementById('question-text').innerText = questionData.question;
-
-            // Construir Opções
-            const container = document.getElementById('options-container');
-            container.innerHTML = '';
-
-            questionData.options.forEach((opt, idx) => {
-                const optBtn = document.createElement('button');
-                optBtn.type = "button";
-                optBtn.className = "option-card w-full text-left bg-zinc-950 hover:bg-zinc-900 border-2 border-zinc-850 rounded-xl p-4 transition duration-150 flex items-start gap-3 select-none active:scale-[0.99]";
-                optBtn.onclick = () => selectOption(idx);
-                optBtn.id = `option-${idx}`;
-
-                const letter = String.fromCharCode(65 + idx);
-                optBtn.innerHTML = `
-                    <span class="indicator-badge bg-zinc-900 text-yellow-400 font-extrabold px-3 py-1.5 rounded-lg border border-zinc-800 text-sm flex-shrink-0">
-                        ${letter}
-                    </span>
-                    <span class="accessible-text text-zinc-200 mt-0.5">${opt}</span>
-                `;
-                container.appendChild(optBtn);
-            });
-
-            // Se já foi respondida e guardada anteriormente
-            if (isCurrentConfirmed) {
-                renderAnswerFeedback(questionData);
-            } else {
-                // Estado inicial desbloqueado de confirmação
-                const confirmBtn = document.getElementById('btn-confirm');
-                confirmBtn.disabled = true;
-                confirmBtn.className = "flex-grow bg-zinc-900 text-zinc-600 font-bold py-4 px-6 rounded-xl cursor-not-allowed text-base transition border border-zinc-850";
-                confirmBtn.innerText = "Confirmar Resposta";
-                document.getElementById('lock-warning').classList.remove('hidden');
-
-                if (selectedOptionIndex !== null) {
-                    selectOption(selectedOptionIndex);
-                }
-            }
         }
 
-        // Selecionar Opção (Apenas seleciona visualmente sem avançar por acidente)
-        window.selectOption = function(index) {
-            if (isCurrentConfirmed) return;
+        function loadQuestion() {
+            // Resetar estados
+            selectedOptionIndex = null;
+            btnConfirmSelection.classList.add('hidden');
+            selectionTip.classList.remove('hidden');
+            feedbackPanel.classList.add('hidden');
+            
+            const currentQuestion = questions[currentQuestionIndex];
+            
+            // Renderizar Ilustração SVG
+            illustrationContainer.innerHTML = currentQuestion.svg || '';
+
+            // Atualizar contadores
+            questionIndexBadge.innerText = `Pergunta ${currentQuestionIndex + 1} de 30`;
+            pointsBadge.innerText = `Acertos: ${score}`;
+            
+            // Barra de Progresso
+            const progressPercent = ((currentQuestionIndex + 1) / questions.length) * 100;
+            progressBar.style.width = `${progressPercent}%`;
+
+            // Texto da questão
+            questionText.innerText = currentQuestion.question;
+
+            // Renderizar alternativas
+            optionsContainer.innerHTML = '';
+            currentQuestion.options.forEach((optionText, idx) => {
+                const btn = document.createElement('button');
+                btn.className = `btn-option w-full p-4 text-left rounded-2xl bg-slate-700/60 hover:bg-slate-700 border-2 border-slate-600 transition duration-150 flex items-center justify-between gap-3 accessible-option font-medium focus:ring-4 focus:ring-amber-500 focus:outline-none`;
+                
+                // Texto do botão
+                const textSpan = document.createElement('span');
+                textSpan.innerText = optionText;
+                textSpan.className = 'flex-grow';
+                btn.appendChild(textSpan);
+
+                // Checkbox visual fictício para facilitar visualização
+                const checkCircle = document.createElement('span');
+                checkCircle.className = "w-6 h-6 rounded-full border-2 border-slate-400 flex items-center justify-center shrink-0 text-xs font-bold text-transparent";
+                checkCircle.innerHTML = "✓";
+                btn.appendChild(checkCircle);
+
+                // Evento de clique com "A TRAVA" de segurança
+                btn.onclick = () => selectOption(idx, btn);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        // Seleção temporária de uma alternativa (Evita responder direto)
+        function selectOption(index, btnElement) {
+            // Se já foi respondida e o painel de feedback está visível, bloquear alteração
+            if (!feedbackPanel.classList.contains('hidden')) return;
 
             selectedOptionIndex = index;
 
-            const options = document.querySelectorAll('.option-card');
-            options.forEach((opt, idx) => {
-                opt.className = "option-card w-full text-left bg-zinc-950 hover:bg-zinc-900 border-2 border-zinc-850 rounded-xl p-4 transition duration-150 flex items-start gap-3 select-none active:scale-[0.99]";
-                const badge = opt.querySelector('.indicator-badge');
-                badge.className = "indicator-badge bg-zinc-900 text-yellow-400 font-extrabold px-3 py-1.5 rounded-lg border border-zinc-800 text-sm flex-shrink-0";
+            // Limpar estilo de todos os botões
+            const buttons = optionsContainer.querySelectorAll('.btn-option');
+            buttons.forEach((btn, idx) => {
+                btn.classList.remove('border-amber-400', 'bg-amber-950/30', 'selected');
+                btn.querySelector('span:last-child').className = "w-6 h-6 rounded-full border-2 border-slate-400 flex items-center justify-center shrink-0 text-xs font-bold text-transparent";
             });
 
-            // Destacar a selecionada de forma chamativa
-            const selectedButton = document.getElementById(`option-${index}`);
-            selectedButton.className = "option-card w-full text-left bg-zinc-950 border-2 border-yellow-400 shadow-lg shadow-yellow-400/5 rounded-xl p-4 transition duration-150 flex items-start gap-3 select-none";
-            const badge = selectedButton.querySelector('.indicator-badge');
-            badge.className = "indicator-badge bg-yellow-400 text-black font-extrabold px-3 py-1.5 rounded-lg border border-yellow-500 text-sm flex-shrink-0";
+            // Aplicar estilo selecionado (borda dourada de alto contraste)
+            btnElement.classList.add('border-amber-400', 'bg-amber-950/30', 'selected');
+            const indicator = btnElement.querySelector('span:last-child');
+            indicator.className = "w-6 h-6 rounded-full border-2 border-amber-400 bg-amber-400 flex items-center justify-center shrink-0 text-xs font-bold text-slate-950";
 
-            // Destravar o botão de envio
-            const confirmBtn = document.getElementById('btn-confirm');
-            confirmBtn.removeAttribute('disabled');
-            confirmBtn.className = "flex-grow bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-black font-black py-4 px-6 rounded-xl cursor-pointer text-base shadow-lg shadow-yellow-500/10 active:scale-95 transition";
-            confirmBtn.innerText = "Confirmar Resposta!";
-            
-            document.getElementById('lock-warning').classList.add('hidden');
-        };
+            // Mostrar o grande botão de confirmação (A TRAVA)
+            btnConfirmSelection.classList.remove('hidden');
+            selectionTip.classList.add('hidden');
+        }
 
-        // Confirmar Resposta
-        window.handleConfirmation = function() {
-            const confirmBtn = document.getElementById('btn-confirm');
-            const questionId = questionsOrder[currentQuestionIndex];
-            const questionData = database.find(q => q.id === questionId);
+        // Confirmar resposta definitivamente
+        function confirmAnswer() {
+            if (selectedOptionIndex === null) return;
 
-            // Se o botão já for para avançar
-            if (confirmBtn.innerText.includes("Próxima") || confirmBtn.innerText.includes("Resultado")) {
-                currentQuestionIndex++;
-                selectedOptionIndex = null;
-                isCurrentConfirmed = false;
-                
-                if (currentQuestionIndex < database.length) {
-                    saveProgressState('active');
-                    loadQuestion();
-                } else {
-                    showFinalResult();
+            const currentQuestion = questions[currentQuestionIndex];
+            const isCorrect = (selectedOptionIndex === currentQuestion.correctIndex);
+
+            // Esconder o botão de confirmação temporário
+            btnConfirmSelection.classList.add('hidden');
+
+            // Marcar visualmente as alternativas (Certo/Errado)
+            const buttons = optionsContainer.querySelectorAll('.btn-option');
+            buttons.forEach((btn, idx) => {
+                btn.onclick = null; // Travar cliques adicionais
+                if (idx === currentQuestion.correctIndex) {
+                    // Destacar a resposta correta em verde
+                    btn.classList.add('border-emerald-500', 'bg-emerald-950/40');
+                    btn.querySelector('span:last-child').className = "w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 text-xs font-bold";
+                    btn.querySelector('span:last-child').innerHTML = "✓";
+                } else if (idx === selectedOptionIndex) {
+                    // Se errou, destacar a escolhida em vermelho
+                    btn.classList.add('border-rose-500', 'bg-rose-950/40');
+                    btn.querySelector('span:last-child').className = "w-6 h-6 rounded-full bg-rose-500 text-white flex items-center justify-center shrink-0 text-xs font-bold";
+                    btn.querySelector('span:last-child').innerHTML = "✗";
                 }
-                return;
-            }
+            });
 
-            // Validar resposta
-            isCurrentConfirmed = true;
-            userAnswers[currentQuestionIndex] = selectedOptionIndex;
-            
-            const isCorrect = (selectedOptionIndex === questionData.correctIndex);
+            // Processar Pontuação e Feedback
             if (isCorrect) {
                 score++;
-                playCorrectSound();
+                feedbackPanel.className = "w-full bg-emerald-950/80 p-4 rounded-2xl border-2 border-emerald-500 text-center flex flex-col gap-2";
+                feedbackEmoji.innerText = "🤩";
+                feedbackTitle.innerText = "Parabéns, você acertou!";
+                feedbackTitle.className = "accessible-title font-black text-emerald-400";
+                playAudioTone(true);
             } else {
-                playIncorrectSound();
+                feedbackPanel.className = "w-full bg-rose-950/80 p-4 rounded-2xl border-2 border-rose-500 text-center flex flex-col gap-2";
+                feedbackEmoji.innerText = "❤️";
+                feedbackTitle.innerText = "Quase lá!";
+                feedbackTitle.className = "accessible-title font-black text-rose-400";
+                playAudioTone(false);
             }
 
-            renderAnswerFeedback(questionData);
+            // Inserir explicação simpática e simplificada para a criança
+            feedbackExplanation.innerHTML = `<strong>A resposta correta é:</strong><br><span class="text-amber-300 text-highlight font-medium">"${currentQuestion.options[currentQuestion.correctIndex]}"</span><br><br>${currentQuestion.explanation}`;
             
-            // Guardar alteração imediatamente no localStorage
-            saveProgressState('active');
-        };
-
-        // Renderizar feedback visual após confirmação
-        function renderAnswerFeedback(questionData) {
-            const isCorrect = (selectedOptionIndex === questionData.correctIndex);
-            
-            const options = document.querySelectorAll('.option-card');
-            options.forEach((opt, idx) => {
-                opt.onclick = null;
-                if (idx === questionData.correctIndex) {
-                    // Resposta correta sempre fica verde brilhante
-                    opt.className = "option-card w-full text-left bg-emerald-950/20 border-2 border-emerald-500 rounded-xl p-4 flex items-start gap-3 select-none";
-                    const badge = opt.querySelector('.indicator-badge');
-                    badge.className = "indicator-badge bg-emerald-500 text-black font-extrabold px-3 py-1.5 rounded-lg border border-emerald-600 text-sm flex-shrink-0";
-                } else if (idx === selectedOptionIndex) {
-                    // Se a selecionada do utilizador for incorreta, fica vermelha
-                    opt.className = "option-card w-full text-left bg-rose-950/20 border-2 border-rose-500 rounded-xl p-4 flex items-start gap-3 select-none";
-                    const badge = opt.querySelector('.indicator-badge');
-                    badge.className = "indicator-badge bg-rose-500 text-white font-extrabold px-3 py-1.5 rounded-lg border border-rose-600 text-sm flex-shrink-0";
-                } else {
-                    // Outras opções apagadas
-                    opt.className = "option-card w-full text-left bg-zinc-950 border border-zinc-900 rounded-xl p-4 opacity-40 flex items-start gap-3 select-none";
-                }
-            });
-
-            // Adicionar explicação pedagógica do livro de História
-            const container = document.getElementById('options-container');
-            const explanationDiv = document.createElement('div');
-            if (isCorrect) {
-                explanationDiv.className = "mt-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 text-emerald-400 text-sm font-medium animate-fadeIn";
-                explanationDiv.innerHTML = `🌟 <strong>Acertaste! Muito bem!</strong><br>${questionData.explanation}`;
-            } else {
-                explanationDiv.className = "mt-3 bg-rose-500/10 border border-rose-500/20 rounded-xl p-4 text-rose-400 text-sm font-medium animate-fadeIn";
-                explanationDiv.innerHTML = `😢 <strong>Quase lá! A alternativa correta está destacada a verde.</strong><br>${questionData.explanation}`;
-            }
-            container.appendChild(explanationDiv);
-
-            // Avançar barra de progresso
-            const progressPercent = ((currentQuestionIndex + 1) / database.length) * 100;
-            document.getElementById('progress-bar').style.width = `${progressPercent}%`;
-            document.getElementById('score-indicator').innerText = `Acertos: ${score}`;
-
-            // Configurar botão de progresso do simulado
-            const confirmBtn = document.getElementById('btn-confirm');
-            confirmBtn.className = "flex-grow bg-blue-600 hover:bg-blue-500 text-white font-black py-4 px-6 rounded-xl cursor-pointer text-base shadow-lg active:scale-95 transition";
-            if (currentQuestionIndex === database.length - 1) {
-                confirmBtn.innerText = "Ver Resultado Final 📊";
-            } else {
-                confirmBtn.innerText = "Próxima Pergunta 👉";
-            }
-            document.getElementById('lock-warning').classList.add('hidden');
+            // Exibir Painel de Feedback
+            feedbackPanel.classList.remove('hidden');
         }
 
-        // Mostrar Ecrã de Resultados Finais
-        function showFinalResult() {
-            document.getElementById('quiz-screen').classList.add('hidden');
-            document.getElementById('result-screen').classList.remove('hidden');
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
 
-            const totalQuestions = database.length;
-            const wrongAnswers = totalQuestions - score;
-            const grade = ((score / totalQuestions) * 10).toFixed(1);
+        // --- RELATÓRIO DE RESULTADOS FINAIS ---
+        function showResults() {
+            quizScreen.classList.remove('flex');
+            quizScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
 
+            const total = questions.length;
+            const incorrects = total - score;
+            const finalGrade = ((score / total) * 10).toFixed(1); // Nota de 0 a 10
+
+            // Preencher placar
             document.getElementById('final-correct').innerText = score;
-            document.getElementById('final-incorrect').innerText = wrongAnswers;
-            document.getElementById('final-grade').innerText = `${grade} / 10`;
+            document.getElementById('final-incorrect').innerText = incorrects;
+            document.getElementById('final-grade').innerText = `${finalGrade} / 10`;
 
-            const medalContainer = document.getElementById('medal-container');
-            const resultTitle = document.getElementById('result-title');
-            const gradeFeedback = document.getElementById('grade-feedback');
-
-            // Feedback dinâmico e lúdico de acordo com a pontuação obtida
-            if (score === totalQuestions) {
-                medalContainer.innerHTML = `
-                    <div class="relative inline-block bg-yellow-400/20 p-6 rounded-full border-4 border-yellow-400 animate-bounce">
-                        <span class="text-7xl">🥇</span>
-                    </div>
-                `;
-                resultTitle.innerText = "Excelente! Nota Máxima!";
-                gradeFeedback.innerText = "Estudaste muitíssimo bem! Tens um conhecimento fantástico sobre a passagem do tempo e as mudanças de História!";
-            } else if (score >= 16) {
-                medalContainer.innerHTML = `
-                    <div class="relative inline-block bg-zinc-300/20 p-6 rounded-full border-4 border-zinc-400">
-                        <span class="text-7xl">🥈</span>
-                    </div>
-                `;
-                resultTitle.innerText = "Excelente Trabalho!";
-                gradeFeedback.innerText = "Parabéns! Realizaste um excelente teste de História. Vais sair-te lindamente na escola!";
+            // Mensagem de incentivo fofa baseada no desempenho
+            const messageEl = document.getElementById('final-message');
+            if (score === total) {
+                messageEl.innerText = "🏆 INCRÍVEL! Você é um verdadeiro cientista e gabaritou tudo! Parabéns!";
+            } else if (score >= 20) {
+                messageEl.innerText = "🌟 Muito bem! Você foi excelente no teste de Ciências! Continue estudando e explorando a natureza!";
             } else if (score >= 10) {
-                medalContainer.innerHTML = `
-                    <div class="relative inline-block bg-amber-700/20 p-6 rounded-full border-4 border-amber-600">
-                        <span class="text-7xl">🥉</span>
-                    </div>
-                `;
-                resultTitle.innerText = "Bom Desempenho!";
-                gradeFeedback.innerText = "Bom esforço! Com uma pequena revisão das respostas incorretas, podes tirar uma nota ainda mais alta no próximo teste!";
+                messageEl.innerText = "👍 Parabéns pelo seu esforço! Você já sabe muito sobre as plantas e os animais do nosso planeta!";
             } else {
-                medalContainer.innerHTML = `
-                    <div class="relative inline-block bg-zinc-800 p-6 rounded-full border-4 border-zinc-700">
-                        <span class="text-7xl">📚</span>
-                    </div>
-                `;
-                resultTitle.innerText = "Pratica mais um pouco!";
-                gradeFeedback.innerText = "Estudar é uma caminhada com várias etapas! Revê as páginas do teu livro de História e tenta de novo.";
+                messageEl.innerText = "🍀 Não fique triste! Vamos tentar mais uma vez? Estudar ciências nos ajuda a conhecer melhor o nosso mundo!";
             }
-
-            // Gravar tentativa permanentemente no dispositivo e limpar progresso atual pendente
-            saveAttemptToHistory();
-            deleteProgressState();
-            window.recoveredState = null;
-            buildReviewList();
         }
 
-        // Montar Lista de Revisão Pedagógica para Estudo
-        function buildReviewList() {
-            const list = document.getElementById('review-list');
-            list.innerHTML = '';
-
-            questionsOrder.forEach((qId, idx) => {
-                const q = database.find(item => item.id === qId);
-                const item = document.createElement('div');
-                item.className = "bg-[#0c0c0e] p-4 rounded-xl border border-zinc-850 space-y-2";
-                
-                const optionLetters = ['A', 'B', 'C'];
-                const correctLetter = optionLetters[q.correctIndex];
-                const correctText = q.options[q.correctIndex];
-
-                item.innerHTML = `
-                    <p class="text-sm font-extrabold text-zinc-200">Questão ${idx + 1}: ${q.question}</p>
-                    <p class="text-xs text-emerald-400 font-extrabold">👉 Opção Correta (${correctLetter}): <span class="font-normal text-zinc-300">${correctText}</span></p>
-                    <p class="text-[11px] text-zinc-500 italic">Porquê? ${q.explanation}</p>
-                `;
-                list.appendChild(item);
-            });
+        function restartQuiz() {
+            resultScreen.classList.add('hidden');
+            startScreen.classList.remove('hidden');
         }
 
-        // Sair e guardar o progresso manualmente
-        window.exitAndSave = function() {
-            saveProgressState('active');
-            showToast("Progresso guardado no teu dispositivo! Até já! 💾");
-            setTimeout(() => {
-                location.reload();
-            }, 1200);
-        };
-
-        // Confirmar reinício
-        window.confirmRestart = function() {
-            if (confirm("Queres mesmo apagar o progresso atual e recomeçar um novo simulado do zero?")) {
-                deleteProgressState();
-                window.recoveredState = null;
-                startNewQuiz();
-            }
-        };
-
-        // Recomeçar do zero após terminar o teste
-        window.restartFromZero = function() {
-            deleteProgressState();
-            window.recoveredState = null;
-            startNewQuiz();
-        };
-
-        // Alternar visualização da revisão pedagógica no ecrã final
-        window.toggleReviewMode = function() {
-            const container = document.getElementById('review-container');
-            const btn = document.getElementById('btn-review');
-            if (container.classList.contains('hidden')) {
-                container.classList.remove('hidden');
-                btn.innerText = "Ocultar Revisão";
-                container.scrollIntoView({ behavior: 'smooth' });
-            } else {
-                container.classList.add('hidden');
-                btn.innerText = "Revisar Respostas";
-            }
-        };
-
-        // ------------------------- UTILITÁRIOS DA INTERFACE (TOAST E TAMANHO DE FONTES) -------------------------
-
-        // Exibir Notificação Temporária Customizada (Evita arrombar o layout em iframes)
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            document.getElementById('toast-text').innerText = message;
-            toast.classList.remove('hidden');
-            setTimeout(() => {
-                toast.classList.add('hidden');
-            }, 3000);
-        }
-
-        // Alterar Tamanho de Letra para Acessibilidade Visual do Utilizador
-        window.changeFontSize = function(size) {
-            const root = document.documentElement;
-            const btnNormal = document.getElementById('btn-font-normal');
-            const btnLarge = document.getElementById('btn-font-large');
-            const btnGiant = document.getElementById('btn-font-giant');
-
-            [btnNormal, btnLarge, btnGiant].forEach(btn => {
-                btn.className = "px-2.5 py-1 text-sm font-bold rounded text-zinc-300 hover:text-white";
-            });
-
-            if (size === 'normal') {
-                root.style.setProperty('--base-font-size', '1.15rem');
-                btnNormal.className = "px-2.5 py-1 text-xs font-bold rounded bg-yellow-400 text-black";
-            } else if (size === 'large') {
-                root.style.setProperty('--base-font-size', '1.35rem');
-                btnLarge.className = "px-2.5 py-1 text-base font-bold rounded bg-yellow-400 text-black";
-            } else if (size === 'giant') {
-                root.style.setProperty('--base-font-size', '1.65rem');
-                btnGiant.className = "px-2.5 py-1 text-lg font-bold rounded bg-yellow-400 text-black";
-            }
-        };
+        // Garantir que a escala de fonte inicial esteja aplicada
+        setFontScale(1);
     </script>
 </body>
 </html>
